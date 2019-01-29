@@ -37,6 +37,7 @@ var client = new plaid.Client(
 
 var app = express();
 app.use(express.static('public'));
+app.set('views','../app/src/views/html')
 app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({
   extended: false
@@ -50,7 +51,7 @@ app.use(function(req, res, next) {
 });
 
 app.get('/', function(request, response, next) {
-  response.render('index.ejs', {
+  response.render('index.html', {
     PLAID_PUBLIC_KEY: PLAID_PUBLIC_KEY,
     PLAID_ENV: PLAID_ENV,
     PLAID_PRODUCTS: PLAID_PRODUCTS,
