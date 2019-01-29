@@ -37,7 +37,7 @@ var client = new plaid.Client(
 
 var app = express();
 app.use(express.static('public'));
-app.set('views','../app/src/views/html/')
+app.set('views','../src/views/html/')
 app.engine('html', require('ejs').renderFile);
 app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({
