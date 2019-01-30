@@ -8,6 +8,10 @@ var bodyParser = require('body-parser');
 var moment = require('moment');
 var plaid = require('plaid');
 
+var fs = require('fs'),
+    http = require('http'),
+    https = require('https');
+
 var APP_PORT = envvar.number('APP_PORT', 443);
 var PLAID_CLIENT_ID = '5bf49265f581880011824d89';
 var PLAID_SECRET = '0b6a7706cd492e6d13fa434511c50b';
@@ -36,6 +40,16 @@ var client = new plaid.Client(
 );
 
 var app = express();
+
+var options = {
+  key: fs.readFileSync('../../../../../etc/letsencrypt/live/sage-savings.com/privkey.pem'),
+  cert: fs.readFileSync('../../../../../etc/letsencrypt/live/sage-savings.com/fullchain.pem'),
+};
+
+var server = https.createServer(options, app).listen(APP_PORT, function() {
+  console.log('Express server listening on port ' + APP_PORT);
+});
+
 app.use(express.static('public'));
 app.set('views','../src/views/html/')
 app.engine('html', require('ejs').renderFile);
@@ -238,10 +252,6 @@ app.get('/item', function(request, response, next) {
       }
     });
   });
-});
-
-var server = app.listen(APP_PORT, function() {
-  console.log('plaid-quickstart server listening on port ' + APP_PORT);
 });
 
 var prettyPrintResponse = response => {
