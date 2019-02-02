@@ -13,6 +13,7 @@ var fs = require('fs'),
     https = require('https');
 
 var APP_PORT = envvar.number('APP_PORT', 443);
+
 var PLAID_CLIENT_ID = '5bf49265f581880011824d89';
 var PLAID_SECRET = '0b6a7706cd492e6d13fa434511c50b';
 var PLAID_PUBLIC_KEY = '207a2a1d9f7ca6de5a0f3a5c4f07e4';
@@ -66,11 +67,12 @@ app.use(function(req, res, next) {
 });
 
 app.get('/', function(request, response, next) {
-  response.render('index.html', {
-    PLAID_PUBLIC_KEY: PLAID_PUBLIC_KEY,
-    PLAID_ENV: PLAID_ENV,
-    PLAID_PRODUCTS: PLAID_PRODUCTS,
-  });
+  response.render('index.html');
+  // response.render('index.html', {
+  //   PLAID_PUBLIC_KEY: PLAID_PUBLIC_KEY,
+  //   PLAID_ENV: PLAID_ENV,
+  //   PLAID_PRODUCTS: PLAID_PRODUCTS,
+  // });
 });
 
 // Exchange token flow - exchange a Link public_token for
