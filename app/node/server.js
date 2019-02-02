@@ -50,10 +50,10 @@ var server = https.createServer(options, app).listen(APP_PORT, function() {
   console.log('Express server listening on port ' + APP_PORT);
 });
 
-app.use(express.static('public'));
+app.use(express.static('../src'));
 app.set('views','../src/views/html/')
 app.engine('html', require('ejs').renderFile);
-// app.set('view engine', 'ejs');
+app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({
   extended: false
 }));
