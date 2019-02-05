@@ -19,12 +19,17 @@ function onSignIn(googleUser) {
         idtoken: id_token
     };
 
-    $.post('https://www.sage-savings.com/tokensignin', 
-        JSON.stringify(data),
-        "json",
-        function(data, status) {
+    $.ajax({
+        type: "POST",
+        url: 'https://www.sage-savings.com/tokensignin', 
+        data: JSON.stringify(data),
+        dataType: "json",
+        success: function(data, status) {
             alert(data[d]);
+        },
+        error: function() {
+            alert("Error");
         }
-    );
+    });
     
 }
