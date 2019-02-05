@@ -21,6 +21,7 @@ function onSignIn(googleUser) {
 
     $.post('https://www.sage-savings.com/tokensignin', 
         JSON.stringify(data),
+        "json",
         function(data, status) {
             alert(data[d]);
         }
