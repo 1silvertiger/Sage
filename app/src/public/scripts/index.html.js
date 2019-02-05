@@ -15,7 +15,7 @@ function onSignIn(googleUser) {
     // var xhr = new XMLHttpRequest();
     // xhr.open('POST', 'https://sage-savings.com/tokensignin');
 
-    $.post('https://sage-savings.com/tokensignin', 
+    $.post('https://www.sage-savings.com/tokensignin', 
         {
             idtoken: id_token
         },

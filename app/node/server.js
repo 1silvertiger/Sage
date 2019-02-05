@@ -12,7 +12,7 @@ var fs = require('fs'),
     http = require('http'),
     https = require('https');
 
-    var GOOGLE_AUTH_CLIENT_ID = '426835960192-m5m68us80b86qg3ilpanmf91gm3ufqk4.apps.googleusercontent.com';
+var GOOGLE_AUTH_CLIENT_ID = '426835960192-m5m68us80b86qg3ilpanmf91gm3ufqk4.apps.googleusercontent.com';
 
 const {OAuth2Client} = require('google-auth-library');
 const googleAuthClient = new OAuth2Client(GOOGLE_AUTH_CLIENT_ID);
@@ -80,16 +80,16 @@ app.get('/', function(request, response, next) {
 
 app.post('/tokensignin', function(request, response, next){
   console.log('debug');
-  // async function verify() {
-  //   const ticket = await googleAuthClient.verifyIdToken({
-  //     idToken: request.idtoken, 
-  //     audience: GOOGLE_AUTH_CLIENT_ID, 
-  //   });
-  //   const payload = ticket.getPayload();
-  //   const userid = payload['sub'];
-  //   console.log(userid);
-  // }
-  // verify.catch(console.error);
+  async function verify() {
+    const ticket = await googleAuthClient.verifyIdToken({
+      idToken: request.idtoken, 
+      audience: GOOGLE_AUTH_CLIENT_ID, 
+    });
+    const payload = ticket.getPayload();
+    const userid = payload['sub'];
+    console.log(userid);
+  }
+  verify.catch(console.error);
 });
 
 // Exchange token flow - exchange a Link public_token for
