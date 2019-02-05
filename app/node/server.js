@@ -79,16 +79,17 @@ app.get('/', function(request, response, next) {
 });
 
 app.post('/tokensignin', function(request, response, next){
-  async function verify() {
-    const ticket = await googleAuthClient.verifyIdToken({
-      idToken: request.idtoken, 
-      audience: GOOGLE_AUTH_CLIENT_ID, 
-    });
-    const payload = ticket.getPayload();
-    const userid = payload['sub'];
-    console.log(userid);
-  }
-  verify.catch(console.error);
+  console.log('debug');
+  // async function verify() {
+  //   const ticket = await googleAuthClient.verifyIdToken({
+  //     idToken: request.idtoken, 
+  //     audience: GOOGLE_AUTH_CLIENT_ID, 
+  //   });
+  //   const payload = ticket.getPayload();
+  //   const userid = payload['sub'];
+  //   console.log(userid);
+  // }
+  // verify.catch(console.error);
 });
 
 // Exchange token flow - exchange a Link public_token for
