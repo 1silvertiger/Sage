@@ -15,10 +15,12 @@ function onSignIn(googleUser) {
     // var xhr = new XMLHttpRequest();
     // xhr.open('POST', 'https://sage-savings.com/tokensignin');
 
+    var data = {
+        idtoken: id_token
+    };
+
     $.post('https://www.sage-savings.com/tokensignin', 
-        {
-            idtoken: id_token
-        },
+        JSON.stringify(data),
         function(data, status) {
             alert(data[d]);
         }
