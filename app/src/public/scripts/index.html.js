@@ -11,4 +11,17 @@ function onSignIn(googleUser) {
     // The ID token you need to pass to your backend:
     var id_token = googleUser.getAuthResponse().id_token;
     console.log("ID Token: " + id_token);
+
+    // var xhr = new XMLHttpRequest();
+    // xhr.open('POST', 'https://sage-savings.com/tokensignin');
+
+    $.post('https://sage-savings.com/tokensignin', 
+        {
+            idtoken: id_token
+        },
+        function(data, status) {
+            alert(data[d]);
+        }
+    );
+    
 }

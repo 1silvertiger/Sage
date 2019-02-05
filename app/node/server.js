@@ -12,6 +12,11 @@ var fs = require('fs'),
     http = require('http'),
     https = require('https');
 
+    var GOOGLE_AUTH_CLIENT_ID = '426835960192-m5m68us80b86qg3ilpanmf91gm3ufqk4.apps.googleusercontent.com';
+
+const {OAuth2Client} = require('google-auth-library');
+const googleAuthClient = new OAuth2Client(GOOGLE_AUTH_CLIENT_ID);
+
 var APP_PORT = envvar.number('APP_PORT', 443);
 var PLAID_CLIENT_ID = '5bf49265f581880011824d89';
 var PLAID_SECRET = '0b6a7706cd492e6d13fa434511c50b';
@@ -71,6 +76,18 @@ app.get('/', function(request, response, next) {
     PLAID_ENV: PLAID_ENV,
     PLAID_PRODUCTS: PLAID_PRODUCTS,
   });
+});
+
+app.post('/tokensignin', function(request, response, next){
+  async function verify() {
+    const ticket = await googleAuthClient.verifyIdToken({
+      idToken: request.idtoken, 
+      audience: GOOGLE_AUTH_CLIENT_ID, 
+    });
+    const payload = ticket.getPayload();
+    const userid = payload['sub'];
+  }
+  verify.catch(consol.error);
 });
 
 // Exchange token flow - exchange a Link public_token for
