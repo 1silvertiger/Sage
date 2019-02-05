@@ -65,7 +65,7 @@ app.use(bodyParser.urlencoded({
 app.use(bodyParser.json());
 
 app.use(function(req, res, next) {
-  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Origin", "https://sage-savings.com");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   next();
 });
@@ -89,7 +89,7 @@ app.post('/tokensignin', function(request, response, next){
     const userid = payload['sub'];
     console.log(userid);
   }
-  verify.catch(console.error);
+  verify().catch(console.error);
 });
 
 // Exchange token flow - exchange a Link public_token for
