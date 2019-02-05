@@ -86,8 +86,9 @@ app.post('/tokensignin', function(request, response, next){
     });
     const payload = ticket.getPayload();
     const userid = payload['sub'];
+    console.log(userid);
   }
-  verify.catch(consol.error);
+  verify.catch(console.error);
 });
 
 // Exchange token flow - exchange a Link public_token for
