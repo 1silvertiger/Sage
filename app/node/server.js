@@ -80,6 +80,7 @@ app.get('/', function(request, response, next) {
 
 app.post('/tokensignin', function(request, response, next){
   async function verify() {
+    console.log(request.body);
     const ticket = await googleAuthClient.verifyIdToken({
       idToken: request.query.idtoken, 
       audience: GOOGLE_AUTH_CLIENT_ID, 
