@@ -13,7 +13,12 @@ function onSignIn(googleUser) {
     console.log("ID Token: " + id_token);
 
     // var xhr = new XMLHttpRequest();
-    // xhr.open('POST', 'https://sage-savings.com/tokensignin');
+    // xhr.open('POST', 'http://0f8aa61d.ngrok.io/tokensignin');
+    // xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    // xhr.onload = function() {
+    // console.log('Signed in as: ' + xhr.responseText);
+    // };
+    // xhr.send('idtoken=' + id_token);
 
     var data = {
         idtoken: id_token
@@ -24,6 +29,7 @@ function onSignIn(googleUser) {
         url: 'https://www.sage-savings.com/tokensignin', 
         data: JSON.stringify(data),
         dataType: "json",
+        headers: {'Content-Type': 'application/json'},
         success: function(data, status) {
             alert(data[d]);
         },
