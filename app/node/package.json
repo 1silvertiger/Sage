@@ -11,7 +11,7 @@
   "repository": "https://github.com/1silvertiger/Sage",
   "license": "ISC",
   "dependencies": {
-    "body-parser": "1.18.x",
+    "body-parser": "^1.18.3",
     "ejs": "2.5.x",
     "envvar": "1.1.x",
     "express": "4.16.x",
