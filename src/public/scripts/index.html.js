@@ -37,9 +37,9 @@ function onSignIn(googleUser) {
         success: function(data, status) {
             console.log();
         },
-        error: function() {
+        error: function(jqXHR) {
             //TODO: handle error
-            alert("Error");
+            alert(jqXHR);
         }
     });
     

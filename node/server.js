@@ -82,7 +82,7 @@ var corsOptions = {
 app.use(cors(corsOptions));
 
 app.use(function(req, res, next) {
-  res.header("Access-Control-Allow-Origin", "https://www.sage-savings.com");
+  res.header("Access-Control-Allow-Origin", "https://sage-savings.com");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   next();
 });
@@ -110,6 +110,7 @@ app.post('/tokensignin', function(request, response, next){
         conn.query("INSERT INTO User (id, firstName, lastName, imageUrl, email) VALUES (?,?,?,?,?)"
           , [userid, request.body.firstName, request.body.lastName, request.body.imageUrl, request.body.email]).catch(err => {
             console.log("error: " + err);
+            response.send(err);
           });
         conn.end();
       });
