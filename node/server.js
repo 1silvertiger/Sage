@@ -103,7 +103,7 @@ app.post('/tokensignin', function(request, response, next){
     });
     const payload = ticket.getPayload();
     const userid = payload['sub'];
-    console.log(userid);
+    console.log(userid + " for " + request.body.firstName + " " + request.body.lastName);
     pool.getConnection().then(conn => {
       conn.query("SELECT id FROM User WHERE id = " + userid).then(rows => {
         console.log(request.body);
