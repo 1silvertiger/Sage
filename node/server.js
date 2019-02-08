@@ -5,6 +5,7 @@ var util = require('util');
 var envvar = require('envvar');
 var express = require('express');
 var bodyParser = require('body-parser');
+var cors = require('cors');
 var moment = require('moment');
 var plaid = require('plaid');
 var mariadb = require('mariadb');
@@ -73,8 +74,15 @@ app.use(bodyParser.urlencoded({
 }));
 app.use(bodyParser.json());
 
+var corsOptions = {
+  origin: 'https://www.sage-savings.com',
+  optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
+
 app.use(function(req, res, next) {
-  res.header("Access-Control-Allow-Origin", "https://sage-savings.com");
+  res.header("Access-Control-Allow-Origin", "https://www.sage-savings.com");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   next();
 });
