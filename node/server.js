@@ -107,6 +107,7 @@ app.post('/tokensignin', function(request, response, next){
     pool.getConnection().then(conn => {
       conn.query("SELECT id FROM User WHERE id = " + userid).then(rows => {
         console.log(request.body);
+        console.log("userid: " + userid);
         conn.query("INSERT INTO User (id, firstName, lastName, imageUrl, email) VALUES (?,?,?,?,?)"
           , [userid, request.body.firstName, request.body.lastName, request.body.imageUrl, request.body.email]).catch(err => {
             console.log("error: " + err);
