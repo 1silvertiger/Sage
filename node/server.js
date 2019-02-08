@@ -75,7 +75,7 @@ app.use(bodyParser.urlencoded({
 app.use(bodyParser.json());
 
 var corsOptions = {
-  origin: 'https://www.sage-savings.com',
+  origin: 'https://sage-savings.com',
   optionsSuccessStatus: 200
 };
 
