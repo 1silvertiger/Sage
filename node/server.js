@@ -7,6 +7,7 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var moment = require('moment');
 var plaid = require('plaid');
+var mariadb = require('mariadb');
 
 var fs = require('fs'),
     http = require('http'),
@@ -43,6 +44,14 @@ var client = new plaid.Client(
   plaid.environments[PLAID_ENV],
   {version: '2018-05-22'}
 );
+
+const pool = mariadb.createPool({
+  host: 'sagesql.c8j75ssvguag.us-east-2.rds.amazonaws.com',
+  user: 'admin',
+  password: 'fVwPdEV8EE!P%9^84z^amwMDR*Nb4fV',
+  database: 'SageSQL',
+  port: 3306
+});
 
 var app = express();
 
@@ -87,6 +96,16 @@ app.post('/tokensignin', function(request, response, next){
     const payload = ticket.getPayload();
     const userid = payload['sub'];
     console.log(userid);
+    pool.getConnection().then(conn => {
+      conn.query("SELECT id FROM User WHERE id = " + userid).then(rows => {
+        console.log(request.body);
+        conn.query("INSERT INTO User (id, firstName, lastName, imageUrl, email) VALUES (?,?,?,?,?)"
+          , [userid, request.body.firstName, request.body.lastName, request.body.imageUrl, request.body.email]).catch(err => {
+            console.log("error: " + err);
+          });
+        conn.end();
+      });
+    });
   }
   verify().catch(console.error);
 });

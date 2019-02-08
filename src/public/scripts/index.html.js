@@ -30,7 +30,7 @@ function onSignIn(googleUser) {
 
     $.ajax({
         type: "POST",
-        url: 'http://5e7ec830.ngrok.io/tokensignin', 
+        url: 'http://sage-savings.com/tokensignin', 
         data: JSON.stringify(data),
         dataType: "json",
         headers: {'Content-Type': 'application/json'},
