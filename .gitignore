@@ -1,10 +1,3 @@
-wireframes/
-your-first-pwapp-master/
-map.txt
-GoogleSignInApiCredentials.json
+node/node_modules/*
 
-gantt\.mpp
-
-sitemap\.vsdx
-
-app/node/windowsServer\.js
+node/windowsServer\.js
