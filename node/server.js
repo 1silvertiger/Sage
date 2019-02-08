@@ -105,17 +105,24 @@ app.post('/tokensignin', function(request, response, next){
     const userid = payload['sub'];
     console.log(userid + " for " + request.body.firstName + " " + request.body.lastName);
     pool.getConnection().then(conn => {
-      conn.query("SELECT id FROM User WHERE id = " + userid).then(rows => {
-        console.log(request.body);
-        console.log("userid: " + userid);
-        conn.query("INSERT INTO User (id, firstName, lastName, imageUrl, email) VALUES (?,?,?,?,?)"
+      conn.query("INSERT INTO User (id, firstName, lastName, imageUrl, email) VALUES (?,?,?,?,?)"
           , [userid, request.body.firstName, request.body.lastName, request.body.imageUrl, request.body.email]).catch(err => {
             console.log("error: " + err);
             response.send(err);
           });
           console.log("userid: " + userid);
         conn.end();
-      });
+      // conn.query("SELECT id FROM User WHERE id = " + userid).then(rows => {
+      //   console.log(request.body);
+      //   console.log("userid: " + userid);
+      //   // conn.query("INSERT INTO User (id, firstName, lastName, imageUrl, email) VALUES (?,?,?,?,?)"
+      //   //   , [userid, request.body.firstName, request.body.lastName, request.body.imageUrl, request.body.email]).catch(err => {
+      //   //     console.log("error: " + err);
+      //   //     response.send(err);
+      //   //   });
+      //   //   console.log("userid: " + userid);
+      //   // conn.end();
+      // });
     });
   }
   verify().catch(console.error);
