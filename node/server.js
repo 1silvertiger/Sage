@@ -113,6 +113,7 @@ app.post('/tokensignin', function(request, response, next){
             console.log("error: " + err);
             response.send(err);
           });
+          console.log("userid: " + userid);
         conn.end();
       });
     });
