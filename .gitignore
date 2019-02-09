@@ -3,3 +3,6 @@ node/node_modules/*
 node/windowsServer\.js
 
 prepros-6\.config
+
+node/config/local.json
+*.exclude
