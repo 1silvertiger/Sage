@@ -1,0 +1,29 @@
+<html>
+      <head>
+        <meta charset="UTF-8">
+        <title>README.md</title>
+      </head>
+      <body>
+        <h3 id="plaid-node-quickstart">plaid-node quickstart</h3>
+<p><a href="https://plaid.com/docs/quickstart">Quickstart guide</a></p>
+<pre><code class="lang-bash">git clone https://github.com/plaid/quickstart.git
+cd quickstart/node
+npm install
+
+# Start the Quickstart with your API keys from the Dashboard
+# https://dashboard.plaid.com/account/keys
+#
+# PLAID_PRODUCTS is a comma-separated list of products to use when initializing
+# Link. Note that this list must contain &#39;assets&#39; in order for the app to be
+# able to create and retrieve asset reports.
+PLAID_CLIENT_ID=&#39;CLIENT_ID&#39; \
+PLAID_SECRET=&#39;SECRET&#39; \
+PLAID_PUBLIC_KEY=&#39;PUBLIC_KEY&#39; \
+PLAID_ENV=&#39;sandbox&#39; \
+PLAID_PRODUCTS=&#39;transactions&#39; \
+node index.js
+# Go to http://localhost:8000
+</code></pre>
+
+      </body>
+    </html>

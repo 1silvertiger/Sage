@@ -2,7 +2,7 @@
   
   <head>
     <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+    <script src="<%= JQUERY_CDN %>" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous" defer></script>
 
     <!-- Popper -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous" defer></script>
@@ -18,10 +18,10 @@
     <!-- Google Sign In -->
     <meta name="google-signin-scope" content="profile email">
     <meta name="google-signin-client_id" content="426835960192-m5m68us80b86qg3ilpanmf91gm3ufqk4.apps.googleusercontent.com">
-    <script src="https://apis.google.com/js/platform.js" async defer></script>
+    <script src="https://apis.google.com/js/platform.js" defer></script>
 
     <!-- EJS -->
-    <script src="ejs.min.js" defer></script>
+    <script src="scripts/ejs.min.js" defer></script>
 
     <!-- Custom styles -->
     <link rel="stylesheet" type="text/css" href="stylesheets/css/signin.css">
@@ -49,4 +49,8 @@
     </form>
 
   </body>
+
+  <script>
+    var URL = '<%= URL %>';
+  </script>
 </html>

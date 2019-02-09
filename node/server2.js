@@ -1,16 +1,20 @@
 'use strict';
 
-var util = require('util');
+var config = require('config'),
 
-var envvar = require('envvar');
-var express = require('express');
-var bodyParser = require('body-parser');
-var cors = require('cors');
-var moment = require('moment');
-var plaid = require('plaid');
-var mariadb = require('mariadb');
+    ejs = require('ejs'),
 
-var fs = require('fs'),
+    util = require('util'),
+
+    envvar = require('envvar'),
+    express = require('express'),
+    bodyParser = require('body-parser'),
+    cors = require('cors'),
+    moment = require('moment'),
+    plaid = require('plaid'),
+    mariadb = require('mariadb'),
+
+    fs = require('fs'),
     http = require('http'),
     https = require('https');
 
@@ -19,7 +23,7 @@ var GOOGLE_AUTH_CLIENT_ID = '426835960192-m5m68us80b86qg3ilpanmf91gm3ufqk4.apps.
 const {OAuth2Client} = require('google-auth-library');
 const googleAuthClient = new OAuth2Client(GOOGLE_AUTH_CLIENT_ID);
 
-var APP_PORT = envvar.number('APP_PORT', 443);
+var APP_PORT = config.APP_PORT;
 var PLAID_CLIENT_ID = '5bf49265f581880011824d89';
 var PLAID_SECRET = '0b6a7706cd492e6d13fa434511c50b';
 var PLAID_PUBLIC_KEY = '207a2a1d9f7ca6de5a0f3a5c4f07e4';
@@ -56,18 +60,27 @@ const pool = mariadb.createPool({
 
 var app = express();
 
-var options = {
-  key: fs.readFileSync('../../../../../etc/letsencrypt/live/sage-savings.com/privkey.pem'),
-  cert: fs.readFileSync('../../../../../etc/letsencrypt/live/sage-savings.com/fullchain.pem'),
-};
+var server;
 
-var server = https.createServer(options, app).listen(APP_PORT, function() {
-  console.log('Express server listening on port ' + APP_PORT);
-});
+if (config.APP_MODE == "dev") {
+    server = app.listen(APP_PORT)//, function() {
+        // console.log("Express server listening for port " + APP_PORT);
+    // });
+} else if (config.APP_MODE == "beta" || config.APP_MODE == "prod") {
+    var options = {
+        key: fs.readFileSync('../../../../../etc/letsencrypt/live/sage-savings.com/privkey.pem'),
+        cert: fs.readFileSync('../../../../../etc/letsencrypt/live/sage-savings.com/fullchain.pem'),
+    };
+    server = https.createServer(options, app).listen(APP_PORT)//, function() {
+        // console.log('Express server listening on port ' + APP_PORT);
+    // });
+}
+
+console.log('Express server listening on port ' + APP_PORT);
 
 app.use(express.static('../src/public'));
 app.set('views','../src/public/html/');
-app.engine('html', require('ejs').renderFile);
+// app.engine('html', require('ejs').renderFile);
 app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({
   extended: false
@@ -75,42 +88,50 @@ app.use(bodyParser.urlencoded({
 app.use(bodyParser.json());
 
 var corsOptions = {
-  origin: 'https://sage-savings.com',
-  optionsSuccessStatus: 200
+    origin: config.URL,
+    optionsSuccessStatus: 200
 };
 
 app.use(cors(corsOptions));
 
 app.use(function(req, res, next) {
-  res.header("Access-Control-Allow-Origin", "https://sage-savings.com");
+  res.header("Access-Control-Allow-Origin", config.URL);
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   next();
 });
 
+//\\//\\//\\//\\NAVIGATION//\\//\\//\\//\\
+// Landing page
 app.get('/', function(request, response, next) {
-  response.render('index.html', {
+  response.render('index.ejs', {
     PLAID_PUBLIC_KEY: PLAID_PUBLIC_KEY,
     PLAID_ENV: PLAID_ENV,
     PLAID_PRODUCTS: PLAID_PRODUCTS,
+    APP_MODE: config.APP_MODE,
+    APP_PORT: config.APP_PORT,
+    URL: config.URL,
+    JQUERY_CDN: 'https://code.jquery.com/jquery-3.3.1.min.js'
   });
 });
 
-app.post('/tokensignin', function(request, response, next){
+//\\//\\//\\//\\API//\\//\\//\\//\\
+// Sign in
+app.post('/tokensignin', function(req, res){
   async function verify() {
     const ticket = await googleAuthClient.verifyIdToken({
-      idToken: request.body.idtoken, 
+      idToken: req.body.idtoken, 
       audience: GOOGLE_AUTH_CLIENT_ID, 
     });
     const payload = ticket.getPayload();
     const userid = payload['sub'];
-    console.log(userid + " for " + request.body.firstName + " " + request.body.lastName);
+    console.log(userid + " for " + req.body.firstName + " " + req.body.lastName);
     pool.getConnection().then(conn => {
-      conn.query("INSERT INTO User (id, firstName, lastName, imageUrl, email) VALUES (?,?,?,?,?)"
-          , [payload['sub'], request.body.firstName, request.body.lastName, request.body.imageUrl, request.body.email]).catch(err => {
+      conn.query("INSERT INTO User (googleId, firstName, lastName, imageUrl, email) VALUES (?,?,?,?,?)"
+          , [userid, req.body.firstName, req.body.lastName, req.body.imageUrl, req.body.email]).catch(err => {
             console.log("error: " + err);
-            response.send(err);
+            res.send(err);
           });
-          console.log("userid: " + userid);
+        console.log("userid: " + userid);
         conn.end();
     });
   }

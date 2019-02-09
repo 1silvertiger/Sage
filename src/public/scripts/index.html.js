@@ -30,12 +30,12 @@ function onSignIn(googleUser) {
 
     $.ajax({
         type: "POST",
-        url: 'https://www.sage-savings.com/tokensignin', 
+        url: URL + '/tokensignin', 
         data: JSON.stringify(data),
         dataType: "json",
         headers: {'Content-Type': 'application/json'},
         success: function(data, status) {
-            console.log();
+            console.log("success");
         },
         error: function(jqXHR) {
             //TODO: handle error
