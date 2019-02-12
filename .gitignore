@@ -6,3 +6,5 @@ prepros-6\.config
 
 node/config/local.json
 *.exclude
+
+node/config/

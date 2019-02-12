@@ -16,7 +16,9 @@ var config = require('config'),
 
     fs = require('fs'),
     http = require('http'),
-    https = require('https');
+    https = require('https'),
+
+    session = require('express-session');
 
 var GOOGLE_AUTH_CLIENT_ID = '426835960192-m5m68us80b86qg3ilpanmf91gm3ufqk4.apps.googleusercontent.com';
 
@@ -59,6 +61,8 @@ const pool = mariadb.createPool({
 });
 
 var app = express();
+
+app.use(session({ resave: false, saveUninitialized: false, secret: 'debug', cookie: { secure: true } }));
 
 var server;
 
@@ -109,12 +113,33 @@ app.get('/', function (request, response, next) {
 });
 
 app.all('/home', function (req, res) {
-    return res.render('home.ejs');
+    console.log(req.session.test);
+    return res.render('home.ejs', {
+        test: req.session.test,
+        user: req.session.user,
+    });
+});
+
+app.all("/budgets", function (req, res) {
+    pool.getConnection()
+    .then(conn => {
+        conn.query()
+            .then(rows => {
+
+            })
+            .catch(err => {
+
+            });
+    })
+    .catch(err => {
+
+    });
 });
 
 //\\//\\//\\//\\API//\\//\\//\\//\\
 // Sign in
 app.post('/tokensignin', function (req, res) {
+    console.log("debug");
     async function verify() {
         const ticket = await googleAuthClient.verifyIdToken({
             idToken: req.body.idtoken,
@@ -124,16 +149,30 @@ app.post('/tokensignin', function (req, res) {
         const userid = payload['sub'];
         if (payload['aud'] == GOOGLE_AUTH_CLIENT_ID) {
             pool.getConnection().then(conn => {
-                conn.query("SELECT * FROM User WHERE googleId = ?", [userid])
+                conn.query("CALL getUserByGoogleId(?)", [userid])
                     .then(rows => {
                         res.sendStatus(200);
                         if (rows[0]) {
                             console.log(rows[0]);
+                            req.session.test = "Hello, world!";
+                            console.log(req.session.test);
+                            req.session.user = {
+                                firstName: rows[0].firstName,
+                                lastName: rows[0].lastName,
+                                avatar: rows[0].imageUrl,
+                            };
                         } else {
                             conn
-                                .query("INSERT INTO User (googleId, firstName, lastName, imageUrl, email) VALUES (?,?,?,?,?)"
+                                .query("CALL createUser(?,?,?,?,?)) VALUES (?,?,?,?,?)"
                                     , [userid, req.body.firstName, req.body.lastName, req.body.imageUrl, req.body.email]
                                 )
+                                .then(rows => {
+                                    req.session.user = {
+                                        firstName: rows[0].firstName,
+                                        lastName: rows[0].lastName,
+                                        avatar: rows[0].imageUrl,
+                                    };
+                                })
                                 .catch(err => {
                                     console.log("error: " + err);
                                     res.send(err);
