@@ -1,13 +1,23 @@
 <html lang="en">
-    <head>
-        <%- include('./head.html') %>
-    </head>
 
-    <body>
-        <p>Test: <%= test %></p>
-    </body>
+<head>
+    <%- include('./head.html') %>
 
-    <script>
+    <script src="scripts/plaid.js" type="text/javascript" defer></script>
+    <script src="scripts/home.ejs.js" type="text/javascript" defer></script>
+</head>
 
-    </script>
+<body>
+    <p>Test: <%= test %></p>
+    <p>Hello, </p>
+
+    <button id="plaid" class="btn btn-primary">Plaid</button>
+</body>
+
+<script>
+    var URL = '<%= URL %>';
+    var PLAID_ENV = '<%= PLAID_ENV %>';
+    var PLAID_PUBLIC_KEY = '<%= PLAID_PUBLIC_KEY %>';
+</script>
+
 </html>
