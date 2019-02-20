@@ -18,7 +18,6 @@ var config = require('config'),
     https = require('https'),
 
     session = require('express-session'),
-    cookieParser = require('cookie-parser');
 
 var GOOGLE_AUTH_CLIENT_ID = '426835960192-m5m68us80b86qg3ilpanmf91gm3ufqk4.apps.googleusercontent.com';
 
@@ -38,9 +37,9 @@ var PLAID_PRODUCTS = 'transactions';
 
 // We store the access_token in memory - in production, store it in a secure
 // persistent data store
-var ACCESS_TOKEN = 'access-sandbox-dfdf95e3-f2f7-4f98-991c-0766815f55e5';
+var ACCESS_TOKEN = '';
 var PUBLIC_TOKEN = null;
-var ITEM_ID = 'bvDG3KE6yRfoBwpG1V43IMq4xXrqkZiVJ57Wr';
+var ITEM_ID = '';
 
 // Initialize the Plaid client
 // Find your API keys in the Dashboard (https://dashboard.plaid.com/account/keys)
@@ -62,7 +61,6 @@ const pool = mariadb.createPool({
 
 var app = express();
 
-app.use(cookieParser());
 app.use(
     session({
         resave: false,
@@ -154,7 +152,6 @@ app.all("/budgets", function (req, res) {
 //\\//\\//\\//\\API//\\//\\//\\//\\
 // Sign in
 app.post('/tokensignin', function (req, res) {
-    //console.log("debug");
     async function verify() {
         const ticket = await googleAuthClient.verifyIdToken({
             idToken: req.body.idtoken,
@@ -167,7 +164,6 @@ app.post('/tokensignin', function (req, res) {
                 conn.query("CALL getUserByGoogleId(?)", [userid])
                     .then(rows => {
                         if (rows[0]) {
-                            //console.log(rows[0]);
                             req.session.test = "Hello, world!";
                             console.log("req.session.test = " + req.session.test);
                             req.session.user = {
@@ -175,6 +171,7 @@ app.post('/tokensignin', function (req, res) {
                                 lastName: rows[0].lastName,
                                 avatar: rows[0].imageUrl,
                             };
+                            console.log("user: " + req.session.user);
                         } else {
                             conn
                                 .query("CALL createUser(?,?,?,?,?)) VALUES (?,?,?,?,?)"
