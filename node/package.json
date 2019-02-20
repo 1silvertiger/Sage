@@ -14,6 +14,7 @@
     "aws-sdk": "^2.397.0",
     "body-parser": "^1.18.3",
     "config": "^3.0.1",
+    "cookie-parser": "^1.4.3",
     "cors": "^2.8.5",
     "ejs": "^2.5.9",
     "envvar": "1.1.x",

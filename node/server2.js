@@ -6,7 +6,6 @@ var config = require('config'),
 
     util = require('util'),
 
-    envvar = require('envvar'),
     express = require('express'),
     bodyParser = require('body-parser'),
     cors = require('cors'),
@@ -18,7 +17,8 @@ var config = require('config'),
     http = require('http'),
     https = require('https'),
 
-    session = require('express-session');
+    session = require('express-session'),
+    cookieParser = require('cookie-parser');
 
 var GOOGLE_AUTH_CLIENT_ID = '426835960192-m5m68us80b86qg3ilpanmf91gm3ufqk4.apps.googleusercontent.com';
 
@@ -29,12 +29,12 @@ var APP_PORT = config.APP_PORT;
 var PLAID_CLIENT_ID = '5bf49265f581880011824d89';
 var PLAID_SECRET = '0b6a7706cd492e6d13fa434511c50b';
 var PLAID_PUBLIC_KEY = '207a2a1d9f7ca6de5a0f3a5c4f07e4';
-var PLAID_ENV = envvar.string('PLAID_ENV', 'sandbox');
+var PLAID_ENV = 'sandbox';
 
 // PLAID_PRODUCTS is a comma-separated list of products to use when initializing
 // Link. Note that this list must contain 'assets' in order for the app to be
 // able to create and retrieve asset reports.
-var PLAID_PRODUCTS = envvar.string('PLAID_PRODUCTS', 'transactions');
+var PLAID_PRODUCTS = 'transactions';
 
 // We store the access_token in memory - in production, store it in a secure
 // persistent data store
@@ -62,7 +62,15 @@ const pool = mariadb.createPool({
 
 var app = express();
 
-app.use(session({ resave: false, saveUninitialized: false, secret: 'debug', cookie: { secure: true } }));
+app.use(cookieParser());
+app.use(
+    session({
+        resave: false,
+        saveUninitialized: true,
+        secret: 'debug',
+        cookie: { secure: false }
+    })
+);
 
 var server;
 
@@ -113,8 +121,15 @@ app.get('/', function (request, response, next) {
 });
 
 app.all('/home', function (req, res) {
-    console.log(req.session.test);
+    console.log("req.session.test = " + req.session.test);
+    console.log(req.session);
     return res.render('home.ejs', {
+        PLAID_PUBLIC_KEY: PLAID_PUBLIC_KEY,
+        PLAID_ENV: PLAID_ENV,
+        PLAID_PRODUCTS: PLAID_PRODUCTS,
+        APP_MODE: config.APP_MODE,
+        APP_PORT: config.APP_PORT,
+        URL: config.URL,
         test: req.session.test,
         user: req.session.user,
     });
@@ -122,24 +137,24 @@ app.all('/home', function (req, res) {
 
 app.all("/budgets", function (req, res) {
     pool.getConnection()
-    .then(conn => {
-        conn.query()
-            .then(rows => {
+        .then(conn => {
+            conn.query()
+                .then(rows => {
 
-            })
-            .catch(err => {
+                })
+                .catch(err => {
 
-            });
-    })
-    .catch(err => {
+                });
+        })
+        .catch(err => {
 
-    });
+        });
 });
 
 //\\//\\//\\//\\API//\\//\\//\\//\\
 // Sign in
 app.post('/tokensignin', function (req, res) {
-    console.log("debug");
+    //console.log("debug");
     async function verify() {
         const ticket = await googleAuthClient.verifyIdToken({
             idToken: req.body.idtoken,
@@ -151,11 +166,10 @@ app.post('/tokensignin', function (req, res) {
             pool.getConnection().then(conn => {
                 conn.query("CALL getUserByGoogleId(?)", [userid])
                     .then(rows => {
-                        res.sendStatus(200);
                         if (rows[0]) {
-                            console.log(rows[0]);
+                            //console.log(rows[0]);
                             req.session.test = "Hello, world!";
-                            console.log(req.session.test);
+                            console.log("req.session.test = " + req.session.test);
                             req.session.user = {
                                 firstName: rows[0].firstName,
                                 lastName: rows[0].lastName,
@@ -178,16 +192,31 @@ app.post('/tokensignin', function (req, res) {
                                     res.send(err);
                                 });
                         }
+                        res.sendStatus(200);
+                        conn.end();
                     })
                     .catch(err => {
                         res.send(err);
                     });
-                conn.end();
             });
         }
     }
     verify().catch(console.error);
 });
+
+app.all("/plaid", function (req, res) {
+    console.log(PLAID_ENV);
+    return res.render('plaid.ejs', {
+        PLAID_PUBLIC_KEY: PLAID_PUBLIC_KEY,
+        PLAID_ENV: PLAID_ENV,
+        PLAID_PRODUCTS: PLAID_PRODUCTS,
+        APP_MODE: config.APP_MODE,
+        APP_PORT: config.APP_PORT,
+        URL: config.URL,
+    });
+});
+
+//Plaid
 
 // Exchange token flow - exchange a Link public_token for
 // an API access_token

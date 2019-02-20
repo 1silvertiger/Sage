@@ -8,3 +8,5 @@ node/config/local.json
 *.exclude
 
 node/config/
+
+*.mpp
