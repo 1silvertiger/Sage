@@ -15,6 +15,10 @@ function onSignIn(googleUser) {
         data: JSON.stringify(data),
         dataType: "text",
         headers: {'Content-Type': 'application/json'},
+        credentials: 'same-origin',
+        xhrFields: {
+            withCredentials: true
+         },
         success: function(data, status) {
             console.log("success");
             window.location.replace(URL + "/home");

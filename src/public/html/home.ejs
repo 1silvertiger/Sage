@@ -8,16 +8,21 @@
 </head>
 
 <body>
-    <p>Test: <%= test %></p>
-    <p>Hello, </p>
-
-    <button id="plaid" class="btn btn-primary">Plaid</button>
+    <%- include('./navbar.html') %>
+    <div class="container">
+        <div class="row">
+            <p>Hello, <%= user.firstName %> <%= user.lastName %></p>
+            <p>Your Google ID is: <%= user.id %></p>
+            <button id="plaid" class="btn btn-primary">Plaid</button>
+        </div>
+    </div>
 </body>
 
 <script>
     var URL = '<%= URL %>';
     var PLAID_ENV = '<%= PLAID_ENV %>';
     var PLAID_PUBLIC_KEY = '<%= PLAID_PUBLIC_KEY %>';
+    var user = '<%= user %>';
 </script>
 
 </html>
