@@ -17,7 +17,7 @@ var config = require('config'),
     http = require('http'),
     https = require('https'),
 
-    session = require('express-session'),
+    session = require('express-session');
 
 var GOOGLE_AUTH_CLIENT_ID = '426835960192-m5m68us80b86qg3ilpanmf91gm3ufqk4.apps.googleusercontent.com';
 
@@ -61,14 +61,13 @@ const pool = mariadb.createPool({
 
 var app = express();
 
-app.use(
-    session({
-        resave: false,
-        saveUninitialized: true,
-        secret: 'debug',
-        cookie: { secure: false }
-    })
-);
+app.set('trust proxy', 1);
+app.use(session({
+    secret: 'keyboard cat',
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: true }
+}));
 
 var server;
 
@@ -94,7 +93,8 @@ app.use(bodyParser.json());
 
 var corsOptions = {
     origin: config.URL,
-    optionsSuccessStatus: 200
+    optionsSuccessStatus: 200,
+    credentials: true,
 };
 
 app.use(cors(corsOptions));
@@ -102,6 +102,13 @@ app.use(cors(corsOptions));
 app.use(function (req, res, next) {
     res.header("Access-Control-Allow-Origin", config.URL);
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    res.setHeader("Access-Control-Allow-Credentials", true);
+    next();
+});
+
+//\\//\\//\\//\\AUTHENTICATE//\\//\\//\\//\\
+app.all('*', function (req, res, next) {
+    //TODO: authenticate
     next();
 });
 
