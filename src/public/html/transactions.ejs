@@ -1,20 +1,59 @@
 <!doctype html>
 <html>
 
-<head>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
-        crossorigin="anonymous">
-    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
-        crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
-        crossorigin="anonymous"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
-        crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
-</head>
+<%- include ./head.html %>
 
 <body>
+    <%- include('./navbar.html') %>
+
     <div class="container">
+        <div class="section">
+            <!-- <div id="accountSelector" class="input-field col s12">
+                <option value="0" selected>All</option>
+                <option v-for="(account, index) in accounts" value="{{ index + 1 }}">{{ account }}</option>
+            </div> -->
+
+            <input type="text" class="datepicker">
+
+            <table id="table" class="striped">
+                <thead>
+                    <tr>
+                        <th>Amount</th>
+                        <th>Merchant</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="t in transactions">
+                        <td>{{ t.amount }}</td>
+                        <td>{{ t.name }}</td>
+                        <td>{{ t.date }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // const URL = '<%= URL %>';
+        var transactions = JSON.parse('<%- JSON.stringify(transactions) %>');
+        const user = '<%= user %>';
+        var table = new Vue({
+            el: '#table',
+            data: {
+                transactions: transactions
+            }
+        });
+
+        // var selector = new Vue({
+        //     el: '#accountSelector',
+        //     data: {
+        //         accounts: null
+        //     }
+        // });
+    </script>
+
+    <!-- <div class="container">
         <div class="row">
             <div class="col-12">
                 <div class="card">
@@ -59,13 +98,13 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    
+
                 </div>
             </div>
         </div>
-    </div> 
+    </div>
 
-    <script src="../scripts/index.js"></script>
+    <script src="../scripts/index.js"></script> -->
 </body>
 
 </html>
