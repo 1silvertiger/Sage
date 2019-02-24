@@ -126,8 +126,6 @@ app.get('/', function (request, response, next) {
 });
 
 app.all('/home', function (req, res) {
-    console.log("req.session.test = " + req.session.test);
-    console.log(req.session);
     return res.render('home.ejs', {
         PLAID_PUBLIC_KEY: PLAID_PUBLIC_KEY,
         PLAID_ENV: PLAID_ENV,
@@ -156,6 +154,31 @@ app.all("/budgets", function (req, res) {
         });
 });
 
+app.all("/transactions", function (req, res) {
+    pool.getConnection().then(conn => {
+        conn.query('CALL getAllPlaidItemsByUserId(?)', [req.session.user.id])
+            .then(rows => {
+                let accounts = new Array();
+                //let transactions = new Array();
+                for (let i = 0; i < rows[0].length; i++) {
+                    getTransactionsPromise(moment().subtract(30, 'days').format('YYYY-MM-DD'), moment().format('YYYY-MM-DD'), rows[0][i].accessToken, 5, 0).then(transactions => {
+                        // accounts.push(transactions.);
+                        prettyPrintResponse(transactions);
+                        res.render('transactions.ejs', {
+                            transactions: transactions.transactions,
+                            user: req.session.user,
+                            URL: config.URL
+                        });
+                    });
+                }
+            })
+            .catch(err => {
+                console.log(err)
+                res.sendStatus(500);
+        });
+    });
+});
+
 //\\//\\//\\//\\API//\\//\\//\\//\\
 // Sign in
 app.post('/tokensignin', function (req, res) {
@@ -170,9 +193,7 @@ app.post('/tokensignin', function (req, res) {
             pool.getConnection().then(conn => {
                 conn.query("CALL getUserByGoogleId(?)", [userid])
                     .then(rows => {
-                        console.log('user id from Google: ' + userid);
                         if (rows[0][0]) {
-                            console.log('user id from DB: ' + rows[0][0].googleId);
                             req.session.test = "Hello, world!";
                             req.session.user = {
                                 id: rows[0][0].googleId,
@@ -228,6 +249,7 @@ app.all("/plaid", function (req, res) {
 // https://plaid.com/docs/#exchange-token-flow
 app.post('/get_access_token', function (request, response, next) {
     PUBLIC_TOKEN = request.body.public_token;
+    //console.log('request.body: ' + request.body);
     client.exchangePublicToken(PUBLIC_TOKEN, function (error, tokenResponse) {
         if (error != null) {
             prettyPrintResponse(error);
@@ -235,6 +257,16 @@ app.post('/get_access_token', function (request, response, next) {
                 error: error,
             });
         }
+        //Save credentials to session
+        //request.session.user.accessToken = tokenResponse.access_token;
+        //request.session.user.itemId = tokenResponse.item_id;
+        //Save credentials to DB
+        pool.getConnection().then(conn => {
+            conn.query('CALL createPlaidItem(?,?,?)', [request.session.user.id, tokenResponse.item_id, tokenResponse.access_token])
+                .catch(err => {
+                    console.log(err);
+                });
+        });
         ACCESS_TOKEN = tokenResponse.access_token;
         ITEM_ID = tokenResponse.item_id;
         prettyPrintResponse(tokenResponse);
@@ -249,11 +281,11 @@ app.post('/get_access_token', function (request, response, next) {
 
 // Retrieve Transactions for an Item
 // https://plaid.com/docs/#transactions
-app.get('/transactions', function (request, response, next) {
+app.get('/get-transactions', function (request, response, next) {
     // Pull transactions for the Item for the last 30 days
     var startDate = moment().subtract(30, 'days').format('YYYY-MM-DD');
     var endDate = moment().format('YYYY-MM-DD');
-    client.getTransactions(ACCESS_TOKEN, startDate, endDate, {
+    client.getTransactions('access-sandbox-2efb1838-a358-403f-a806-dbac32d4ff84', startDate, endDate, {
         count: 250,
         offset: 0,
     }, function (error, transactionsResponse) {
@@ -263,11 +295,40 @@ app.get('/transactions', function (request, response, next) {
                 error: error
             });
         } else {
-            prettyPrintResponse(transactionsResponse);
             response.json({ error: null, transactions: transactionsResponse });
         }
     });
 });
+
+//Retrieve Transactions for an Item
+// function getTransactions(startDate, endDate, accessToken, count, offset) {
+//     console.log('debug');
+//     client.getTransactions(accessToken, startDate, endDate, {
+//         count: count, 
+//         offset: offset,},
+//         function (error, transactionsResponse) {
+//             console.log('transactionsResponse: ');
+//             // prettyPrintResponse(transactionsResponse);
+//             if (error == null ) {
+//                 return transactionsResponse;
+//             } else {
+//                 return error;
+//             }
+//         }
+//     );
+// }
+
+function getTransactionsPromise(startDate, endDate, accessToken, count, offset) {
+    return new Promise(function(resolve, reject) {
+        client.getTransactions(accessToken, startDate, endDate, {
+            count: count, 
+            offset: offset,},
+            function (error, transactionsResponse) {
+                resolve(transactionsResponse);
+            }
+        );
+    });
+}
 
 // Retrieve Identity for an Item
 // https://plaid.com/docs/#identity
