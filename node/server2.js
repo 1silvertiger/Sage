@@ -170,22 +170,23 @@ app.post('/tokensignin', function (req, res) {
             pool.getConnection().then(conn => {
                 conn.query("CALL getUserByGoogleId(?)", [userid])
                     .then(rows => {
-                        if (rows[0]) {
+                        console.log('user id from Google: ' + userid);
+                        if (rows[0][0]) {
+                            console.log('user id from DB: ' + rows[0][0].googleId);
                             req.session.test = "Hello, world!";
-                            console.log("req.session.test = " + req.session.test);
                             req.session.user = {
-                                firstName: rows[0].firstName,
-                                lastName: rows[0].lastName,
-                                avatar: rows[0].imageUrl,
+                                id: rows[0][0].googleId,
+                                'firstName': rows[0][0].firstName,
+                                'lastName': rows[0][0].lastName,
+                                'avatar': rows[0][0].imageUrl
                             };
-                            console.log("user: " + req.session.user);
                         } else {
-                            conn
-                                .query("CALL createUser(?,?,?,?,?)) VALUES (?,?,?,?,?)"
-                                    , [userid, req.body.firstName, req.body.lastName, req.body.imageUrl, req.body.email]
-                                )
+                            conn.query("CALL createUser(?,?,?,?,?)) VALUES (?,?,?,?,?)"
+                                , [userid, req.body.firstName, req.body.lastName, req.body.imageUrl, req.body.email]
+                            )
                                 .then(rows => {
                                     req.session.user = {
+                                        id: rows[0][0].googleId,
                                         firstName: rows[0].firstName,
                                         lastName: rows[0].lastName,
                                         avatar: rows[0].imageUrl,
