@@ -169,6 +169,8 @@ app.all("/transactions", function (req, res) {
                             user: req.session.user,
                             URL: config.URL
                         });
+                    }).catch(err => {
+                        console.log(err);
                     });
                 }
             })
@@ -215,7 +217,7 @@ app.post('/tokensignin', function (req, res) {
                                 })
                                 .catch(err => {
                                     console.log("error: " + err);
-                                    res.send(err);
+                                    res.sendStatus(500);
                                 });
                         }
                         res.sendStatus(200);
