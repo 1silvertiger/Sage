@@ -168,7 +168,8 @@ app.all("/transactions", function (req, res) {
                         res.render('transactions.ejs', {
                             transactions: transactions.transactions,
                             user: req.session.user,
-                            URL: config.URL
+                            URL: config.URL,
+                            test: 'hello, world'
                         });
                     }).catch(err => {
                         console.log(err);
