@@ -82,6 +82,7 @@ if (config.APP_MODE == "dev") {
 }
 
 console.log('Express server listening on port ' + APP_PORT);
+console.log('PM2');
 
 app.use(express.static('../src/public'));
 app.set('views', '../src/public/html/');
