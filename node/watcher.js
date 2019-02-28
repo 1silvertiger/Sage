@@ -1,4 +1,5 @@
 const https = require('https');
+const fs = require('fs');
 
 const options = {
     key: fs.readFileSync('../../../../../etc/letsencrypt/live/sage-savings.com/privkey.pem'),
