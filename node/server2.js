@@ -169,7 +169,7 @@ app.all("/transactions", function (req, res) {
                             transactions: transactions.transactions,
                             user: req.session.user,
                             URL: config.URL,
-                            test: 'hello, world'
+                            test: 'testing PM2'
                         });
                     }).catch(err => {
                         console.log(err);
