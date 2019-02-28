@@ -137,7 +137,7 @@ app.all('/home', function (req, res) {
         URL: config.URL,
         test: req.session.test,
         user: req.session.user,
-        debug: 'debug'
+        debug: 'it worked'
     });
 });
 
