@@ -1,6 +1,6 @@
-const http = require('http');
+const https = require('https');
 
-http.createServer(function (req, res) {
+https.createServer(function (req, res) {
     req.on('data', function (chunk) {
         console.log(req.body);
         exec('sh master-updated.sh');
