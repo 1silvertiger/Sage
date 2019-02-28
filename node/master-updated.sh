@@ -12,7 +12,7 @@ cd ..
 
 echo "Attempting to pull from master..."
 
-sudo git pull
+git pull
 
 echo "Pulled changes to master."
 
