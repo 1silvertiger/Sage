@@ -538,9 +538,3 @@ app.post('/set_access_token', function (request, response, next) {
         });
     });
 });
-
-app.all('/webhooks/github', function(req, res) {
-    console.log(req.body);
-    exec('sh master-updated.sh');
-    console.log('ran script');
-});
