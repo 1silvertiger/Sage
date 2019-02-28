@@ -136,6 +136,7 @@ app.all('/home', function (req, res) {
         URL: config.URL,
         test: req.session.test,
         user: req.session.user,
+        debug: 'testing PM2'
     });
 });
 
@@ -168,8 +169,7 @@ app.all("/transactions", function (req, res) {
                         res.render('transactions.ejs', {
                             transactions: transactions.transactions,
                             user: req.session.user,
-                            URL: config.URL,
-                            test: 'testing PM2'
+                            URL: config.URL
                         });
                     }).catch(err => {
                         console.log(err);
