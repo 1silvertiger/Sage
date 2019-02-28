@@ -137,7 +137,7 @@ app.all('/home', function (req, res) {
         URL: config.URL,
         test: req.session.test,
         user: req.session.user,
-        debug: 'more tests'
+        debug: 'it worked'
     });
 });
 
@@ -541,4 +541,4 @@ app.post('/set_access_token', function (request, response, next) {
 
 app.all('/webhooks/github', function(request, response) {
     exec('sh master-updated.sh');
-})
+});
