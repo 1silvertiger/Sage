@@ -10,3 +10,11 @@ node/config/local.json
 node/config/
 
 *.mpp
+
+\.idea/
+
+\.vscode/
+
+node/package-lock\.json
+
+node/package\.json
