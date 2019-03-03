@@ -1,5 +1,7 @@
 'use strict';
 
+process.env.NODE_CONFIG_DIR = './node/config';
+
 const config = require('config'),
 
     ejs = require('ejs'),
@@ -23,7 +25,7 @@ const config = require('config'),
 
 const GOOGLE_AUTH_CLIENT_ID = '426835960192-m5m68us80b86qg3ilpanmf91gm3ufqk4.apps.googleusercontent.com';
 
-const { OAuth2Client } = require('google-auth-library');
+const {OAuth2Client} = require('google-auth-library');
 const googleAuthClient = new OAuth2Client(GOOGLE_AUTH_CLIENT_ID);
 
 const APP_PORT = config.APP_PORT;
@@ -50,7 +52,7 @@ var client = new plaid.Client(
     PLAID_SECRET,
     PLAID_PUBLIC_KEY,
     plaid.environments[PLAID_ENV],
-    { version: '2018-05-22' }
+    {version: '2018-05-22'}
 );
 
 const pool = mariadb.createPool({
@@ -61,14 +63,14 @@ const pool = mariadb.createPool({
     port: 3306
 });
 
-var app = express();
+const app = express();
 
 app.set('trust proxy', 1);
 app.use(session({
     secret: 'keyboard cat',
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: true }
+    cookie: {secure: true}
 }));
 
 var server;
@@ -85,8 +87,8 @@ if (config.APP_MODE == "dev") {
 
 console.log('Express server listening on port ' + APP_PORT);
 
-app.use(express.static('../src/public'));
-app.set('views', '../src/public/html/');
+app.use(express.static('./src/public'));
+app.set('views', './src/public/html/');
 app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({
     extended: false
@@ -108,23 +110,26 @@ app.use(function (req, res, next) {
     next();
 });
 
-//\\//\\//\\//\\AUTHENTICATE//\\//\\//\\//\\
-app.all('*', function (req, res, next) {
-    //TODO: authenticate
-    next();
-});
+const global = {
+    //Fill with global vars that are sent in every response
+}
 
 //\\//\\//\\//\\NAVIGATION//\\//\\//\\//\\
+
 // Landing page
-app.get('/', function (request, response, next) {
-    response.render('index.ejs', {
-        PLAID_PUBLIC_KEY: PLAID_PUBLIC_KEY,
-        PLAID_ENV: PLAID_ENV,
-        PLAID_PRODUCTS: PLAID_PRODUCTS,
-        APP_MODE: config.APP_MODE,
-        APP_PORT: config.APP_PORT,
-        URL: config.URL,
-    });
+app.all('/', function (req, res, next) {
+    if (req.session.user) {
+        return res.redirect('/home');
+    } else {
+        res.render('index.ejs', {
+            PLAID_PUBLIC_KEY: PLAID_PUBLIC_KEY,
+            PLAID_ENV: PLAID_ENV,
+            PLAID_PRODUCTS: PLAID_PRODUCTS,
+            APP_MODE: config.APP_MODE,
+            APP_PORT: config.APP_PORT,
+            URL: config.URL,
+        });
+    }
 });
 
 app.all('/home', function (req, res) {
@@ -157,6 +162,35 @@ app.all("/budgets", function (req, res) {
         });
 });
 
+app.all("/accounts", function (req, res) {
+    pool.getConnection().then(conn => {
+        conn.query('CALL getAllPlaidItemsByUserId(?)', [req.session.user.id])
+            .then(async rows => {
+                if (rows[0].length > 0) {
+                    let accounts = new Array();
+                    for (let i = 0; i < rows[0].length; i++) {
+                        await getAccounts(rows[0][i].accessToken).then(item => {
+                            accounts = accounts.concat(item.accounts);
+                        }).catch(err => {
+                            console.log(err);
+                        });
+                    }
+                    res.render('accounts.ejs', {
+                        accounts: accounts
+                    });
+                } else {
+                    console.log('no data');
+                    res.end();
+                }
+            })
+            .catch(err => {
+                console.log(err);
+            });
+    }).catch(err => {
+        console.log(err);
+    });
+});
+
 app.all("/transactions", function (req, res) {
     pool.getConnection().then(conn => {
         conn.query('CALL getAllPlaidItemsByUserId(?)', [req.session.user.id])
@@ -180,7 +214,7 @@ app.all("/transactions", function (req, res) {
             .catch(err => {
                 console.log(err)
                 res.sendStatus(500);
-        });
+            });
     });
 });
 
@@ -198,7 +232,7 @@ app.post('/tokensignin', function (req, res) {
             pool.getConnection().then(conn => {
                 conn.query("CALL getUserByGoogleId(?)", [userid])
                     .then(rows => {
-                        if (rows[0][0]) {
+                        if (rows[0].length > 0) {
                             req.session.test = "Hello, world!";
                             req.session.user = {
                                 id: rows[0][0].googleId,
@@ -232,19 +266,8 @@ app.post('/tokensignin', function (req, res) {
             });
         }
     }
-    verify().catch(console.error);
-});
 
-app.all("/plaid", function (req, res) {
-    console.log(PLAID_ENV);
-    return res.render('plaid.ejs', {
-        PLAID_PUBLIC_KEY: PLAID_PUBLIC_KEY,
-        PLAID_ENV: PLAID_ENV,
-        PLAID_PRODUCTS: PLAID_PRODUCTS,
-        APP_MODE: config.APP_MODE,
-        APP_PORT: config.APP_PORT,
-        URL: config.URL,
-    });
+    verify().catch(console.error);
 });
 
 //Plaid
@@ -252,32 +275,25 @@ app.all("/plaid", function (req, res) {
 // Exchange token flow - exchange a Link public_token for
 // an API access_token
 // https://plaid.com/docs/#exchange-token-flow
-app.post('/get_access_token', function (request, response, next) {
-    PUBLIC_TOKEN = request.body.public_token;
-    //console.log('request.body: ' + request.body);
-    client.exchangePublicToken(PUBLIC_TOKEN, function (error, tokenResponse) {
+app.post('/get_access_token', function (req, res, next) {
+    client.exchangePublicToken(req.body.public_token, function (error, tokenResponse) {
         if (error != null) {
             prettyPrintResponse(error);
-            return response.json({
+            return res.json({
                 error: error,
             });
         }
-        //Save credentials to session
-        //request.session.user.accessToken = tokenResponse.access_token;
-        //request.session.user.itemId = tokenResponse.item_id;
-        //Save credentials to DB
+        //Save to DB
         pool.getConnection().then(conn => {
-            conn.query('CALL createPlaidItem(?,?,?)', [request.session.user.id, tokenResponse.item_id, tokenResponse.access_token])
+            conn.query('CALL createPlaidItem(?,?,?)', [req.session.user.id, tokenResponse.item_id, tokenResponse.access_token])
                 .catch(err => {
                     console.log(err);
                 });
         });
-        ACCESS_TOKEN = tokenResponse.access_token;
-        ITEM_ID = tokenResponse.item_id;
         prettyPrintResponse(tokenResponse);
-        response.json({
-            access_token: ACCESS_TOKEN,
-            item_id: ITEM_ID,
+        res.json({
+            access_token: tokenResponse.access_token,
+            item_id: tokenResponse.item_id,
             error: null,
         });
     });
@@ -300,7 +316,7 @@ app.get('/get-transactions', function (request, response, next) {
                 error: error
             });
         } else {
-            response.json({ error: null, transactions: transactionsResponse });
+            response.json({error: null, transactions: transactionsResponse});
         }
     });
 });
@@ -323,17 +339,7 @@ app.get('/get-transactions', function (request, response, next) {
 //     );
 // }
 
-function getTransactionsPromise(startDate, endDate, accessToken, count, offset) {
-    return new Promise(function(resolve, reject) {
-        client.getTransactions(accessToken, startDate, endDate, {
-            count: count, 
-            offset: offset,},
-            function (error, transactionsResponse) {
-                resolve(transactionsResponse);
-            }
-        );
-    });
-}
+
 
 // Retrieve Identity for an Item
 // https://plaid.com/docs/#identity
@@ -346,7 +352,7 @@ app.get('/identity', function (request, response, next) {
             });
         }
         prettyPrintResponse(identityResponse);
-        response.json({ error: null, identity: identityResponse });
+        response.json({error: null, identity: identityResponse});
     });
 });
 
@@ -361,7 +367,7 @@ app.get('/balance', function (request, response, next) {
             });
         }
         prettyPrintResponse(balanceResponse);
-        response.json({ error: null, balance: balanceResponse });
+        response.json({error: null, balance: balanceResponse});
     });
 });
 
@@ -376,9 +382,40 @@ app.get('/accounts', function (request, response, next) {
             });
         }
         prettyPrintResponse(accountsResponse);
-        response.json({ error: null, accounts: accountsResponse });
+        response.json({error: null, accounts: accountsResponse});
     });
 });
+
+function getTransactionsPromise(startDate, endDate, accessToken, count, offset) {
+    return new Promise(function (resolve, reject) {
+        client.getTransactions(accessToken, startDate, endDate, {
+                count: count,
+                offset: offset,
+            },
+            function (error, transactionsResponse) {
+                resolve(transactionsResponse);
+            }
+        );
+    });
+}
+
+function getAccounts(accessToken) {
+    return new Promise(function (resolve, reject) {
+        client.getAccounts(accessToken, function (error, accountsResponse) {
+            if (error != null) {
+                prettyPrintResponse(error);
+            }
+            prettyPrintResponse(accountsResponse);
+            resolve(accountsResponse);
+        });
+    });
+}
+
+function getAllAccounts(accessTokens) {
+    return new Promise(function(resolce, reject) {
+
+    });
+}
 
 // Retrieve ACH or ETF Auth data for an Item's accounts
 // https://plaid.com/docs/#auth
@@ -391,7 +428,7 @@ app.get('/auth', function (request, response, next) {
             });
         }
         prettyPrintResponse(authResponse);
-        response.json({ error: null, auth: authResponse });
+        response.json({error: null, auth: authResponse});
     });
 });
 
@@ -471,7 +508,7 @@ app.get('/item', function (request, response, next) {
 });
 
 var prettyPrintResponse = response => {
-    console.log(util.inspect(response, { colors: true, depth: 4 }));
+    console.log(util.inspect(response, {colors: true, depth: 4}));
 };
 
 // This is a helper function to poll for the completion of an Asset Report and
