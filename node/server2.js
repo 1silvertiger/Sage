@@ -25,7 +25,7 @@ const config = require('config'),
 
 const GOOGLE_AUTH_CLIENT_ID = '426835960192-m5m68us80b86qg3ilpanmf91gm3ufqk4.apps.googleusercontent.com';
 
-const {OAuth2Client} = require('google-auth-library');
+const { OAuth2Client } = require('google-auth-library');
 const googleAuthClient = new OAuth2Client(GOOGLE_AUTH_CLIENT_ID);
 
 const APP_PORT = config.APP_PORT;
@@ -52,7 +52,7 @@ var client = new plaid.Client(
     PLAID_SECRET,
     PLAID_PUBLIC_KEY,
     plaid.environments[PLAID_ENV],
-    {version: '2018-05-22'}
+    { version: '2018-05-22' }
 );
 
 const pool = mariadb.createPool({
@@ -70,7 +70,7 @@ app.use(session({
     secret: 'keyboard cat',
     resave: false,
     saveUninitialized: true,
-    cookie: {secure: true}
+    cookie: { secure: true }
 }));
 
 var server;
@@ -116,20 +116,43 @@ const global = {
 
 //\\//\\//\\//\\NAVIGATION//\\//\\//\\//\\
 
+//Authenticate
+app.use(function (req, res, next) {
+    if (req.session.user || req.path === '/login' || req.path === '/tokensignin')
+        next();
+    else {
+        if (req.path) {
+            return res.redirect('/login');
+        }
+    }
+});
+
 // Landing page
 app.all('/', function (req, res, next) {
-    if (req.session.user) {
-        return res.redirect('/home');
-    } else {
-        res.render('index.ejs', {
-            PLAID_PUBLIC_KEY: PLAID_PUBLIC_KEY,
-            PLAID_ENV: PLAID_ENV,
-            PLAID_PRODUCTS: PLAID_PRODUCTS,
-            APP_MODE: config.APP_MODE,
-            APP_PORT: config.APP_PORT,
-            URL: config.URL,
-        });
-    }
+    //have a landing page here
+    // if (req.session.user) {
+    //     return res.redirect('/home');
+    // } else {
+    // res.render('login.ejs', {
+    //     PLAID_PUBLIC_KEY: PLAID_PUBLIC_KEY,
+    //     PLAID_ENV: PLAID_ENV,
+    //     PLAID_PRODUCTS: PLAID_PRODUCTS,
+    //     APP_MODE: config.APP_MODE,
+    //     APP_PORT: config.APP_PORT,
+    //     URL: config.URL,
+    // });
+    // }
+});
+
+app.all('/login', function (req, res) {
+    res.render('login.ejs', {
+        PLAID_PUBLIC_KEY: PLAID_PUBLIC_KEY,
+        PLAID_ENV: PLAID_ENV,
+        PLAID_PRODUCTS: PLAID_PRODUCTS,
+        APP_MODE: config.APP_MODE,
+        APP_PORT: config.APP_PORT,
+        URL: config.URL,
+    });
 });
 
 app.all('/home', function (req, res) {
@@ -316,7 +339,7 @@ app.get('/get-transactions', function (request, response, next) {
                 error: error
             });
         } else {
-            response.json({error: null, transactions: transactionsResponse});
+            response.json({ error: null, transactions: transactionsResponse });
         }
     });
 });
@@ -352,7 +375,7 @@ app.get('/identity', function (request, response, next) {
             });
         }
         prettyPrintResponse(identityResponse);
-        response.json({error: null, identity: identityResponse});
+        response.json({ error: null, identity: identityResponse });
     });
 });
 
@@ -367,7 +390,7 @@ app.get('/balance', function (request, response, next) {
             });
         }
         prettyPrintResponse(balanceResponse);
-        response.json({error: null, balance: balanceResponse});
+        response.json({ error: null, balance: balanceResponse });
     });
 });
 
@@ -382,16 +405,16 @@ app.get('/accounts', function (request, response, next) {
             });
         }
         prettyPrintResponse(accountsResponse);
-        response.json({error: null, accounts: accountsResponse});
+        response.json({ error: null, accounts: accountsResponse });
     });
 });
 
 function getTransactionsPromise(startDate, endDate, accessToken, count, offset) {
     return new Promise(function (resolve, reject) {
         client.getTransactions(accessToken, startDate, endDate, {
-                count: count,
-                offset: offset,
-            },
+            count: count,
+            offset: offset,
+        },
             function (error, transactionsResponse) {
                 resolve(transactionsResponse);
             }
@@ -412,7 +435,7 @@ function getAccounts(accessToken) {
 }
 
 function getAllAccounts(accessTokens) {
-    return new Promise(function(resolce, reject) {
+    return new Promise(function (resolce, reject) {
 
     });
 }
@@ -428,7 +451,7 @@ app.get('/auth', function (request, response, next) {
             });
         }
         prettyPrintResponse(authResponse);
-        response.json({error: null, auth: authResponse});
+        response.json({ error: null, auth: authResponse });
     });
 });
 
@@ -508,7 +531,7 @@ app.get('/item', function (request, response, next) {
 });
 
 var prettyPrintResponse = response => {
-    console.log(util.inspect(response, {colors: true, depth: 4}));
+    console.log(util.inspect(response, { colors: true, depth: 4 }));
 };
 
 // This is a helper function to poll for the completion of an Asset Report and
