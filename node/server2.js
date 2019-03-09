@@ -122,6 +122,7 @@ app.use(function (req, res, next) {
         next();
     else {
         if (req.path) {
+            req.session.returnPath = req.path;
             return res.redirect('/login');
         }
     }
@@ -152,6 +153,7 @@ app.all('/login', function (req, res) {
         APP_MODE: config.APP_MODE,
         APP_PORT: config.APP_PORT,
         URL: config.URL,
+        returnPath: req.session.returnPath || "",
     });
 });
 
