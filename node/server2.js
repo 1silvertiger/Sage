@@ -3,6 +3,7 @@
 process.env.NODE_CONFIG_DIR = './node/config';
 
 const config = require('config'),
+    babel = require('babel-core'),
 
     ejs = require('ejs'),
 
@@ -90,6 +91,7 @@ console.log('Express server listening on port ' + APP_PORT);
 app.use(express.static('./src/public'));
 app.set('views', './src/public/html/');
 app.set('view engine', 'ejs');
+app.engine('ejs', require('ejs').__express);
 app.use(bodyParser.urlencoded({
     extended: false
 }));
