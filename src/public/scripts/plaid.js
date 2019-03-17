@@ -10,11 +10,11 @@ var handler = Plaid.create({
     env: PLAID_ENV,
     product: 'transactions',
     key: PLAID_PUBLIC_KEY,
-    // webhook: 'https://your-domain.tld/plaid-webhook',
+    webhook: URL + '/plaid-webhook',
     onSuccess: function (public_token, metadata) {
         $.post('/get_access_token', {
             public_token: public_token,
-            institution: metadata.institution
+            // institution: metadata.institution
         }, function (data) {
             $('#container').fadeOut('fast', function () {
                 $('#item_id').text(data.item_id);

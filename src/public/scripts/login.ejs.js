@@ -20,7 +20,7 @@ function onSignIn(googleUser) {
             withCredentials: true
          },
         success: function(data, status) {
-            console.log("success");
+            // window.location.replace(URL + (returnPath || "/home"));
             window.location.replace(URL + "/home");
         },
         error: function(jqXHR, status, error) {
