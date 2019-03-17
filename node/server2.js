@@ -24,10 +24,6 @@ const config = require('config'),
 
     exec = require('child_process').exec;
 
-const Test = require('babel-loader!../src/model/test');
-const test = new Test();
-test.test();
-// const Connection = require('babel-loader!../src/model/connection');
 // const User = require('../src/model/user.js');
 const UserDao = require('babel-loader!../src/model/userDao.js');
 // const Item = require('../src/model/item.js');
@@ -77,7 +73,7 @@ const pool = mariadb.createPool({
     port: 3306
 });
 
-// const UserDaoObject = new UserDao(new Connection(pool));
+const userDao = new UserDao(pool);
 
 const app = express();
 
@@ -273,17 +269,17 @@ app.post('/tokensignin', function (req, res) {
         const payload = ticket.getPayload();
         const userId = payload['sub'];
         if (payload['aud'] == GOOGLE_AUTH_CLIENT_ID) {
-            const userDao = new UserDao(pool);
             userDao.test('i am a test');
-            pool.getConnection().then(conn => {
-                userDao.getById(userId).then(user => {
-                    console.log('inside then');
-                    console.log(user);
-                    req.session.test = "Hello, world!";
-                    req.session.user = user;
-                    res.sendStatus(200);
-                }).catch();
-            }).catch();
+            userDao.getById(userId).then(user => {
+                // console.log('inside then');
+                console.log(user);
+                req.session.test = "Hello, world!";
+                req.session.user = user;
+                res.sendStatus(200);
+            }).catch(err => {
+                res.sendStatus(500);
+                console.log(err);
+            });
             // pool.getConnection().then(conn => {
             //     conn.query("CALL getUserByGoogleId(?)", [userId])
             //         .then(rows => {
