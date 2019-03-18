@@ -1,0 +1,6 @@
+{
+    "APP_PORT": "8080",
+    "APP_MODE": "dev",
+    "URL": "https://sage-savings.ngrok.io",
+    "PLAID_ENV": "sandbox"
+}

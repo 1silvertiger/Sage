@@ -18,3 +18,4 @@ node/config/
 node/package-lock\.json
 
 node/package\.json
+node_modules
