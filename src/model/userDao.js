@@ -1,12 +1,33 @@
+const Dao = require('./dao');
 const User = require('./user.js');
+const Item = require('./item');
 
-module.exports = class UserDao {
+module.exports = class UserDao extends Dao {
     constructor(pPool) {
-        this.pool = pPool;
+        super(pPool);
+        this.Dao = new Dao();
     }
 
     test(message) {
         console.log(message);
+    }
+
+    create(user) {
+        console.log('2');
+        const pool = this.pool;
+        return new Promise(function (resolve, reject) {
+            pool.getConnection().then(conn => {
+                console.log('3')
+                conn.query('CALL createUser(?,?,?,?,?)', [user.id, user.firstName, user.lastName, user.imageUrl, user.email]).then(rows => {
+                    resolve(new User(rows[0][0].googleId, rows[0][0].firstName, rows[0][0].lastName, rows[0][0].imageUrl, rows[0][0].email));
+                }).catch(err => {
+                    console.log('err 1')
+                    console.log(err)
+                });
+            }).catch(err => {
+                Dao.handleGetConnectionCatch();
+            });
+        });
     }
 
     getById(id) {
@@ -17,14 +38,19 @@ module.exports = class UserDao {
                     console.log('rows: ');
                     console.log(rows);
                     if (rows[0].length > 0) {
-                        delete rows[1].meta;
-                        resolve(new User(rows[0][0].googleId, rows[0][0].firstName, rows[0][0].lastName, rows[0][0].imageUrl, rows[0][0].email, rows[1]));
+                        let items = new Array();
+                        for (let i = 0; i < rows[1].length; i++) {
+                            items.push(new Item(rows[1][i].itemId, rows[1][i].accessToken, rows[1][i].lastSync));
+                        }
+                        resolve(new User(rows[0][0].googleId, rows[0][0].firstName, rows[0][0].lastName, rows[0][0].imageUrl, rows[0][0].email, items));
                     } else
                         resolve(null);
                 }).catch(err => {
-
+                    Dao.handleQueryCatch(err);
                 });
-            }).catch();
+            }).catch(err => {
+                Dao.handleGetConnectionCatch(err);
+            });
         });
     }
 
