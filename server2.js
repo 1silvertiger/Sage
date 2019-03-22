@@ -1,9 +1,9 @@
 'use strict';
 
-process.env.NODE_CONFIG_DIR = './node/config';
+// process.env.NODE_CONFIG_DIR = './config';
 
 const config = require('config'),
-    babel = require('babel-core'),
+    babel = require('@babel/core'),
 
     ejs = require('ejs'),
 
@@ -27,8 +27,8 @@ const config = require('config'),
 
     exec = require('child_process').exec;
 
-// const User = require('../src/model/user.js');
-const UserDao = require('babel-loader!../src/model/userDao.js');
+const User = require('babel-loader!./src/model/user.js');
+const UserDao = require('babel-loader!./src/model/userDao.js');
 // const Item = require('../src/model/item.js');
 // const ItemDao = require('../src/model/itemDao.js');
 // const Account = require('../src/model/account.js');
@@ -82,9 +82,19 @@ const app = express();
 const webpackConfig = require('./webpack.config.js');
 const compiler = webpack(webpackConfig);
 
-app.use(webpackDevMiddleware(compiler, {
-    publicPath: webpackConfig.output.publicPath
+// Step 2: Attach the dev middleware to the compiler & the server
+app.use(require("webpack-dev-middleware")(compiler, {
+    logLevel: 'warn', publicPath: webpackConfig.output.publicPath
 }));
+
+// Step 3: Attach the hot middleware to the compiler & the server
+app.use(require("webpack-hot-middleware")(compiler, {
+    log: console.log, path: '/__webpack_hmr', heartbeat: 10 * 1000
+}));
+
+// app.use(webpackDevMiddleware(compiler, {
+//     publicPath: webpackConfig.output.publicPath
+// }));
 
 app.set('trust proxy', 1);
 app.use(session({
@@ -116,7 +126,6 @@ app.use(bodyParser.urlencoded({
     extended: false
 }));
 app.use(bodyParser.json());
-
 var corsOptions = {
     origin: config.URL,
     optionsSuccessStatus: 200,
@@ -124,22 +133,20 @@ var corsOptions = {
 };
 
 app.use(cors(corsOptions));
-
 app.use(function (req, res, next) {
     res.header("Access-Control-Allow-Origin", config.URL);
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
     res.setHeader("Access-Control-Allow-Credentials", true);
     next();
 });
-
 const global = {
     //Fill with global vars that are sent in every response
 }
-
 //\\//\\//\\//\\NAVIGATION//\\//\\//\\//\\
 
 //Authenticate
 app.use(function (req, res, next) {
+    console.log('received');
     if (req.session.user || req.path === '/login' || req.path === '/tokensignin')
         next();
     else {
@@ -168,6 +175,7 @@ app.all('/', function (req, res, next) {
 });
 
 app.all('/login', function (req, res) {
+
     res.render('login.ejs', {
         PLAID_PUBLIC_KEY: PLAID_PUBLIC_KEY,
         PLAID_ENV: PLAID_ENV,
@@ -223,6 +231,7 @@ app.all("/accounts", function (req, res) {
                         });
                     }
                     res.render('accounts.ejs', {
+                        URL: config.URL,
                         accounts: accounts
                     });
                 } else {
@@ -278,13 +287,24 @@ app.post('/tokensignin', function (req, res) {
         const payload = ticket.getPayload();
         const userId = payload['sub'];
         if (payload['aud'] == GOOGLE_AUTH_CLIENT_ID) {
-            userDao.test('i am a test');
+            // userDao.test('i am a test');
             userDao.getById(userId).then(user => {
                 // console.log('inside then');
-                console.log(user);
-                req.session.test = "Hello, world!";
-                req.session.user = user;
-                res.sendStatus(200);
+                if (user) {
+                    console.log(user);
+                    req.session.test = "Hello, world!";
+                    req.session.user = user;
+                    res.sendStatus(200);
+                } else {
+                    console.log('1');
+                    userDao.create(new User(userId, req.body.firstName, req.body.lastName, req.body.imageUrl, req.body.email)).then(user => {
+                        req.session.test = "Hello, world!";
+                        req.session.user = user;
+                        res.sendStatus(200);
+                    }).catch(err => {
+
+                    });
+                }
             }).catch(err => {
                 res.sendStatus(500);
                 console.log(err);

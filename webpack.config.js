@@ -1,4 +1,5 @@
 const path = require('path');
+const webpack = require('webpack');
 
 module.exports = {
     target: 'node',
@@ -7,9 +8,13 @@ module.exports = {
         app: ['./server2.js']
     },
     devtool: 'inline-source-map',
-    devserver: {
-        contentBase: './'
+    devServer: {
+        contentBase: './',
+        hot: true
     },
+    plugins: [
+        new webpack.HotModuleReplacementPlugin()
+    ],
     output: {
         filename: 'server.js',
         path: path.resolve(__dirname, './'),
@@ -19,10 +24,12 @@ module.exports = {
         rules: [
             {
                 test: '/\.js$/',
-                loader: 'babel-loader',
                 exclude: /node_modules/,
-                query: {
-                    presets: ["@babel/preset-env"]
+                use: {
+                    loader: 'babel-loader',
+                    options: {
+                        presets: ['@babel/preset-env']
+                    }
                 }
             }
         ]
