@@ -1,8 +1,12 @@
-// import {Account} from './account.js';
+const Account = require('./account.js');
+const AccountDao = require('./accountDao');
+
 module.exports = class Item {
-    constructor(pId, pAccessToken, pLastSync) {
+    constructor(pId, pAccessToken, pInstitutionName, pLastSync, pAccounts) {
         this.id = pId;
         this.accessToken = pAccessToken;
+        this.institutionName = pInstitutionName;
         this.lastSync = pLastSync;
+        this.accounts = pAccounts;
     }
 }

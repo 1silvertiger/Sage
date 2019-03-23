@@ -31,8 +31,8 @@ const User = require('babel-loader!./src/model/user.js');
 const UserDao = require('babel-loader!./src/model/userDao.js');
 // const Item = require('../src/model/item.js');
 // const ItemDao = require('../src/model/itemDao.js');
-// const Account = require('../src/model/account.js');
-// const AccountDao = require('../src/model/accountDao.js');
+const Account = require('babel-loader!./src/model/account.js');
+const AccountDao = require('babel-loader!./src/model/accountDao.js');
 // const Transaction = require('../src/model/transaction.js');
 // const TransactionDao = require('../src/model/transactionDao.js');
 
@@ -77,6 +77,7 @@ const pool = mariadb.createPool({
 });
 
 const userDao = new UserDao(pool);
+const accountDao = new AccountDao(pool);
 
 const app = express();
 const webpackConfig = require('./webpack.config.js');
@@ -146,13 +147,14 @@ const global = {
 
 //Authenticate
 app.use(function (req, res, next) {
-    console.log('received');
     if (req.session.user || req.path === '/login' || req.path === '/tokensignin')
         next();
     else {
         if (req.path) {
             req.session.returnPath = req.path;
             return res.redirect('/login');
+        } else {
+            return res.redirect('/');
         }
     }
 });
@@ -160,6 +162,9 @@ app.use(function (req, res, next) {
 // Landing page
 app.all('/', function (req, res, next) {
     //have a landing page here
+    res.render('index.ejs', {
+        URL: config.URL,
+    });
     // if (req.session.user) {
     //     return res.redirect('/home');
     // } else {
@@ -175,7 +180,6 @@ app.all('/', function (req, res, next) {
 });
 
 app.all('/login', function (req, res) {
-
     res.render('login.ejs', {
         PLAID_PUBLIC_KEY: PLAID_PUBLIC_KEY,
         PLAID_ENV: PLAID_ENV,
@@ -185,6 +189,11 @@ app.all('/login', function (req, res) {
         URL: config.URL,
         returnPath: req.session.returnPath || null,
     });
+});
+
+app.all('/logout', function(req, res) {
+    req.session.user = null;
+    res.sendStatus(200);
 });
 
 app.all('/home', function (req, res) {
@@ -292,11 +301,21 @@ app.post('/tokensignin', function (req, res) {
                 // console.log('inside then');
                 if (user) {
                     console.log(user);
-                    req.session.test = "Hello, world!";
-                    req.session.user = user;
-                    res.sendStatus(200);
+                    // if (user.items.length > 0) {
+                    //     refreshUser(user).then(temp => {
+                    //         req.session.test = "Hello, world!";
+                    //         req.session.user = user;
+                    //         res.sendStatus(200);
+                    //     }).catch(err => {
+                    //         console.log(err);
+                    //     });
+                    // } else {
+                        syncWithPlaid(user);
+                        req.session.test = "Hello, world!";
+                        req.session.user = user;
+                        res.sendStatus(200);
+                    // }
                 } else {
-                    console.log('1');
                     userDao.create(new User(userId, req.body.firstName, req.body.lastName, req.body.imageUrl, req.body.email)).then(user => {
                         req.session.test = "Hello, world!";
                         req.session.user = user;
@@ -351,7 +370,9 @@ app.post('/tokensignin', function (req, res) {
 });
 
 //Plaid
-app.post('/plaid-webhook', function (req, res, next) {
+app.all('/plaid-webhook', function (req, res, next) {
+    console.log('PLAID WEBHOOK');
+    console.log(JSON.stringify(req.body));
     const payload = JSON.parse(req.body);
     switch (payload.webhook_type) {
         case 'TRANSACTIONS':
@@ -557,27 +578,35 @@ function syncItems(userId) {
     }).catch(err => { });
 }
 
-// function query(query, params) {
-//     return new Promise(function (resolve, reject) {
-//         pool.getConnection().then(conn => {
-//             conn.query(query, params).then(rows => {
-//                 resolve(rows[0].length > 0 ? rows[0] : null);
-//             }).catch(err => { });
-//         }).catch(err => {
+function syncWithPlaid(user) {
+    //sync accounts
+    for (let i = 0; i < user.items.length; i++) {
+        getAccounts(user.items[i].accessToken).then(accountsResponse => {
+            for (let j = 0; j < accountsResponse.accounts.length; j++) {
+                const tempAccount = new Account(accountsResponse.accounts[j].account_id
+                    , user.items[i].id
+                    , user.items[i].institutionName
+                    , accountsResponse.accounts[j].balances.available
+                    , accountsResponse.accounts[j].balances.current
+                    , accountsResponse.accounts[j].name
+                    , accountsResponse.accounts[j].official_name
+                    , accountsResponse.accounts[j].type
+                    , accountsResponse.accounts[j].subtype);
+                console.log(tempAccount);
+                accountDao.create(tempAccount).then(account => {
+                    user.items.accounts.push(account);
+                }).catch(err => {
+                    console.log(err);
+                });
+            }
+        }).catch(err => {
+            console.log(err);
+        });
 
-//         });
-//     });
-// }
+        //sync transactions
 
-// function query(conn, query, params) {
-//     return new Promise(function (resolve, reject) {
-//         conn.query(query, params).then(rows => {
-//             resolve(rows[0].length > 0 ? rows[0] : null);
-//         }).catch(err => {
-
-//         });
-//     });
-// }
+    }
+}
 
 function getTransactions(startDate, endDate, accessToken, count, offset) {
     return new Promise(function (resolve, reject) {
@@ -607,6 +636,24 @@ function getAccounts(accessToken) {
 function getAllAccounts(accessTokens) {
     return new Promise(function (resolce, reject) {
 
+    });
+}
+
+function refreshUser(user) {
+    return new Promise(function (resolve, reject) {
+        for (let i = 0; i < user.items.length; i++) {
+            accountDao.getAllByItemId(user.items[i].id).then(accounts => {
+                // for (let j = 0; j < accounts.length; j++) {
+
+                // }
+                console.log('accounts from db: ');
+                console.log(accounts);
+                user.items[i].accounts = accounts;
+                resolve();
+            }).catch(err => {
+                console.log(err);
+            });
+        }
     });
 }
 
