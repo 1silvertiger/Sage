@@ -20,6 +20,7 @@ module.exports = class UserDao extends Dao {
                 console.log('3')
                 conn.query('CALL createUser(?,?,?,?,?)', [user.id, user.firstName, user.lastName, user.imageUrl, user.email]).then(rows => {
                     resolve(new User(rows[0][0].googleId, rows[0][0].firstName, rows[0][0].lastName, rows[0][0].imageUrl, rows[0][0].email));
+                    conn.end();
                 }).catch(err => {
                     console.log('err 1')
                     console.log(err)
@@ -40,11 +41,12 @@ module.exports = class UserDao extends Dao {
                     if (rows[0].length > 0) {
                         let items = new Array();
                         for (let i = 0; i < rows[1].length; i++) {
-                            items.push(new Item(rows[1][i].itemId, rows[1][i].accessToken, rows[1][i].lastSync));
+                            items.push(new Item(rows[1][i].itemId, rows[1][i].accessToken, null, rows[1][i].lastSync, new Array()));
                         }
                         resolve(new User(rows[0][0].googleId, rows[0][0].firstName, rows[0][0].lastName, rows[0][0].imageUrl, rows[0][0].email, items));
                     } else
                         resolve(null);
+                    conn.end();
                 }).catch(err => {
                     Dao.handleQueryCatch(err);
                 });
