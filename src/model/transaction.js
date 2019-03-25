@@ -1,6 +1,6 @@
 module.exports = class Transaction {
     //Full
-    constructor(pId, pPlaidItemId, pAccountId, pAmount, pMerchant, pDate, pCategory, pSubCategory, pTags) {
+    constructor(pId, pPlaidItemId, pAccountId, pAmount, pMerchant, pDate) {
         this.id = pId;
         this.plaidItemId = pPlaidItemId;
         this.accountId = pAccountId;
@@ -8,8 +8,5 @@ module.exports = class Transaction {
         this.merchant = pMerchant;
         this.date = pDate;
         this.transactionItems = new Array();
-        this.category = pCategory;
-        this.subCategory = pSubCategory;
-        this.tags = pTags;
     }
 }

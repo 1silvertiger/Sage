@@ -690,9 +690,7 @@ function getTransactions(startDate, endDate, accessToken, count, offset) {
                 console.log('Plaid transactions:');
                 prettyPrintResponse(transactionsResponse);
                 if (!error) {
-                    let promises = new Array(
-                        transactionDao.getAllByItemId(transactionsResponse.item.item_id)
-                    );
+                    let promises = new Array(transactionDao.getAllByItemId(transactionsResponse.item.item_id));
                     console.log('Transaction objects:')
                     for (let i = 0; i < transactionsResponse.transactions.length; i++) {
                         const tempTransaction = new Transaction(transactionsResponse.transactions[i].transaction_id
@@ -700,10 +698,7 @@ function getTransactions(startDate, endDate, accessToken, count, offset) {
                             , transactionsResponse.transactions[i].account_id
                             , transactionsResponse.transactions[i].amount
                             , transactionsResponse.transactions[i].name
-                            , transactionsResponse.transactions[i].date
-                            , null
-                            , null
-                            , null);
+                            , transactionsResponse.transactions[i].date);
                         console.log(tempTransaction);
                         promises.push(transactionDao.create(tempTransaction));
                     }
