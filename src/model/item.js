@@ -8,5 +8,6 @@ module.exports = class Item {
         this.institutionName = pInstitutionName;
         this.lastSync = pLastSync;
         this.accounts = pAccounts;
+        this.transactions = new Array();
     }
 }

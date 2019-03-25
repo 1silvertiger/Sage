@@ -1,5 +1,5 @@
 module.exports = class Dao {
-    constructor(pPool, otherDaos) {
+    constructor(pPool) {
         this.pool = pPool;
     }
 
@@ -16,6 +16,7 @@ module.exports = class Dao {
     }
 
     static handleGetConnectionCatch(err) {
-        console.log(err);
+        if (err.errno !== 45028)
+            console.log(err);
     }
 }

@@ -79,8 +79,9 @@ const pool = mariadb.createPool({
 });
 
 const userDao = new UserDao(pool);
-const accountDao = new AccountDao(pool);
 const itemDao = new ItemDao(pool);
+const accountDao = new AccountDao(pool);
+const transactionDao = new TransactionDao(pool);
 
 const app = express();
 const webpackConfig = require('./webpack.config.js');
@@ -194,7 +195,7 @@ app.all('/login', function (req, res) {
     });
 });
 
-app.all('/logout', function(req, res) {
+app.all('/logout', function (req, res) {
     req.session.user = null;
     res.sendStatus(200);
 });
@@ -555,15 +556,16 @@ function syncWithPlaid(user) {
         let promises = new Array();
         for (let i = 0; i < user.items.length; i++) {
             promises.push(getAccounts(user.items[i].accessToken));
-            promises.push(getTransactions(user.items[i].lastSync, new Date(), user.items[i].accessToken, 500, 0));
+            promises.push(getTransactions(moment(user.items[i].lastSync).subtract(90, 'days').format('YYYY-MM-DD') || moment().format('YYYY-MM-DD'), moment().format('YYYY-MM-DD'), user.items[i].accessToken, 500, 0));
         }
         Promise.all(promises).then(values => {
             for (let i = 0; i < values.length; i++) {
-                // if (i % 2 === 0) {
-                user.items[i].accounts = user.items[i].accounts.concat(values[i]);
-                // } else {
-
-                // }
+                // user.items[i].accounts = user.items[i].accounts.concat(values[i]);
+                if (i % 2 === 0) {
+                    user.items[Math.floor(i/2)].accounts = values[i];
+                } else {
+                    user.items[Math.floor(i/2)].transactions = values[i];
+                }
                 itemDao.updateLastSync(user.items[i]);
             }
             resolve(user);
@@ -685,27 +687,44 @@ function getTransactions(startDate, endDate, accessToken, count, offset) {
             offset: offset,
         },
             function (error, transactionsResponse) {
-                resolve(transactionsResponse);
+                console.log('Plaid transactions:');
+                prettyPrintResponse(transactionsResponse);
+                if (!error) {
+                    let promises = new Array(
+                        transactionDao.getAllByItemId(transactionsResponse.item.item_id)
+                    );
+                    console.log('Transaction objects:')
+                    for (let i = 0; i < transactionsResponse.transactions.length; i++) {
+                        const tempTransaction = new Transaction(transactionsResponse.transactions[i].transaction_id
+                            , transactionsResponse.item.item_id
+                            , transactionsResponse.transactions[i].account_id
+                            , transactionsResponse.transactions[i].amount
+                            , transactionsResponse.transactions[i].name
+                            , transactionsResponse.transactions[i].date
+                            , null
+                            , null
+                            , null);
+                        console.log(tempTransaction);
+                        promises.push(transactionDao.create(tempTransaction));
+                    }
+
+                    Promise.all(promises).then(transactions => {
+                        let allTransactions = transactions[0] || new Array();
+                        for (let i = 1; i < transactions.length; i++)
+                            allTransactions.push(transactions[i]);
+                        console.log('Final result:');
+                        console.log(allTransactions);
+                        resolve(allTransactions);
+                    }).catch(err => {
+                        console.log(err);
+                    });
+                } else {
+                    prettyPrintResponse(error);
+                    resolve(null);
+                }
+                // resolve(transactionsResponse);
             }
         );
-    });
-}
-
-function getAccounts(accessToken) {
-    return new Promise(function (resolve, reject) {
-        client.getAccounts(accessToken, function (error, accountsResponse) {
-            if (error != null) {
-                prettyPrintResponse(error);
-            }
-            prettyPrintResponse(accountsResponse);
-            resolve(accountsResponse);
-        });
-    });
-}
-
-function getAllAccounts(accessTokens) {
-    return new Promise(function (resolce, reject) {
-
     });
 }
 

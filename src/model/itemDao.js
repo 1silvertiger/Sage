@@ -1,12 +1,13 @@
 const Dao = require('./dao');
 const Item = require('./item');
-const Account = require('./accounts');
+const Account = require('./account');
 const AccountDao = require('./accountDao');
 
-module.exports = class ItemDao {
+module.exports = class ItemDao extends Dao {
     constructor(pPool) {
         super(pPool);
         this.AccountDao = new AccountDao(this.pool);
+        this.Dao = new Dao(pPool);
     }
 
     create() {
@@ -26,14 +27,15 @@ module.exports = class ItemDao {
 
     getById(id) {
         const AccountDao = this.AccountDao;
-        return new Promise(function(resolve, reject) {
+        return new Promise(function (resolve, reject) {
             this.pool.getConnection().then(conn => {
-                conn.query('CALL getPlaidItemById(?', [id]).then(rows => {
+                conn.query('CALL getPlaidItemById(?)', [id]).then(rows => {
                     const accounts = new Array();
                     for (let i = 0; i < rows[0][0].accountIds.length; i++) {
                         AccountDao.getByIds(rows[0][0].accountIds[i]).then().catch();
                     }
                     resolve(new Item(id, rows[0][0].accessToken, 'temp', rows[0][0].lastSync, accounts));
+                    conn.end();
                 }).catch(err => {
                     Dao.handleQueryCatch(err);
                 });
@@ -45,6 +47,19 @@ module.exports = class ItemDao {
 
     update(item) {
 
+    }
+
+    updateLastSync(item) {
+        const pool = this.pool;
+        return new Promise(function (resolve, reject) {
+            pool.getConnection().then(conn => {
+                conn.query('CALL updateItemLastSync(?,?)', [item.id, new Date()]).then(rows => {
+                    let i = 0;
+                }).catch(err => { Dao.handleQueryCatch(err) });
+            }).catch(err => {
+                Dao.handleGetConnectionCatch(err);
+            });
+        });
     }
 
     deleteByItemId(id) {
