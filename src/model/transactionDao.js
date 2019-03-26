@@ -25,9 +25,42 @@ module.exports = class TransactionDao extends Dao {
                     resolve(new Transaction(rows[0][0].id, rows[0][0].plaidItemId, rows[0][0].accountId, rows[0][0].amount, rows[0][0].merchant, rows[0][0].date, rows[0][0].name));
                 }).catch(err => {
                     Dao.handleQueryCatch(err);
-                });
+                }).finally(() => {if(conn) conn.end()});
             }).catch(err => {
                 Dao.handleGetConnectionCatch(err);
+            });
+        });
+    }
+
+    batchCreate(transactions) {
+        const pool = this.pool;
+        const params = new Array();
+        for (let i = 0; i < transactions.length; i++) {
+            params.push([
+                transactions[i].id
+                , transactions[i].plaidItemId
+                , transactions[i].accountId
+                , transactions[i].amount
+                , transactions[i].merchant
+                , transactions[i].date
+            ]);
+        }
+        return new Promise(function(resolve, reject) {
+            pool.batch(Dao.composeQuery2('createTransaction', params[0].length), params).then(rows => {
+                const transactionsFromDb = new Array();
+                for (let i = 0; i < transactions.length * 2; i += 2) {
+                    transactionsFromDb.push(new Transaction(
+                        rows[i][0].id
+                        , rows[i][0].plaidItemId
+                        , rows[i][0].accountId
+                        , rows[i][0].amount
+                        , rows[i][0].merchant
+                        , rows[i][0].date
+                    ));
+                }
+                resolve(transactionsFromDb);
+            }).catch(err => {
+                Dao.handleQueryCatch(err);
             });
         });
     }
@@ -51,8 +84,12 @@ module.exports = class TransactionDao extends Dao {
                             , null
                         ));
                     }
+                    resolve(transactions);
                 }).catch(err => {
                     Dao.handleQueryCatch(err);
+                }).finally(() => {
+                    if(conn) 
+                        conn.end()
                 });
             }).catch(err => {
                 Dao.handleGetConnectionCatch(err);

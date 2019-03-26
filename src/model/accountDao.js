@@ -51,12 +51,50 @@ module.exports = class AccountDao extends Dao {
                 ];
                 conn.query(Dao.composeQuery('createOrUpdateAccount', params), params).then(rows => {
                     resolve(new Account(rows[0][0].id, rows[0][0].plaidItemId, rows[0][0].institutionName, rows[0][0].availableBalance, rows[0][0].currentBalance, rows[0][0].name, rows[0][0].officialName, rows[0][0].type, rows[0][0].subType));
-                    conn.end();
                 }).catch(err => {
                     Dao.handleQueryCatch(err);
-                });
+                }).finally(() => {if(conn) conn.end()});
             }).catch(err => {
                 Dao.handleGetConnectionCatch(err);
+            });
+        });
+    }
+
+    batchCreateOrUpdate(accounts) {
+        const pool = this.pool;
+        const params = new Array();
+        for (let i = 0; i < accounts.length; i++) {
+            params.push([
+                accounts[i].id
+                , accounts[i].institutionName
+                , accounts[i].plaidItemId
+                , accounts[i].availableBalance
+                , accounts[i].currentBalance
+                , accounts[i].name
+                , accounts[i].officialName
+                , accounts[i].type
+                , accounts[i].subType
+            ]);
+        }
+        return new Promise(function(resolve, reject){
+            pool.batch(Dao.composeQuery2('createOrUpdateAccount', params[0].length), params).then(rows => {
+                const accountsFromDb = new Array();
+                for (let i = 0; i < params.length * 2; i += 2) {
+                    accountsFromDb.push(new Account(
+                        rows[i][0].id
+                        , rows[i][0].plaidItemId
+                        , rows[i][0].institutionName
+                        , rows[i][0].availableBalance
+                        , rows[i][0].currentBalance
+                        , rows[i][0].name
+                        , rows[i][0].officialName
+                        , rows[i][0].type
+                        , rows[i][0].subType
+                    ));
+                }
+                resolve(accountsFromDb);
+            }).catch(err => {
+                Dao.handleQueryCatch(err);
             });
         });
     }
