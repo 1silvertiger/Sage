@@ -1,13 +1,4 @@
-node/node_modules/*
-
-node/windowsServer\.js
-
-prepros-6\.config
-
-node/config/local.json
 *.exclude
-
-node/config/
 
 *.mpp
 
@@ -15,9 +6,6 @@ node/config/
 
 \.vscode/
 
-node/package-lock\.json
-\node/
-node/package\.json
 node_modules
 
 server\.js
