@@ -1,6 +1,6 @@
 'use strict';
 
-// process.env.NODE_CONFIG_DIR = './config';
+process.env.NODE_CONFIG_DIR = './config';
 
 //node modules
 const config = require('config'),
