@@ -119,13 +119,11 @@ if (config.APP_MODE == "dev") {
         cert: fs.readFileSync('../../../../../etc/letsencrypt/live/sage-savings.com/fullchain.pem'),
     };
     if (options) {
-        console.log('Key:');
-        console.log(options.key);
-        console.log('cert:');
-        console.log(options.cert);
+        console.log('SSL keys found.');
     } else 
-    console.log('error access SSL keys');
+    console.log('Error accessing SSL keys');
     server = https.createServer(options, app).listen(APP_PORT);
+    console.log('Server created.');
 }
 
 console.log('Express server listening on port ' + APP_PORT);
