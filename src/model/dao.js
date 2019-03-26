@@ -16,7 +16,6 @@ module.exports = class Dao {
     }
 
     static handleGetConnectionCatch(err) {
-        if (err.errno !== 45028)
-            console.log(err);
+        console.log(err);
     }
 }
