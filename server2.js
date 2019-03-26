@@ -122,7 +122,7 @@ if (config.APP_MODE == "dev") {
         console.log('Key:');
         console.log(options.key);
         console.log('cert:');
-        console.log(option.cert);
+        console.log(options.cert);
     } else 
     console.log('error access SSL keys');
     server = https.createServer(options, app).listen(APP_PORT);
