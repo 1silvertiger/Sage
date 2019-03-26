@@ -7,10 +7,9 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "watch": "webpack --watch",
     "build": "webpack --config webpack.config.js --exec bable-node --display-error-details",
-    "server": "node server.js",
-    "preserver": "npm run build",
+    "start": "node server.js",
     "debug": "node --nolazy --inspect server.js",
-    "start": "webpack-dev-server --open"
+    "webpack": "webpack-dev-server --open"
   },
   "author": "Dakota Dalton",
   "repository": "https://github.com/1silvertiger/Sage",
