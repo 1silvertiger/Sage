@@ -48,7 +48,7 @@ module.exports = class TransactionDao extends Dao {
             ]);
         }
         return new Promise(function(resolve, reject) {
-            pool.batch(Dao.composeQuery2('createTransaction', params[0].length), params).then(rows => {
+            pool.batch(Dao.composeQuery2('createOrUpdateTransaction', params[0].length), params).then(rows => {
                 const transactionsFromDb = new Array();
                 for (let i = 0; i < transactions.length * 2; i += 2) {
                     transactionsFromDb.push(new Transaction(
