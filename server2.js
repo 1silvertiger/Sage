@@ -278,29 +278,9 @@ app.all('/old-accounts', function (req, res) {
 });
 
 app.all("/transactions", function (req, res) {
-    pool.getConnection().then(conn => {
-        conn.query('CALL getAllPlaidItemsByUserId(?)', [req.session.user.id])
-            .then(rows => {
-                let accounts = new Array();
-                //let transactions = new Array();
-                for (let i = 0; i < rows[0].length; i++) {
-                    getTransactions(moment().subtract(30, 'days').format('YYYY-MM-DD'), moment().format('YYYY-MM-DD'), rows[0][i].accessToken, 5, 0).then(transactions => {
-                        // accounts.push(transactions.);
-                        prettyPrintResponse(transactions);
-                        res.render('transactions.ejs', {
-                            transactions: transactions.transactions,
-                            user: req.session.user,
-                            URL: config.URL
-                        });
-                    }).catch(err => {
-                        console.log(err);
-                    });
-                }
-            })
-            .catch(err => {
-                console.log(err)
-                res.sendStatus(500);
-            });
+    res.render('transactions.ejs', {
+        URL: config.URL
+        , user: req.session.user
     });
 });
 
@@ -565,11 +545,10 @@ function syncWithPlaid(user) {
         }
         Promise.all(promises).then(values => {
             for (let i = 0; i < values.length; i++) {
-                // user.items[i].accounts = user.items[i].accounts.concat(values[i]);
                 if (i % 2 === 0) {
-                    user.items[Math.floor(i/2)].accounts = values[i];
+                    user.items[Math.floor(i / 2)].accounts = values[i];
                 } else {
-                    user.items[Math.floor(i/2)].transactions = values[i];
+                    user.items[Math.floor(i / 2)].transactions = values[i];
                 }
                 itemDao.updateLastSync(user.items[i]);
             }
@@ -641,46 +620,34 @@ function getAccounts(accessToken) {
             console.log('Plaid accounts:')
             prettyPrintResponse(accountsResponse);
             if (!error) {
-                //Get accounts we already have in the database
-                accountDao.getAllByItemId(accountsResponse.item.item_id).then(accountsFromDb => {
-                    //This will hold the promises for updating and creating accounts
-                    let promises = new Array();
-                    console.log('Account objects:');
-                    for (let i = 0; i < accountsResponse.accounts.length; i++) {
-                        //Convert JSON from Plaid to Account object
-                        const tempAccount = new Account(accountsResponse.accounts[i].account_id
-                            , accountsResponse.item.item_id
-                            , accountsResponse.item.institution_id
-                            , accountsResponse.accounts[i].balances.available
-                            , accountsResponse.accounts[i].balances.current
-                            , accountsResponse.accounts[i].name
-                            , accountsResponse.accounts[i].official_name
-                            , accountsResponse.accounts[i].type
-                            , accountsResponse.accounts[i].subtype);
-                        console.log(tempAccount);
-                        promises.push(accountDao.createOrUpdate(tempAccount));
-                    }
-                    Promise.all(promises).then(updatedAccounts => {
-                        accountDao.getAllByItemId(accountsResponse.item.item_id).then(accounts => {
-                            console.log('Final result:');
-                            console.log(accounts);
-                            resolve(accounts);
-                            //Can mark missing accounts here...  
-                        }).catch(err => {
-                            console.log(err);
-                        })
-                    }).catch(err => {
-                        console.log(err);
-                    });
+                console.log('Account objects:');
+                const accountsFromPlaid = new Array();
+                for (let i = 0; i < accountsResponse.accounts.length; i++) {
+                    //Convert JSON from Plaid to Account object
+                    const tempAccount = new Account(accountsResponse.accounts[i].account_id
+                        , accountsResponse.item.item_id
+                        , accountsResponse.item.institution_id
+                        , accountsResponse.accounts[i].balances.available
+                        , accountsResponse.accounts[i].balances.current
+                        , accountsResponse.accounts[i].name
+                        , accountsResponse.accounts[i].official_name
+                        , accountsResponse.accounts[i].type
+                        , accountsResponse.accounts[i].subtype);
+                    console.log(tempAccount);
+                    accountsFromPlaid.push(tempAccount);
+                }
+                accountDao.batchCreateOrUpdate(accountsFromPlaid).then(updatedAccounts => {
+                    console.log('Final result:');
+                    console.log(updatedAccounts);
+                    resolve(updatedAccounts);  
                 }).catch(err => {
-                    console.log(err);
+                    Dao.handleQueryError(err);
                 });
             }
             else {
                 prettyPrintResponse(error);
                 resolve(null);
             }
-            // resolve(accountsResponse);
         });
     });
 }
@@ -695,8 +662,8 @@ function getTransactions(startDate, endDate, accessToken, count, offset) {
                 console.log('Plaid transactions:');
                 prettyPrintResponse(transactionsResponse);
                 if (!error) {
-                    let promises = new Array(transactionDao.getAllByItemId(transactionsResponse.item.item_id));
-                    console.log('Transaction objects:')
+                    const newTransactions = new Array();
+                    console.log('Transaction objects:');
                     for (let i = 0; i < transactionsResponse.transactions.length; i++) {
                         const tempTransaction = new Transaction(transactionsResponse.transactions[i].transaction_id
                             , transactionsResponse.item.item_id
@@ -705,44 +672,25 @@ function getTransactions(startDate, endDate, accessToken, count, offset) {
                             , transactionsResponse.transactions[i].name
                             , transactionsResponse.transactions[i].date);
                         console.log(tempTransaction);
-                        promises.push(transactionDao.create(tempTransaction));
+                        newTransactions.push(tempTransaction);
                     }
-
-                    Promise.all(promises).then(transactions => {
-                        let allTransactions = transactions[0] || new Array();
-                        for (let i = 1; i < transactions.length; i++)
-                            allTransactions.push(transactions[i]);
-                        console.log('Final result:');
-                        console.log(allTransactions);
-                        resolve(allTransactions);
-                    }).catch(err => {
+                    transactionDao.batchCreate(newTransactions).then(newTransactionsFromDb => {
+                        transactionDao.getAllByItemId(transactionsResponse.item.item_id).then(allTransactions => {
+                            console.log('Transactions from DB:');
+                            console.log(allTransactions);
+                            resolve(allTransactions);
+                        }).catch(err => { 
+                            console.log(err); 
+                        });
+                    }).catch(err => { 
                         console.log(err);
                     });
                 } else {
                     prettyPrintResponse(error);
                     resolve(null);
                 }
-                // resolve(transactionsResponse);
             }
         );
-    });
-}
-
-function refreshUser(user) {
-    return new Promise(function (resolve, reject) {
-        for (let i = 0; i < user.items.length; i++) {
-            accountDao.getAllByItemId(user.items[i].id).then(accounts => {
-                // for (let j = 0; j < accounts.length; j++) {
-
-                // }
-                console.log('accounts from db: ');
-                console.log(accounts);
-                user.items[i].accounts = accounts;
-                resolve();
-            }).catch(err => {
-                console.log(err);
-            });
-        }
     });
 }
 
