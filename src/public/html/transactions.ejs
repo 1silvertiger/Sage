@@ -7,13 +7,20 @@
     <%- include('./navbar.html') %>
 
     <div class="container">
-        <div class="section">
+        <div class="row">
+            <h4>Transactions</h4>
             <!-- <div id="accountSelector" class="input-field col s12">
                 <option value="0" selected>All</option>
                 <option v-for="(account, index) in accounts" value="{{ index + 1 }}">{{ account }}</option>
             </div> -->
 
-            <input type="text" class="datepicker">
+            <div class="col">
+                <h6>Show from </h6>
+                <input id="beginDatePicker" type="text" class="datepicker">
+
+                <h6> to </h6>
+                <input id="endDatePicker" type="text" class="datepicker">
+            </div>
 
             <table id="table" class="striped">
                 <thead>
@@ -26,7 +33,7 @@
                 <tbody>
                     <tr v-for="t in transactions">
                         <td>{{ t.amount }}</td>
-                        <td>{{ t.name }}</td>
+                        <td>{{ t.merchant }}</td>
                         <td>{{ t.date }}</td>
                     </tr>
                 </tbody>
@@ -35,13 +42,19 @@
     </div>
 
     <script>
-        // const URL = '<%= URL %>';
-        var transactions = JSON.parse('<%- JSON.stringify(transactions) %>');
-        const user = '<%= user %>';
+        const URL = '<%= URL %>';
+        const user = JSON.parse(`<%- JSON.stringify(user) %>`);
+        let transactions = new Array();
+        for (let i = 0; i < user.items.length; i++) {
+            transactions = transactions.concat(user.items[i].transactions);
+        }
         var table = new Vue({
             el: '#table',
             data: {
                 transactions: transactions
+            },
+            mounted: function() {
+                M.AutoInit();
             }
         });
 
@@ -52,6 +65,8 @@
         //     }
         // });
     </script>
+
+    <script scr="scripts/transactions.ejs.js"></script>
 
     <!-- <div class="container">
         <div class="row">
