@@ -21,13 +21,15 @@ module.exports = class TransactionDao extends Dao {
                     , transaction.merchant
                     , transaction.date
                 ];
-                conn.query(Dao.composeQuery('createTransaction', params), params).then(rows => {
+                conn.query(Dao.composeQuery('createOrUpdateTransaction', params), params).then(rows => {
                     resolve(new Transaction(rows[0][0].id, rows[0][0].plaidItemId, rows[0][0].accountId, rows[0][0].amount, rows[0][0].merchant, rows[0][0].date, rows[0][0].name));
                 }).catch(err => {
                     Dao.handleQueryCatch(err);
+                    resolve(null);
                 }).finally(() => {if(conn) conn.end()});
             }).catch(err => {
                 Dao.handleGetConnectionCatch(err);
+                resolve(null);
             });
         });
     }
