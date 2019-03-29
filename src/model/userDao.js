@@ -1,6 +1,11 @@
 const Dao = require('./dao');
 const User = require('./user.js');
 const Item = require('./item');
+const Budget = require('./budget');
+
+const USER_INDEX = 0;
+const ITEMS_INDEX = 1;
+const BUDGET_ITEMS_INDEX = 2;
 
 module.exports = class UserDao extends Dao {
     constructor(pPool) {
@@ -13,16 +18,13 @@ module.exports = class UserDao extends Dao {
     }
 
     create(user) {
-        console.log('2');
         const pool = this.pool;
         return new Promise(function (resolve, reject) {
             pool.getConnection().then(conn => {
-                console.log('3')
                 conn.query('CALL createUser(?,?,?,?,?)', [user.id, user.firstName, user.lastName, user.imageUrl, user.email]).then(rows => {
                     resolve(new User(rows[0][0].googleId, rows[0][0].firstName, rows[0][0].lastName, rows[0][0].imageUrl, rows[0][0].email));
                     conn.end();
                 }).catch(err => {
-                    console.log('err 1')
                     console.log(err)
                 });
             }).catch(err => {
@@ -40,10 +42,21 @@ module.exports = class UserDao extends Dao {
                     console.log(rows);
                     if (rows[0].length > 0) {
                         let items = new Array();
-                        for (let i = 0; i < rows[1].length; i++) {
-                            items.push(new Item(rows[1][i].itemId, rows[1][i].accessToken, null, rows[1][i].lastSync, new Array()));
+                        for (let i = 0; i < rows[ITEMS_INDEX].length; i++) {
+                            items.push(new Item(rows[ITEMS_INDEX][i].itemId, rows[ITEMS_INDEX][i].accessToken, null, rows[ITEMS_INDEX][i].lastSync, new Array()));
                         }
-                        resolve(new User(rows[0][0].googleId, rows[0][0].firstName, rows[0][0].lastName, rows[0][0].imageUrl, rows[0][0].email, items));
+                        let budgetItems = new Array();
+                        for (let i = 0; i < rows[BUDGET_ITEMS_INDEX].length; i++) {
+                            budgetItems.push(new Budget(
+                                rows[BUDGET_ITEMS_INDEX][i].id
+                                , rows[BUDGET_ITEMS_INDEX][i].userId
+                                , rows[BUDGET_ITEMS_INDEX][i].periodId
+                                , rows[BUDGET_ITEMS_INDEX][i].name
+                                , rows[BUDGET_ITEMS_INDEX][i].amount
+                                , rows[BUDGET_ITEMS_INDEX][i].numOfPeriods
+                            ));
+                        }
+                        resolve(new User(rows[USER_INDEX][0].googleId, rows[USER_INDEX][0].firstName, rows[USER_INDEX][0].lastName, rows[USER_INDEX][0].imageUrl, rows[USER_INDEX][0].email, items, budgetItems));
                     } else
                         resolve(null);
                     conn.end();

@@ -1,53 +1,66 @@
 <html lang="en">
 
-<head>
-    <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.3.1.min.js"
-        integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous" defer></script>
+<%- include ./head.html %>
 
-    <!-- Popper -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
-        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"
-        defer></script>
-
-    <!-- Bootstrap -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
-        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
-        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"
-        defer></script>
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
-    <!-- Font Awesome -->
-    <script defer src="https://use.fontawesome.com/releases/v5.7.1/js/all.js"
-        integrity="sha384-eVEQC9zshBn0rFj4+TU78eNA19HMNigMviK/PU/FFjLXqa/GKPgX58rvt5Z8PLs7" crossorigin="anonymous"
-        defer></script>
-
-    <!-- Google Sign In -->
-    <meta name="google-signin-scope" content="profile email">
-    <meta name="google-signin-client_id"
-        content="426835960192-m5m68us80b86qg3ilpanmf91gm3ufqk4.apps.googleusercontent.com">
-    <script src="https://apis.google.com/js/platform.js" defer></script>
-
-    <!-- EJS -->
-    <script src="scripts/ejs.min.js" defer></script>
-
-    <!-- Global styles -->
-    <link rel="stylesheet" type="text/css" href="stylesheets/css/global.css">
-
-    <!-- Custom styles -->
-    <link rel="stylesheet" type="text/css" href="#">
-
-    <!-- Custom scripts -->
-    <script src="#" type="text/javascript" defer></script>
-</head>
+<!-- Custom styles -->
+<link rel="stylesheet" type="text/css" href="stylesheets/css/budgets.css">
 
 <body>
-<div class="container">
-    <div class="row">
-        
+    <%- include ./navbar.html %>
+
+    <div class="container">
+        <div class="row">
+            <h1>Budgets</h1>
+        </div>
+        <div class="row">
+            <h4>Overview</h4>
+            <select id="overViewPeriod">
+                <option value="1">days</option>
+                <option value="2">week(s)</option>
+                <option value="3" selected>month(s)</option>
+                <option value="4">quarter(s)</option>
+                <option value="5">year</option>
+            </select>
+            <div id="overviewChart" style="width:900px; height:500px"></div>
+        </div>
+        <div class="row">
+            <h2>Existing budgets will go here.</h2>
+        </div>
+        <div class="row">
+            <h2>Add new</h2>
+            Designate&nbsp;$
+            <div class="input-field inline short-input-field">
+                <input id="amount" class="validate" placeholder="0.00" type="number">
+            </div>
+            &nbsp;every&nbsp;
+            <div class="input-field inline short-input-field">
+                <input id="numOfPeriods" class="validate small-text-input" placeholder="1" type="number">
+            </div>
+            &nbsp;
+            <div class="input-field inline short-input-field">
+                <select id="period">
+                    <option value="1">days</option>
+                    <option value="2">week(s)</option>
+                    <option value="3" selected>month(s)</option>
+                    <option value="4">quarter(s)</option>
+                    <option value="5">year</option>
+                </select>
+            </div>
+            &nbsp;for&nbsp;
+            <div class="input-field inline">
+                <input id="expense" type="text" class="validate" placeholder="expense">
+            </div>
+            <a id="addNewBudgetBtn" class="waves-effect waves-light btn">Add!</a>
+        </div>
     </div>
-</div>
+
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js" defer></script>
+    <script src='model/clientBudget.js' defer></script>
+    <script src='scripts/budgets.ejs.js' defer></script>
+    <script defer>
+        const URL = '<%= URL %>';
+        let user = JSON.parse(`<%- JSON.stringify(user) %>`);
+    </script>
 </body>
 
 </html>
