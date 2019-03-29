@@ -52,13 +52,9 @@ module.exports = class ItemDao extends Dao {
     updateLastSync(item) {
         const pool = this.pool;
         return new Promise(function (resolve, reject) {
-            pool.getConnection().then(conn => {
-                conn.query('CALL updateItemLastSync(?,?)', [item.id, new Date()]).then(rows => {
+            pool.query('CALL updateItemLastSync(?,?)', [item.id, new Date()]).then(rows => {
                     let i = 0;
-                }).catch(err => { Dao.handleQueryCatch(err) });
-            }).catch(err => {
-                Dao.handleGetConnectionCatch(err);
-            });
+            }).catch(err => { Dao.handleQueryCatch(err) });
         });
     }
 
