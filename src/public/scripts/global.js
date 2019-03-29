@@ -36,12 +36,3 @@ function refreshUser() {
         });
     });
 }
-
-function test() {
-    return new Promise(function (resolve, reject) {
-        window.setTimeout(function () {
-            resolve('test');
-        }
-            , 3000);
-    });
-}
