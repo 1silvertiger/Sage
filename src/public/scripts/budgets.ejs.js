@@ -23,10 +23,13 @@ $(document).ready(function () {
             , dataType: 'json'
             , contentType: 'application/json'
             , success: function (data) {
+                // test().then(test => {
+                //     console.log(test)
+                // }).catch();
                 refreshUser().then(refreshedUser => {
-                    user = refreshedUser;
+                    // user = refreshedUser;
                     drawOverviewChart();
-                }).catch(err => {console.log(err)});
+                }).catch(err => { console.log(err) });
             }, error: function (jqxhr, status, error) {
                 let i = 0;
             }
@@ -46,14 +49,6 @@ function drawOverviewChart() {
         for (let i = 0; i < user.budgetItems.length; i++) {
             budgetData.push([user.budgetItems[i].name, user.budgetItems[i].amount]);
         }
-        // var data = google.visualization.arrayToDataTable([
-        //     ['Task', 'Hours per Day'],
-        //     ['Work', 11],
-        //     ['Eat', 2],
-        //     ['Commute', 2],
-        //     ['Watch TV', 2],
-        //     ['Sleep', 7]
-        // ]);
 
         const data = google.visualization.arrayToDataTable(budgetData);
 

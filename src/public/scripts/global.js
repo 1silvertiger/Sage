@@ -19,8 +19,29 @@ $(document).ready(function () {
             }
         });
     });
-    //Materialize component initialization
-    //M.AutoInit();
-    // $('.sidenav').sidenav();
-    // $('.fixed-action-btn').floatingActionButton();
 });
+
+function refreshUser() {
+    return new Promise(function (resolve, reject) {
+        $.ajax({
+            url: URL + '/refreshUser'
+            , success: function (data) {
+                user = JSON.parse(data);
+                resolve(true);
+            }
+            , error: function (jqxhr, status, error) {
+                console.log(error);
+                resolve(false);
+            }
+        });
+    });
+}
+
+function test() {
+    return new Promise(function (resolve, reject) {
+        window.setTimeout(function () {
+            resolve('test');
+        }
+            , 3000);
+    });
+}

@@ -307,6 +307,20 @@ app.post('/tokensignin', function (req, res) {
     verify().catch(console.error);
 });
 
+app.all('/refreshUser', function (req, res) {
+    userDao.getById(req.session.user.id).then(user => {
+        console.log(user);
+        syncWithPlaid(user).then(syncedUser => {
+            req.session.user = syncedUser;
+            res.json(JSON.stringify(user));
+        }).catch(err => {
+            console.log(err);
+        });
+    }).catch(err => {
+        Dao.handleQueryError(err);
+    });
+});
+
 app.all('/createBudget', function (req, res) {
     budgetDao.createOrUpdate(Budget.parseClientBudget(req.body.budget)).then(budget => {
         console.log('Budget:');
