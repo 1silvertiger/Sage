@@ -123,8 +123,8 @@ if (config.APP_MODE == "dev") {
     };
     if (options) {
         console.log('SSL keys found.');
-    } else 
-    console.log('Error accessing SSL keys');
+    } else
+        console.log('Error accessing SSL keys');
     server = https.createServer(options, app).listen(APP_PORT);
     console.log('Server created.');
 }
@@ -278,9 +278,7 @@ app.post('/tokensignin', function (req, res) {
         const payload = ticket.getPayload();
         const userId = payload['sub'];
         if (payload['aud'] == GOOGLE_AUTH_CLIENT_ID) {
-            // userDao.test('i am a test');
             userDao.getById(userId).then(user => {
-                // console.log('inside then');
                 if (user) {
                     console.log(user);
                     syncWithPlaid(user).then(syncedUser => {
@@ -290,7 +288,6 @@ app.post('/tokensignin', function (req, res) {
                     }).catch(err => {
                         console.log(err);
                     });
-                    // }
                 } else {
                     userDao.create(new User(userId, req.body.firstName, req.body.lastName, req.body.imageUrl, req.body.email)).then(user => {
                         req.session.test = "Hello, world!";
@@ -487,7 +484,7 @@ function getAccounts(accessToken) {
                 accountDao.batchCreateOrUpdate(accountsFromPlaid).then(updatedAccounts => {
                     console.log('Final result:');
                     console.log(updatedAccounts);
-                    resolve(updatedAccounts);  
+                    resolve(updatedAccounts);
                 }).catch(err => {
                     Dao.handleQueryError(err);
                 });
@@ -527,10 +524,10 @@ function getTransactions(startDate, endDate, accessToken, count, offset) {
                             console.log('Transactions from DB:');
                             console.log(allTransactions);
                             resolve(allTransactions);
-                        }).catch(err => { 
-                            console.log(err); 
+                        }).catch(err => {
+                            console.log(err);
                         });
-                    }).catch(err => { 
+                    }).catch(err => {
                         console.log(err);
                     });
                 } else {
