@@ -1,9 +1,20 @@
+let overviewSelector;
+let addNewSelector;
+
 $(document).ready(function () {
     M.AutoInit();
+    // addNewSelector = M.FormSelect.getInstance(document.querySelector("#period"));
+    // overviewSelector = M.FormSelect.getInstance(document.querySelector("#overviewSelector"));
 
     if (user.budgetItems.length > 0)
         drawOverviewChart();
 
+    const table = new Vue({
+        el: '#table'
+        , data: {
+            user: user
+        }
+    });
 
     $('#addNewBudgetBtn').click(function () {
         const temp = $('#expense');
@@ -23,19 +34,14 @@ $(document).ready(function () {
             , dataType: 'json'
             , contentType: 'application/json'
             , success: function (data) {
-                // test().then(test => {
-                //     console.log(test)
-                // }).catch();
+                //clear form
                 refreshUser().then(refreshedUser => {
-                    // user = refreshedUser;
                     drawOverviewChart();
                 }).catch(err => { console.log(err) });
             }, error: function (jqxhr, status, error) {
                 let i = 0;
             }
-
         });
-        let i = 0;
     });
 });
 
@@ -47,7 +53,8 @@ function drawOverviewChart() {
         const budgetData = new Array();
         budgetData.push(['Expense', 'Amount']);
         for (let i = 0; i < user.budgetItems.length; i++) {
-            budgetData.push([user.budgetItems[i].name, user.budgetItems[i].amount]);
+            // if (user.budgetItems[i].periodId === overviewSelector.getSelectedValues()[0])
+                budgetData.push([user.budgetItems[i].name, user.budgetItems[i].amount / user.budgetItems[i].numOfPeriods]);
         }
 
         const data = google.visualization.arrayToDataTable(budgetData);

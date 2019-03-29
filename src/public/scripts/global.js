@@ -26,7 +26,9 @@ function refreshUser() {
         $.ajax({
             url: URL + '/refreshUser'
             , success: function (data) {
-                user = JSON.parse(data);
+                refresh = JSON.parse(data);
+                user.items = refresh.items;
+                user.budgetItems = refresh.budgetItems;
                 resolve(true);
             }
             , error: function (jqxhr, status, error) {

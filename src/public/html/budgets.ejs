@@ -14,17 +14,36 @@
         </div>
         <div class="row">
             <h4>Overview</h4>
-            <select id="overViewPeriod" class="short-input-field">
-                <option value="1">days</option>
-                <option value="2">week(s)</option>
-                <option value="3" selected>month(s)</option>
-                <option value="4">quarter(s)</option>
-                <option value="5">year</option>
-            </select>
+            <div class="input-field short-input-field">
+                <select id="overviewPeriod">
+                    <option value="2">Week</option>
+                    <option value="3" selected>Month</option>
+                    <option value="4">Quarter</option>
+                    <option value="5">Year</option>
+                </select>
+            </div>
             <div id="overviewChart" style="width:900px; height:500px"></div>
         </div>
         <div class="row">
-            
+            <h4>All budget items</h4>
+            <table id="table" class="striped highlight">
+                <thead>
+                    <tr>
+                        <th>Expense</th>
+                        <th>Amount</th>
+                        <th>Period</th>
+                        <th>Number of periods</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="bi in user.budgetItems">
+                        <td>{{ bi.name }}</td>
+                        <td>{{ bi.amount }}</td>
+                        <td>{{ bi.period}}</td>
+                        <td>{{ bi.numOfPeriods }}</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
         <div class="row">
             Designate&nbsp;$
@@ -58,7 +77,7 @@
     <script src='scripts/budgets.ejs.js' defer></script>
     <script defer>
         const URL = '<%= URL %>';
-        let user = JSON.parse(`<%- JSON.stringify(user) %>`);
+        const user = JSON.parse(`<%- JSON.stringify(user) %>`);
     </script>
 </body>
 
