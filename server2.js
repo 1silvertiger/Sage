@@ -37,6 +37,8 @@ const Account = require('babel-loader!./src/model/account.js');
 const AccountDao = require('babel-loader!./src/model/accountDao.js');
 const Transaction = require('babel-loader!./src/model/transaction.js');
 const TransactionDao = require('babel-loader!./src/model/transactionDao.js');
+const Budget = require('babel-loader!./src/model/budget.js');
+const BudgetDao = require('babel-loader!./src/model/budgetDao.js');
 
 const GOOGLE_AUTH_CLIENT_ID = '426835960192-m5m68us80b86qg3ilpanmf91gm3ufqk4.apps.googleusercontent.com';
 
@@ -82,6 +84,7 @@ const userDao = new UserDao(pool);
 const itemDao = new ItemDao(pool);
 const accountDao = new AccountDao(pool);
 const transactionDao = new TransactionDao(pool);
+const budgetDao = new BudgetDao(pool);
 
 const app = express();
 const webpackConfig = require('./webpack.config.js');
@@ -209,19 +212,10 @@ app.all('/home', function (req, res) {
 });
 
 app.all("/budgets", function (req, res) {
-    pool.getConnection()
-        .then(conn => {
-            conn.query()
-                .then(rows => {
-
-                })
-                .catch(err => {
-
-                });
-        })
-        .catch(err => {
-
-        });
+    res.render('budgets.ejs', {
+        URL: config.URL
+        , user: req.session.user
+    });
 });
 
 app.all("/accounts", function (req, res) {
@@ -314,6 +308,18 @@ app.post('/tokensignin', function (req, res) {
     }
 
     verify().catch(console.error);
+});
+
+app.all('/createBudget', function (req, res) {
+    budgetDao.createOrUpdate(Budget.parseClientBudget(req.body.budget)).then(budget => {
+        console.log('Budget:');
+        console.log(budget);
+        const temp = budget.toClientBudget(budget);
+        res.json(JSON.stringify(temp));
+    }).catch(err => {
+        console.log(err);
+        res.sendStatus(500);
+    });
 });
 
 //Plaid
@@ -446,8 +452,8 @@ function syncWithPlaid(user) {
                     user.items[Math.floor(i / 2)].accounts = values[i];
                 } else {
                     user.items[Math.floor(i / 2)].transactions = values[i];
+                    itemDao.updateLastSync(user.items[Math.floor(i / 2)]);
                 }
-                itemDao.updateLastSync(user.items[i]);
             }
             resolve(user);
         }).catch(err => {
