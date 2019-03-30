@@ -25,4 +25,17 @@ module.exports = class BudgetDao extends Dao {
             });
         });
     }
+
+    deleteBatch(budgetItemIds) {
+        const pool = this.pool;
+        return new Promise(function(resolve, reject) {
+            pool.batch('CALL deleteBudgetItem(?)', budgetItemIds).then(rows => {
+                resolve(true);
+            }).catch(err => {
+                console.log(err);
+                Dao.handleQueryCatch(err);
+                resolve(null);
+            });
+        });
+    }
 }

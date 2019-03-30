@@ -321,7 +321,7 @@ app.all('/refreshUser', function (req, res) {
     });
 });
 
-app.all('/createBudget', function (req, res) {
+app.all('/createOrUpdateBudgetItem', function (req, res) {
     budgetDao.createOrUpdate(Budget.parseClientBudget(req.body.budget)).then(budget => {
         console.log('Budget:');
         console.log(budget);
@@ -330,6 +330,19 @@ app.all('/createBudget', function (req, res) {
     }).catch(err => {
         console.log(err);
         res.sendStatus(500);
+    });
+});
+
+app.all('/deleteBudgetItems', function (req, res) {
+    budgetDao.deleteBatch(req.body.budgetItemIds).then(() => {
+        sync(req.session.user).then(syncedUser => {
+            req.session.user = syncedUser;
+            res.json(JSON.stringify(syncedUser));
+        }).catch(err => {
+            console.log(err);
+        });
+    }).catch(err => {
+        console.log(err);
     });
 });
 
@@ -449,6 +462,19 @@ app.get('/accounts', function (request, response, next) {
         response.json({ error: null, accounts: accountsResponse });
     });
 });
+
+function sync(user) {
+    return new Promise(function (resolve, reject) {
+        userDao.getById(user.id).then(userFromDb => {
+            console.log(userFromDb);
+            syncWithPlaid(userFromDb).then(syncedUser => {
+                resolve(syncedUser);
+            }).catch(err => {
+                Dao.handleQueryError(err);
+            });
+        });
+    });
+}
 
 function syncWithPlaid(user) {
     return new Promise(function (resolve, reject) {
