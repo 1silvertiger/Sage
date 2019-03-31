@@ -11,7 +11,8 @@ module.exports = class BudgetDao extends Dao {
         const pool = this.pool;
         return new Promise(function (resolve, reject) {
             const params = [
-                budget.userId
+                budget.id
+                , budget.userId
                 , budget.periodId
                 , budget.name
                 , budget.amount

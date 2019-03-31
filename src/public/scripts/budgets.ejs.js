@@ -7,7 +7,7 @@ $(document).ready(function () {
         data: {
             user: user,
             budgetItemsToDelete: new Array(),
-            budgetItemToCreate: new ClientBudget(null, user.id, null, null, null, null)
+            budgetItemToCreate: new ClientBudget(null, user.id, 3, null, null, null)
         },
         mounted: function () {
             //Initialize modals
@@ -17,6 +17,20 @@ $(document).ready(function () {
             refreshUser().then(refreshedUser => {
                 drawOverviewChart();
             }).catch(err => { console.log(err) });
+        },
+        computed: {
+            sortedBudgetItems: function () {
+                return user.budgetItems.sort((a, b) => {
+                    const temp1 = a.name.toUpperCase();
+                    const temp2 = b.name.toUpperCase();
+                    if (temp1 > temp2)
+                        return 1
+                    else if (temp1 < temp2)
+                        return -1;
+                    else
+                        return 0;
+                });
+            }
         },
         methods: {
             createOrUpdateBudgetItem: function (budgetItem) {
@@ -47,8 +61,24 @@ $(document).ready(function () {
                         const temp = JSON.parse(refreshedUser);
                         user.items = temp.items;
                         user.budgetItems = temp.budgetItems;
+                        drawOverviewChart();
                     }
                 });
+            },
+            getPeriodName: function (periodId) {
+                switch (periodId) {
+                    case 1:
+                        return 'day';
+                    case 2:
+                        return 'week';
+                    case 3:
+                        return 'month';
+                    case 4:
+                        return 'quarter';
+                    case 5:
+                        return 'year';
+
+                }
             }
         }
     });
@@ -58,22 +88,52 @@ $(document).ready(function () {
         google.charts.load("current", { packages: ["corechart"] });
         google.charts.setOnLoadCallback(drawChart);
         function drawChart() {
-            const budgetData = new Array();
-            budgetData.push(['Expense', 'Amount']);
+            const budgetDataWeek = new Array();
+            const budgetDataMonth = new Array();
+            const budgetDataQuarter = new Array();
+            const budgetDataYear = new Array();
+            budgetDataWeek.push(['Expense', 'Amount']);
+            budgetDataMonth.push(['Expense', 'Amount']);
+            budgetDataQuarter.push(['Expense', 'Amount']);
+            budgetDataYear.push(['Expense', 'Amount']);
             for (let i = 0; i < user.budgetItems.length; i++) {
-                // if (user.budgetItems[i].periodId === overviewSelector.getSelectedValues()[0])
-                budgetData.push([user.budgetItems[i].name, user.budgetItems[i].amount / user.budgetItems[i].numOfPeriods]);
+                if (user.budgetItems[i].periodId === 2)
+                    budgetDataWeek.push([user.budgetItems[i].name, user.budgetItems[i].amount / user.budgetItems[i].numOfPeriods]);
+                if (user.budgetItems[i].periodId === 3)
+                    budgetDataMonth.push([user.budgetItems[i].name, user.budgetItems[i].amount / user.budgetItems[i].numOfPeriods]);
+                if (user.budgetItems[i].periodId === 4)
+                    budgetDataQuarter.push([user.budgetItems[i].name, user.budgetItems[i].amount / user.budgetItems[i].numOfPeriods]);
+                if (user.budgetItems[i].periodId === 5)
+                    budgetDataYear.push([user.budgetItems[i].name, user.budgetItems[i].amount / user.budgetItems[i].numOfPeriods]);
             }
 
-            const data = google.visualization.arrayToDataTable(budgetData);
-
-            var options = {
-                title: 'Monthly budget',
+            const dataWeek = google.visualization.arrayToDataTable(budgetDataWeek);
+            const weekOptions = {
                 pieHole: 0.4,
             };
+            const weekChart = new google.visualization.PieChart(document.getElementById('weekChart'));
+            weekChart.draw(dataWeek, weekOptions);
 
-            var chart = new google.visualization.PieChart(document.getElementById('overviewChart'));
-            chart.draw(data, options);
+            const dataMonth = google.visualization.arrayToDataTable(budgetDataMonth);
+            const monthOptions = {
+                pieHole: 0.4,
+            };
+            const monthChart = new google.visualization.PieChart(document.getElementById('monthChart'));
+            monthChart.draw(dataMonth, monthOptions);
+
+            const dataQuarter = google.visualization.arrayToDataTable(budgetDataQuarter);
+            const quarterOptions = {
+                pieHole: 0.4,
+            };
+            const quarterChart = new google.visualization.PieChart(document.getElementById('quarterChart'));
+            quarterChart.draw(dataQuarter, quarterOptions);
+
+            const dataYear = google.visualization.arrayToDataTable(budgetDataYear);
+            const yearOptions = {
+                pieHole: 0.4,
+            };
+            const yearChart = new google.visualization.PieChart(document.getElementById('yearChart'));
+            yearChart.draw(dataYear, yearOptions);
         }
     }
 });
