@@ -51,8 +51,8 @@
                                     <th></th>
                                     <th>Expense</th>
                                     <th>Amount</th>
-                                    <th>Period</th>
-                                    <th>Number of periods</th>
+                                    <th class="hide-on-small-only">Period</th>
+                                    <th class="hide-on-small-only">Number of periods</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -68,8 +68,8 @@
                                     </td>
                                     <td :data-target="bi.id" class="modal-trigger">{{ bi.name }}</td>
                                     <td :data-target="bi.id" class="modal-trigger">${{ bi.amount }}</td>
-                                    <td :data-target="bi.id" class="modal-trigger">{{ getPeriodName(bi.periodId) }}</td>
-                                    <td :data-target="bi.id" class="modal-trigger">{{ bi.numOfPeriods }}</td>
+                                    <td :data-target="bi.id" class="modal-trigger hide-on-small-only">{{ getPeriodName(bi.periodId) }}</td>
+                                    <td :data-target="bi.id" class="modal-trigger hide-on-small-only">{{ bi.numOfPeriods }}</td>
                                 </tr>
                             </tbody>
                         </table>
