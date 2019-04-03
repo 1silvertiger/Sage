@@ -5,10 +5,10 @@ module.exports = class User {
         this.lastName = lastName;
         this.imageUrl = imageUrl;
         this.email = email;
-        this.tags = tags;
-        this.items = items;
-        this.budgetItems = budgetItems;
-        this.piggyBanks = piggyBanks;
-        this.bills = bills;
+        this.tags = tags || new Array();
+        this.items = items || new Array();
+        this.budgetItems = budgetItems || new Array();
+        this.piggyBanks = piggyBanks || new Array();
+        this.bills = bills || new Array();
     }
 }
