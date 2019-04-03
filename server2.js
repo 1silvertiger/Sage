@@ -100,10 +100,6 @@ app.use(require("webpack-hot-middleware")(compiler, {
     log: console.log, path: '/__webpack_hmr', heartbeat: 10 * 1000
 }));
 
-// app.use(webpackDevMiddleware(compiler, {
-//     publicPath: webpackConfig.output.publicPath
-// }));
-
 app.set('trust proxy', 1);
 app.use(session({
     secret: 'keyboard cat',
@@ -153,9 +149,6 @@ app.use(function (req, res, next) {
     next();
 });
 
-const global = {
-    //Fill with global vars that are sent in every response
-}
 //\\//\\//\\//\\NAVIGATION//\\//\\//\\//\\
 
 //Authenticate
@@ -172,9 +165,7 @@ app.use(function (req, res, next) {
     }
 });
 
-// Landing page
 app.all('/', function (req, res, next) {
-    //have a landing page here
     res.render('index.ejs', {
         URL: config.URL,
     });
