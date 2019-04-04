@@ -1,0 +1,91 @@
+<html lang="en">
+<%- include ./head.html %>
+
+<body>
+    <%- include ./navbar.html %>
+    <div id="app" class="container">
+        <div class="row">
+            <div class="col">
+                <h1>Piggy Banks</h1>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col s12 l12">
+                <div class="card">
+                    <div class="card-content">
+                        <span class="card-title">Current piggy banks</span>
+                        <!-- <table class="striped highlight">
+                            <thead>
+                                <th>Name</th>
+                                <th>Balance</th>
+                                <th class="hide-on-small-only">Goal</th>
+                                <th class="hide-on-small-only">Account</th>
+                            </thead>
+                            <tbody>
+                                <tr v-for="pb in user.piggyBanks">
+
+                                </tr>
+                            </tbody>
+                        </table> -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col s12 l12">
+                <div class="card">
+                    <div class="card-content">
+                        <span class="card-title">Add new piggy bank</span>
+                        <ul class="collapsible">
+                            <li class="active">
+                                <div class="collapsible-header">Account</div>
+                                <div class="collapsible-body">
+                                    <div class="input-field">
+                                        <select v-model="piggyBankToCreate.accountId">
+                                            <optgroup v-for="item in user.items" :label="item.institutionName">
+                                                <option v-for="a in item.accounts" :value="a.id">{{ a.name }}</option>
+                                            </optgroup>
+                                        </select>
+                                    </div>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="collapsible-header">Details</div>
+                                <div class="collapsible-body">
+                                    <input id="addName" type="text" class="input-field inline med-input-field"
+                                        placeholder="New piggy bank" v-model="piggyBankToCreate.name">
+                                    <label for="#addName">Name</label>
+                                    <p class="range-field"><input id="addBalance" type="range" min="0"
+                                            :max="getAccountById(piggyBankToCreate.accountId).currentBalance || 100"
+                                            value="0" v-model="piggyBankToCreate.balance"></p>
+                                    <label for="#addBalance">Balance to add:
+                                        $&nbsp;{{ piggyBankToCreate.balance }}/</label>
+                                    <br>
+                                    $<input type="number" id="addGoal" class="input-field inline short-input-field"
+                                        placeholder="0" v-model="piggyBankToCreate.goal">
+                                    <label for="#addGoal">Goal</label>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="collapsible-header">Tags</div>
+                                <div class="collapsible-body">
+                                    <div id="addTags" class="chips chips-autocomplete"></div>
+                                    <a id="addBtn" class="waves-effect waves-light btn"
+                                        v-on:click="createOrUpdatePiggyBank(piggyBankToCreate)">Add!</a>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src='scripts/piggyBanks.ejs.js' defer></script>
+    <script defer>
+        const URL = '<%= URL %>';
+        const user = JSON.parse(`<%- JSON.stringify(user) %>`);
+    </script>
+</body>
+
+</html>
