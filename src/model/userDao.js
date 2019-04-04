@@ -2,10 +2,15 @@ const Dao = require('./dao');
 const User = require('./user.js');
 const Item = require('./item');
 const Budget = require('./budget');
+const Tag = require('./tag');
+const PiggyBank = require('./piggyBank');
 
 const USER_INDEX = 0;
-const ITEMS_INDEX = 1;
-const BUDGET_ITEMS_INDEX = 2;
+const TAGS_INDEX = 1;
+const ITEMS_INDEX = 2;
+const BUDGET_ITEMS_INDEX = 3;
+const PIGGY_BANK_INDEX = 4;
+const PIGGY_BANK_TAGS_INDEX = 5;
 
 module.exports = class UserDao extends Dao {
     constructor(pPool) {
@@ -41,13 +46,22 @@ module.exports = class UserDao extends Dao {
                     console.log('rows: ');
                     console.log(rows);
                     if (rows[0].length > 0) {
-                        let items = new Array();
-                        for (let i = 0; i < rows[ITEMS_INDEX].length; i++) {
-                            items.push(new Item(rows[ITEMS_INDEX][i].itemId, rows[ITEMS_INDEX][i].accessToken, null, rows[ITEMS_INDEX][i].lastSync, new Array()));
+                        //Create user object
+                        const user = new User(rows[USER_INDEX][0].googleId, rows[USER_INDEX][0].firstName, rows[USER_INDEX][0].lastName, rows[USER_INDEX][0].imageUrl, rows[USER_INDEX][0].email);
+
+                        //Tags
+                        for (let i = 0; i < rows[TAGS_INDEX].length; i++) {
+                            user.tags.push(new Tag(rows[TAGS_INDEX][i].id, rows[TAGS_INDEX][i].userId, rows[TAGS_INDEX][i].name));
                         }
-                        let budgetItems = new Array();
+
+                        //Plaid items
+                        for (let i = 0; i < rows[ITEMS_INDEX].length; i++) {
+                            user.items.push(new Item(rows[ITEMS_INDEX][i].itemId, rows[ITEMS_INDEX][i].accessToken, null, rows[ITEMS_INDEX][i].lastSync, new Array()));
+                        }
+
+                        //Budget items
                         for (let i = 0; i < rows[BUDGET_ITEMS_INDEX].length; i++) {
-                            budgetItems.push(new Budget(
+                            user.budgetItems.push(new Budget(
                                 rows[BUDGET_ITEMS_INDEX][i].id
                                 , rows[BUDGET_ITEMS_INDEX][i].userId
                                 , rows[BUDGET_ITEMS_INDEX][i].periodId
@@ -56,7 +70,32 @@ module.exports = class UserDao extends Dao {
                                 , rows[BUDGET_ITEMS_INDEX][i].numOfPeriods
                             ));
                         }
-                        resolve(new User(rows[USER_INDEX][0].googleId, rows[USER_INDEX][0].firstName, rows[USER_INDEX][0].lastName, rows[USER_INDEX][0].imageUrl, rows[USER_INDEX][0].email, items, budgetItems));
+
+                        //Piggy banks
+                        for (let i = 0; i < rows[PIGGY_BANK_INDEX].length; i++) {
+                            user.piggyBanks.push(new PiggyBank(
+                                rows[PIGGY_BANK_INDEX][i].id,
+                                rows[PIGGY_BANK_INDEX][i].userId,
+                                rows[PIGGY_BANK_INDEX][i].accountId,
+                                rows[PIGGY_BANK_INDEX][i].tagId,
+                                rows[PIGGY_BANK_INDEX][i].name,
+                                rows[PIGGY_BANK_INDEX][i].balance,
+                                rows[PIGGY_BANK_INDEX][i].goal
+                            ));
+                        }
+
+                        //Piggy bank tags
+                        let currentPiggyBank = user.piggyBanks[0];
+                        let currentPiggyBankIndex = 0;
+                        for (let i = 0; i < rows[PIGGY_BANK_TAGS_INDEX].length; i++) {
+                            if (rows[PIGGY_BANK_TAGS_INDEX][i].piggyBankId !== currentPiggyBank.id)
+                                currentPiggyBank = user.piggyBanks[++currentPiggyBankIndex];
+                            user.piggyBanks[currentPiggyBankIndex].tags.push(new Tag(
+                                rows[PIGGY_BANK_TAGS_INDEX][i].id, rows[PIGGY_BANK_TAGS_INDEX][i].userId, rows[PIGGY_BANK_TAGS_INDEX][i].name
+                            ));
+                        }
+
+                        resolve(user);
                     } else
                         resolve(null);
                     conn.end();

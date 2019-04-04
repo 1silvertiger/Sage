@@ -39,6 +39,9 @@ const Transaction = require('babel-loader!./src/model/transaction.js');
 const TransactionDao = require('babel-loader!./src/model/transactionDao.js');
 const Budget = require('babel-loader!./src/model/budget.js');
 const BudgetDao = require('babel-loader!./src/model/budgetDao.js');
+const PiggyBank = require('babel-loader!./src/model/piggyBank.js');
+const PiggyBankDao = require('babel-loader!./src/model/piggyBankDao.js');
+const Tag = require('babel-loader!./src/model/tag.js');
 
 const GOOGLE_AUTH_CLIENT_ID = '426835960192-m5m68us80b86qg3ilpanmf91gm3ufqk4.apps.googleusercontent.com';
 
@@ -85,6 +88,7 @@ const itemDao = new ItemDao(pool);
 const accountDao = new AccountDao(pool);
 const transactionDao = new TransactionDao(pool);
 const budgetDao = new BudgetDao(pool);
+const piggyBankDao = new PiggyBankDao(pool);
 
 const app = express();
 const webpackConfig = require('./webpack.config.js');
@@ -99,10 +103,6 @@ app.use(require("webpack-dev-middleware")(compiler, {
 app.use(require("webpack-hot-middleware")(compiler, {
     log: console.log, path: '/__webpack_hmr', heartbeat: 10 * 1000
 }));
-
-// app.use(webpackDevMiddleware(compiler, {
-//     publicPath: webpackConfig.output.publicPath
-// }));
 
 app.set('trust proxy', 1);
 app.use(session({
@@ -153,9 +153,6 @@ app.use(function (req, res, next) {
     next();
 });
 
-const global = {
-    //Fill with global vars that are sent in every response
-}
 //\\//\\//\\//\\NAVIGATION//\\//\\//\\//\\
 
 //Authenticate
@@ -172,9 +169,7 @@ app.use(function (req, res, next) {
     }
 });
 
-// Landing page
 app.all('/', function (req, res, next) {
-    //have a landing page here
     res.render('index.ejs', {
         URL: config.URL,
     });
@@ -267,6 +262,13 @@ app.all("/transactions", function (req, res) {
     });
 });
 
+app.all('/piggy', function (req, res) {
+    res.render('piggyBanks.ejs', {
+        URL: config.URL,
+        user : req.session.user
+    });
+});
+
 //\\//\\//\\//\\API//\\//\\//\\//\\
 // Sign in
 app.post('/tokensignin', function (req, res) {
@@ -343,6 +345,19 @@ app.all('/deleteBudgetItems', function (req, res) {
         });
     }).catch(err => {
         console.log(err);
+    });
+});
+
+//Piggy banks
+app.all('/createOrUpdatePiggyBank', function(req, res) {
+    piggyBankDao.createOrUpdate(req.body.piggyBank).then(piggyBank => {
+        console.log('Piggy bank: ');
+        console.log(piggyBank);
+        
+        res.json(JSON.stringify(piggyBank));
+    }).catch(err => {
+        console.log(err);
+        res.sendStatus(500);
     });
 });
 
