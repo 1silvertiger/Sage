@@ -56,7 +56,7 @@ module.exports = class UserDao extends Dao {
 
                         //Plaid items
                         for (let i = 0; i < rows[ITEMS_INDEX].length; i++) {
-                            user.items.push(new Item(rows[ITEMS_INDEX][i].itemId, rows[ITEMS_INDEX][i].accessToken, null, rows[ITEMS_INDEX][i].lastSync, new Array()));
+                            user.items.push(new Item(rows[ITEMS_INDEX][i].itemId, rows[ITEMS_INDEX][i].accessToken, rows[ITEMS_INDEX][i].institutionName, rows[ITEMS_INDEX][i].lastSync, new Array()));
                         }
 
                         //Budget items
