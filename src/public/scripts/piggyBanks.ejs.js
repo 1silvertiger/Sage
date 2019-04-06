@@ -61,6 +61,22 @@ $(document).ready(function () {
                     , success: function (newPiggyBank) {
                         const temp = JSON.parse(newPiggyBank);
                         user.piggyBanks.push(temp);
+            },
+            deletePiggyBanks: function (piggyBankIds) {
+                $.ajax({
+                    url: URL + '/deletePiggyBanks',
+                    type: 'POST',
+                    data: JSON.stringify({ piggyBankIds: piggyBankIds }),
+                    dataType: 'json',
+                    contentType: 'application/json',
+                    success: function (refreshedUser) {
+                        const temp = refreshedUser;
+                        user.items = temp.items;
+                        user.budgetItems = temp.budgetItems;
+                        user.piggyBanks = temp.piggyBanks;
+                    },
+                    error: function (jqxhr, status, error) {
+                        let i = 0;
                     }
                 });
             }

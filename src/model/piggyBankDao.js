@@ -52,7 +52,7 @@ module.exports = class PiggyBankDao extends Dao {
     deleteBatch(ids) {
         const pool = this.pool;
         return new Promise(function (resolve, reject) {
-            pool.batch('CALL deletePiggyBank(?)').then(rows => {
+            pool.batch('CALL deletePiggyBank(?)', ids).then(rows => {
                 resolve(true);
             }).catch(err => {
                 Dao.handleQueryCatch(err);
