@@ -23,11 +23,13 @@ module.exports = class PiggyBankDao extends Dao {
                 piggyBank.balance,
                 piggyBank.goal
             ];
+            const promises = [
+                pool.query(Dao.composeQuery('createOrUpdatePiggyBank', params), params)
+            ];
+            if (piggyBank.tags.length)
+                promises.push(tagDao.createOrUpdateBatch(piggyBank.tags));
 
-            const piggyBankPromise = pool.query(Dao.composeQuery('createOrUpdatePiggyBank', params), params);
-            const tagsPromise = tagDao.createOrUpdateBatch(piggyBank.tags);
-
-            Promise.all([piggyBankPromise, tagsPromise]).then(values => {
+            Promise.all(promises).then(values => {
                 const temp = new PiggyBank(values[0][0][0].id, values[0][0][0].userId, values[0][0][0].accountId, values[0][0][0].tagId, values[0][0][0].name, values[0][0][0].balance, values[0][0][0].goal, values[1]);
                 resolve(temp);
             }).catch(err => {

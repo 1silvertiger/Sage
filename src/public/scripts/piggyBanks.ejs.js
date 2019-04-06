@@ -59,8 +59,14 @@ $(document).ready(function () {
                     , dataType: 'json'
                     , contentType: 'application/json'
                     , success: function (newPiggyBank) {
-                        const temp = JSON.parse(newPiggyBank);
-                        user.piggyBanks.push(temp);
+                        refreshUser().catch(err => {
+                            user.piggyBanks.push(JSON.parse(newPiggyBank));
+                        });
+                    },
+                    error: function(jqxhr, status, error) {
+                        let i = 0;
+                    }
+                });
             },
             deletePiggyBanks: function (piggyBankIds) {
                 $.ajax({
