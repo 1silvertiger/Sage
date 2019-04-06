@@ -361,6 +361,21 @@ app.all('/createOrUpdatePiggyBank', function(req, res) {
     });
 });
 
+app.all('/deletePiggyBanks', function(req, res) {
+    piggyBankDao.deleteBatch(req.body.piggyBankIds).then(() => {
+        sync(req.session.user).then(syncedUser => {
+            req.session.user = syncedUser;
+            res.json(syncedUser);
+        }).catch(err => {
+            console.log(err);
+            res.sendStatus(500);
+        });
+    }).catch(err => {
+        console.log(err);
+        res.sendStatus(500);
+    });
+});
+
 //Plaid
 app.all('/plaid-webhook', function (req, res, next) {
     console.log('PLAID WEBHOOK');

@@ -39,6 +39,9 @@ $(document).ready(function () {
                     $vm.piggyBankToCreate.tags.push(temp2);
                 }
             });
+
+            //Modals
+            M.Modal.init(document.querySelectorAll('.modal'), { preventScrolling: true });
         },
         methods: {
             getAccountById: function (pId) {
@@ -56,8 +59,30 @@ $(document).ready(function () {
                     , dataType: 'json'
                     , contentType: 'application/json'
                     , success: function (newPiggyBank) {
-                        const temp = JSON.parse(newPiggyBank);
-                        user.piggyBanks.push(temp);
+                        refreshUser().catch(err => {
+                            user.piggyBanks.push(JSON.parse(newPiggyBank));
+                        });
+                    },
+                    error: function(jqxhr, status, error) {
+                        let i = 0;
+                    }
+                });
+            },
+            deletePiggyBanks: function (piggyBankIds) {
+                $.ajax({
+                    url: URL + '/deletePiggyBanks',
+                    type: 'POST',
+                    data: JSON.stringify({ piggyBankIds: piggyBankIds }),
+                    dataType: 'json',
+                    contentType: 'application/json',
+                    success: function (refreshedUser) {
+                        const temp = refreshedUser;
+                        user.items = temp.items;
+                        user.budgetItems = temp.budgetItems;
+                        user.piggyBanks = temp.piggyBanks;
+                    },
+                    error: function (jqxhr, status, error) {
+                        let i = 0;
                     }
                 });
             }
