@@ -1,0 +1,82 @@
+<html leng="en">
+<%- include ./head.html %>
+
+<body>
+    <%- include ./navbar.html %>
+
+    <div id="app" class="container">
+        <div class="row">
+            <h1>Bills</h1>
+        </div>
+        <div class="row">
+            <div class="col s12 l12">
+                <div class="card">
+                    <div class="card-content">
+                        <span class="card-title">Current bills</span>
+                        <table class="striped highlight">
+                            <thead>
+                                <th></th>
+                                <th>Name</th>
+                                <th>Amount</th>
+                                <th>Period</th>
+                                <th>Due date</th>
+                                <th>Week day?</th>
+                                <th>Autopay?</th>
+                            </thead>
+                            <tbody>
+                                <tr v-for="b in user.bills">
+                                    <td>
+                                        <form>
+                                            <p><label>
+                                                    <input :id="'chkBx' + b.id" type="checkbox" class="filled-in"
+                                                        v-on:change="billsToDelete.push(b.id)">
+                                                    <span :for="'chkBx' + b.id"></span>
+                                                </label></p>
+                                        </form>
+                                    </td>
+                                    <td class="modal-trigger" :data-target="b.id">{{ b.name }}</td>
+                                    <td class="modal-trigger" :data-target="b.id">{{ b.amount }}</td>
+                                    <td class="modal-trigger" :data-target="b.id">{{ b.periodId }}</td>
+                                    <td class="modal-trigger" :data-target="b.id">{{ b.startDate }}</td>
+                                    <td class="modal-trigger" :data-target="b.id">{{ b.weekDay }}</td>
+                                    <td class="modal-trigger" :data-target="b.id">{{ b.autoPay }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="card-action">
+                            <a id="deleteBillsBtn" class="waves-effect waves-green btn" v-on:click="deleteBills(billsToDelete)">Delete selected</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col s12 l12">
+                <div class="card">
+                    <div class="card-content">
+                        <span class="card-title">Add new bill</span>
+                    </div>
+                    <div class="card-action">
+
+                    </div>
+                </div>
+            </div>
+            <!-- Add new bill -->
+            <!-- Name -->
+            <!-- How much -->
+            <!-- If it recurs -->
+            <!-- Period -->
+            <!-- Due date and second due date and if it's always due on a weekday -->
+            <!-- If it's on autopay -->
+            <!-- What happens to leftovers -->
+        </div>
+    </div>
+
+    <script src='scripts/bills.ejs.js' defer></script>
+    <script defer>
+        const URL = '<%= URL %>';
+        const user = JSON.parse(`<%- JSON.stringify(user) %>`);
+    </script>
+</body>
+
+</html>
