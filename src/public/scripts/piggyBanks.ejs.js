@@ -39,6 +39,9 @@ $(document).ready(function () {
                     $vm.piggyBankToCreate.tags.push(temp2);
                 }
             });
+
+            //Modals
+            M.Modal.init(document.querySelectorAll('.modal'), { preventScrolling: true });
         },
         methods: {
             getAccountById: function (pId) {
