@@ -14,8 +14,9 @@
                 <div class="card">
                     <div class="card-content">
                         <span class="card-title">Current piggy banks</span>
-                        <!-- <table class="striped highlight">
+                        <table class="striped highlight">
                             <thead>
+                                <th></th>
                                 <th>Name</th>
                                 <th>Balance</th>
                                 <th class="hide-on-small-only">Goal</th>
@@ -23,10 +24,27 @@
                             </thead>
                             <tbody>
                                 <tr v-for="pb in user.piggyBanks">
-
+                                    <td>
+                                        <form>
+                                            <p><label>
+                                                    <input :id="'chkBx' + pb.id" type="checkbox" class="filled-in"
+                                                        v-on:change="piggyBanksToDelete.push(pb.id)">
+                                                    <span :for="'chkBx' + pb.id"></span>
+                                                </label></p>
+                                        </form>
+                                    </td>
+                                    <td class="modal-trigger" :data-target="pb.id">{{ pb.name }}</td>
+                                    <td class="modal-trigger" :data-target="pb.id">{{ pb.balance }}</td>
+                                    <td class="modal-trigger hide-on-small-only" :data-target="pb.id">{{ pb.goal }}</td>
+                                    <td class="modal-trigger hide-on-small-only" :data-target="pb.id">
+                                        {{ getAccountById(pb.accountId).name }}</td>
                                 </tr>
                             </tbody>
-                        </table> -->
+                        </table>
+                    </div>
+                    <div class="card-action">
+                        <a id="deletePiggyBanksBtn" class="waves-effect waves-green btn"
+                            v-on:click="deletePiggyBanks(piggyBanksToDelete)">Delete selected</a>
                     </div>
                 </div>
             </div>
@@ -77,6 +95,54 @@
                         </ul>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <div v-for="pb in user.piggyBanks" :id="pb.id" class="modal">
+            <div class="modal-content">
+                <h4>Edit piggy bank</h4>
+                <ul class="collapsible">
+                    <li class="active">
+                        <div class="collapsible-header">Account</div>
+                        <div class="collapsible-body">
+                            <div class="input-field">
+                                <select v-model="pb.accountId">
+                                    <optgroup v-for="item in user.items" :label="item.institutionName">
+                                        <option v-for="a in item.accounts" :value="a.id">{{ a.name }}</option>
+                                    </optgroup>
+                                </select>
+                            </div>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="collapsible-header">Details</div>
+                        <div class="collapsible-body">
+                            <input id="addName" type="text" class="input-field inline med-input-field"
+                                placeholder="New piggy bank" v-model="pb.name">
+                            <label for="#addName">Name</label>
+                            <p class="range-field"><input id="addBalance" type="range" min="0"
+                                    :max="getAccountById(pb.accountId).currentBalance || 100" value="0"
+                                    v-model="pb.balance"></p>
+                            <label for="#addBalance">Balance to add:
+                                $&nbsp;{{ pb.balance }}/</label>
+                            <br>
+                            $<input type="number" id="addGoal" class="input-field inline short-input-field"
+                                placeholder="0" v-model="pb.goal">
+                            <label for="#addGoal">Goal</label>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="collapsible-header">Tags</div>
+                        <div class="collapsible-body">
+                            <div id="addTags" class="chips chips-autocomplete"></div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <a class="modal-close waves-effect waves-green btn-flat"
+                    v-on:click="createOrUpdatePiggyBank(pb)">Save</a>
+                <a class="modal-close waves-effect waves-green btn-flat">Cancel</a>
             </div>
         </div>
     </div>
