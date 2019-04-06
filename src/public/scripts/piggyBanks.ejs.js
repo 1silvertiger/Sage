@@ -21,11 +21,11 @@ $(document).ready(function () {
             //Collapsibles
             M.Collapsible.init(document.querySelectorAll('.collapsible'), {});
 
+            //Chips
             const tags = {};
             for (let i = 0; i < user.tags.length; i++) {
                 tags[user.tags[i].name] = user.tags[i].id
             }
-            //Chips
             M.Chips.init(document.querySelectorAll('.chips'), {
                 autocompleteOptions: tags,
                 onChipAdd: function () {
@@ -53,17 +53,17 @@ $(document).ready(function () {
             },
             createOrUpdatePiggyBank: function (piggyBank) {
                 $.ajax({
-                    url: URL + '/createOrUpdatePiggyBank'
-                    , type: 'POST'
-                    , data: JSON.stringify({ piggyBank: piggyBank })
-                    , dataType: 'json'
-                    , contentType: 'application/json'
-                    , success: function (newPiggyBank) {
+                    url: URL + '/createOrUpdatePiggyBank',
+                    type: 'POST',
+                    data: JSON.stringify({ piggyBank: piggyBank }),
+                    dataType: 'json',
+                    contentType: 'application/json',
+                    success: function (newPiggyBank) {
                         refreshUser().catch(err => {
                             user.piggyBanks.push(JSON.parse(newPiggyBank));
                         });
                     },
-                    error: function(jqxhr, status, error) {
+                    error: function (jqxhr, status, error) {
                         let i = 0;
                     }
                 });
