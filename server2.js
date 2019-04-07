@@ -203,9 +203,7 @@ app.all('/home', function (req, res) {
         APP_MODE: config.APP_MODE,
         APP_PORT: config.APP_PORT,
         URL: config.URL,
-        test: req.session.test,
-        user: req.session.user,
-        debug: 'try it again'
+        user: req.session.user
     });
 });
 
@@ -273,10 +271,26 @@ app.all('/piggy', function (req, res) {
 });
 
 app.all('/bills', function(req, res) {
+    // const temp = new Bill(
+    //     req.session.user.bills[0].id, 
+    //     req.session.user.bills[0].userId, 
+    //     req.session.user.bills[0].periodId, 
+    //     req.session.user.bills[0].accountId, 
+    //     null, 
+    //     req.session.user.bills[0].name, 
+    //     req.session.user.bills[0].amount, 
+    //     req.session.user.bills[0].autoPay, 
+    //     req.session.user.bills[0].weekDay, 
+    //     req.session.user.bills[0].dueDate, 
+    //     req.session.user.bills[0].dueDate2, 
+    //     req.session.user.bills[0].paid
+    // );
+    // console.log(req.session.user.bills[0] instanceof Bill);
+    // const temp1 = req.session.user.bills[0].getFormattedDueDate();
     res.render('bills.ejs', {
         URL: config.URL,
         user: req.session.user
-    })
+    });
 });
 
 //\\//\\//\\//\\API//\\//\\//\\//\\
@@ -294,7 +308,6 @@ app.post('/tokensignin', function (req, res) {
                 if (user) {
                     console.log(user);
                     syncWithPlaid(user).then(syncedUser => {
-                        req.session.test = "Hello, world!";
                         req.session.user = syncedUser;
                         res.sendStatus(200);
                     }).catch(err => {
@@ -302,7 +315,6 @@ app.post('/tokensignin', function (req, res) {
                     });
                 } else {
                     userDao.create(new User(userId, req.body.firstName, req.body.lastName, req.body.imageUrl, req.body.email)).then(user => {
-                        req.session.test = "Hello, world!";
                         req.session.user = user;
                         res.sendStatus(200);
                     }).catch(err => {

@@ -120,37 +120,6 @@
                         </div>
                     </div>
                 </div>
-                <!-- <h4>All budget items</h4>
-                <table class="striped highlight">
-                    <thead>
-                        <tr>
-                            <th></th>
-                            <th>Expense</th>
-                            <th>Amount</th>
-                            <th>Period</th>
-                            <th>Number of periods</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="bi in sortedBudgetItems">
-                            <td>
-                                <form>
-                                    <p><label>
-                                            <input :id="'chkBx' + bi.id" type="checkbox" class="filled-in"
-                                                v-on:change="budgetItemsToDelete.push(bi.id)">
-                                            <span :for="'chkBx' + bi.id"></span>
-                                        </label></p>
-                                </form>
-                            </td>
-                            <td :data-target="bi.id" class="modal-trigger">{{ bi.name }}</td>
-                            <td :data-target="bi.id" class="modal-trigger">${{ bi.amount }}</td>
-                            <td :data-target="bi.id" class="modal-trigger">{{ getPeriodName(bi.periodId) }}</td>
-                            <td :data-target="bi.id" class="modal-trigger">{{ bi.numOfPeriods }}</td>
-                        </tr>
-                    </tbody>
-                </table>
-                <a id="deleteBudgetItemsBtn" class="waves-effect waves-green btn"
-                    v-on:click="deleteBudgetItems(budgetItemsToDelete)">Delete</a> -->
 
                 <div v-for="bi in user.budgetItems" :id="bi.id" class="modal">
                     <div class="modal-content">
@@ -188,39 +157,7 @@
                     </div>
                 </div>
             </div>
-
         </div>
-        <!-- <div class="row">
-            <div class="col s12 l12">
-                Designate&nbsp;$
-                <div class="input-field inline short-input-field">
-                    <input id="amount" class="validate" placeholder="0.00" type="number"
-                        v-model="budgetItemToCreate.amount">
-                </div>
-                &nbsp;every&nbsp;
-                <div class="input-field inline short-input-field">
-                    <input id="numOfPeriods" class="validate short-input-field" placeholder="1" type="number"
-                        v-model="budgetItemToCreate.numOfPeriods">
-                </div>
-                &nbsp;
-                <div class="input-field inline short-input-field">
-                    <select id="period" v-model="budgetItemToCreate.periodId">
-                        <option value="1">days</option>
-                        <option value="2">week(s)</option>
-                        <option value="3" :selected="true">month(s)</option>
-                        <option value="4">quarter(s)</option>
-                        <option value="5">year</option>
-                    </select>
-                </div>
-                &nbsp;for&nbsp;
-                <div class="input-field inline">
-                    <input id="expense" type="text" class="validate short-input-field" placeholder="expense"
-                        v-model="budgetItemToCreate.name">
-                </div>
-                <a id="addNewBudgetBtn" class="waves-effect waves-light btn"
-                    v-on:click="createOrUpdateBudgetItem(budgetItemToCreate)">Add!</a>
-            </div>
-        </div> -->
     </div>
 
     <script src='model/clientBudget.js' defer></script>
