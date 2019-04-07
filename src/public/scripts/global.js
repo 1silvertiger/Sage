@@ -1,4 +1,7 @@
 $(document).ready(function () {
+    M.Sidenav.init(document.querySelectorAll('.sidenav'), {});
+    M.FloatingActionButton.init(document.querySelectorAll('.fixed-action-btn'), {});
+
     $("#logout").click(function () {
         $.ajax({
             type: "POST",
