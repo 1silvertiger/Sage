@@ -20,7 +20,7 @@ $(document).ready(function () {
                 minDate: new Date(),
                 format: 'mmmm dd, yyyy',
                 onClose: function () {
-                    $vm.billToCreate.startDate = appendTime(this.toString());
+                    $vm.billToCreate.dueDate = appendTime(this.toString());
                 }
             }
             M.Datepicker.init(document.querySelector('#addDueDate'), addDueDateOptions);
@@ -31,7 +31,7 @@ $(document).ready(function () {
                 minDate: new Date(),
                 format: 'mmmm dd, yyyy',
                 onClose: function () {
-                    $vm.billToCreate.startDate2 = appendTime(this.toString());
+                    $vm.billToCreate.dueDate2 = appendTime(this.toString());
                 }
             }
             M.Datepicker.init(document.querySelector('#addDueDate2'), addDueDate2Options);
