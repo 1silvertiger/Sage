@@ -37,7 +37,7 @@
                                     <td class="modal-trigger" :data-target="b.id">{{ b.name }}</td>
                                     <td class="modal-trigger" :data-target="b.id">{{ b.amount }}</td>
                                     <td class="modal-trigger" :data-target="b.id">{{ b.periodId }}</td>
-                                    <td class="modal-trigger" :data-target="b.id">{{ b.startDate }}</td>
+                                    <td class="modal-trigger" :data-target="b.id">{{ b.dueDate }}</td>
                                     <td class="modal-trigger" :data-target="b.id">{{ b.weekDay ? 'Yes' : 'No' }}</td>
                                     <td class="modal-trigger" :data-target="b.id">{{ b.autoPay ? 'Yes' : 'No' }}</td>
                                 </tr>
@@ -56,7 +56,7 @@
                 <div class="card">
                     <div class="card-content">
                         <span class="card-title">Add new bill</span>
-                        <ul class="collapsible">
+                        <ul class="collapsible expandible">
                             <li class="active">
                                 <div class="collapsible-header">Bill details</div>
                                 <div class="collapsible-body">
@@ -69,11 +69,15 @@
                                             v-model="billToCreate.amount">
                                         <label for="addAmount">Amount</label>
                                     </div>
-                                    <label>
-                                        <input id="addChkBx" type="checkbox" class="filled-in"
-                                            v-on:change="billToCreateRepeats = !billToCreateRepeats">
-                                        <span for="addChkBx">This bill repeats.</span>
-                                    </label>
+                                    <input id="addDueDate" type="text" class="datepicker">
+                                    <label for="addDueDate">Due date</label>
+                                    <p>
+                                        <label>
+                                            <input id="addChkBx" type="checkbox" class="filled-in"
+                                                v-on:change="billToCreateRepeats = !billToCreateRepeats">
+                                            <span for="addChkBx">This bill repeats.</span>
+                                        </label>
+                                    </p>
                                 </div>
                             </li>
                             <li>
@@ -89,9 +93,8 @@
                                         </select>
                                         <label>Bill cycle</label>
                                     </div>
-                                    <input id="addDueDate" type="text" class="datepicker">
-                                    <label for="addDueDate">Due date</label>
-                                    <input v-if="billToCreate.periodId === 2" type="text" id="addDueDate2" class="datepicker">
+                                    <input v-if="billToCreate.periodId === 2" type="text" id="addDueDate2"
+                                        class="datepicker">
                                     <label v-if="billToCreate.periodId === 2" for="addDueDate2">Second due date</label>
                                     <p>
                                         <label>

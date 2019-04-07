@@ -109,8 +109,9 @@ module.exports = class UserDao extends Dao {
                                 rows[BILLS_INDEX][i].amount,
                                 rows[BILLS_INDEX][i].autoPay === 1,
                                 rows[BILLS_INDEX][i].weekDay === 1,
-                                rows[BILLS_INDEX][i].startDate,
-                                rows[BILLS_INDEX][i].startDate2
+                                rows[BILLS_INDEX][i].dueDate,
+                                rows[BILLS_INDEX][i].dueDate2,
+                                rows[BILLS_INDEX][i].paid === 1
                             ));
                         }
 

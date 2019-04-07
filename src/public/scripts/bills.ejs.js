@@ -11,7 +11,18 @@ $(document).ready(function () {
             const $vm = this;
 
             //Collapsible
-            M.Collapsible.init(document.querySelectorAll('.collapsible'), {});
+            const collapsibleOptions = {
+                accordion: false,
+                onOpenEnd: function () {
+                    if (!$vm.billToCreateRepeats){
+                        this.close(1);
+                    } 
+                    if (!$vm.billToCreate.autoPay){
+                        this.close(2);
+                    }
+                }
+            }
+            M.Collapsible.init(document.querySelectorAll('.collapsible'), collapsibleOptions);
 
             //Datepickers
             const addDueDateOptions = {
@@ -20,7 +31,7 @@ $(document).ready(function () {
                 minDate: new Date(),
                 format: 'mmmm dd, yyyy',
                 onClose: function () {
-                    $vm.billToCreate.startDate = appendTime(this.toString());
+                    $vm.billToCreate.dueDate = appendTime(this.toString());
                 }
             }
             M.Datepicker.init(document.querySelector('#addDueDate'), addDueDateOptions);
@@ -31,7 +42,7 @@ $(document).ready(function () {
                 minDate: new Date(),
                 format: 'mmmm dd, yyyy',
                 onClose: function () {
-                    $vm.billToCreate.startDate2 = appendTime(this.toString());
+                    $vm.billToCreate.dueDate2 = appendTime(this.toString());
                 }
             }
             M.Datepicker.init(document.querySelector('#addDueDate2'), addDueDate2Options);
