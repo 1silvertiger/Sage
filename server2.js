@@ -41,6 +41,8 @@ const Budget = require('babel-loader!./src/model/budget.js');
 const BudgetDao = require('babel-loader!./src/model/budgetDao.js');
 const PiggyBank = require('babel-loader!./src/model/piggyBank.js');
 const PiggyBankDao = require('babel-loader!./src/model/piggyBankDao.js');
+const Bill = require('babel-loader!./src/model/bill.js');
+const BillDao = require('babel-loader!./src/model/billDao.js');
 const Tag = require('babel-loader!./src/model/tag.js');
 
 const GOOGLE_AUTH_CLIENT_ID = '426835960192-m5m68us80b86qg3ilpanmf91gm3ufqk4.apps.googleusercontent.com';
@@ -89,6 +91,7 @@ const accountDao = new AccountDao(pool);
 const transactionDao = new TransactionDao(pool);
 const budgetDao = new BudgetDao(pool);
 const piggyBankDao = new PiggyBankDao(pool);
+const billDao = new BillDao(pool);
 
 const app = express();
 const webpackConfig = require('./webpack.config.js');
@@ -269,6 +272,13 @@ app.all('/piggy', function (req, res) {
     });
 });
 
+app.all('/bills', function(req, res) {
+    res.render('bills.ejs', {
+        URL: config.URL,
+        user: req.session.user
+    })
+});
+
 //\\//\\//\\//\\API//\\//\\//\\//\\
 // Sign in
 app.post('/tokensignin', function (req, res) {
@@ -354,6 +364,7 @@ app.all('/createOrUpdatePiggyBank', function(req, res) {
         console.log('Piggy bank: ');
         console.log(piggyBank);
         
+        req.session.piggyBanks.push(piggyBank);
         res.json(JSON.stringify(piggyBank));
     }).catch(err => {
         console.log(err);
@@ -370,6 +381,40 @@ app.all('/deletePiggyBanks', function(req, res) {
             console.log(err);
             res.sendStatus(500);
         });
+    }).catch(err => {
+        console.log(err);
+        res.sendStatus(500);
+    });
+});
+
+//Bills
+app.all('/createOrUpdateBill', function(req, res) {
+    billDao.createOrUpdate(req.body.bill).then(bill => {
+        console.log('Bill:');
+        console.log(bill);
+
+        req.session.user.bills.push(bill);
+        res.json(JSON.stringify(bill));
+    }).catch(err => {
+        console.log(err);
+        res.sendStatus(500);
+    });
+});
+
+app.all('/deleteBills', function(req, res) {
+    billDao.deleteBatch(req.body.ids).then(success => {
+        if (success) {
+            sync(req.session.user).then(syncedUser => {
+                req.session.user = syncedUser;
+                res.json(syncedUser);
+            }).catch(err => {
+                console.log(err);
+                res.sendStatus(500);
+            });
+        } else {
+            console.log('Delete failed');
+            res.sendStatus(500);
+        }
     }).catch(err => {
         console.log(err);
         res.sendStatus(500);

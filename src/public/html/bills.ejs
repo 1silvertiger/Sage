@@ -20,7 +20,7 @@
                                 <th>Amount</th>
                                 <th>Period</th>
                                 <th>Due date</th>
-                                <th>Week day?</th>
+                                <th>Charged on weekday?</th>
                                 <th>Autopay?</th>
                             </thead>
                             <tbody>
@@ -38,14 +38,15 @@
                                     <td class="modal-trigger" :data-target="b.id">{{ b.amount }}</td>
                                     <td class="modal-trigger" :data-target="b.id">{{ b.periodId }}</td>
                                     <td class="modal-trigger" :data-target="b.id">{{ b.startDate }}</td>
-                                    <td class="modal-trigger" :data-target="b.id">{{ b.weekDay }}</td>
-                                    <td class="modal-trigger" :data-target="b.id">{{ b.autoPay }}</td>
+                                    <td class="modal-trigger" :data-target="b.id">{{ b.weekDay ? 'Yes' : 'No' }}</td>
+                                    <td class="modal-trigger" :data-target="b.id">{{ b.autoPay ? 'Yes' : 'No' }}</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
                     <div class="card-action">
-                            <a id="deleteBillsBtn" class="waves-effect waves-green btn" v-on:click="deleteBills(billsToDelete)">Delete selected</a>
+                        <a id="deleteBillsBtn" class="waves-effect waves-green btn"
+                            v-on:click="deleteBills(billsToDelete)">Delete selected</a>
                     </div>
                 </div>
             </div>
@@ -55,20 +56,80 @@
                 <div class="card">
                     <div class="card-content">
                         <span class="card-title">Add new bill</span>
+                        <ul class="collapsible">
+                            <li class="active">
+                                <div class="collapsible-header">Bill details</div>
+                                <div class="collapsible-body">
+                                    <div class="input-field med-input-field">
+                                        <input type="text" id="addName" class="validate" v-model="billToCreate.name">
+                                        <label for="addName">Name</label>
+                                    </div>
+                                    <div class="input-field med-input-field">
+                                        <input type="number" id="addAmount" class="validate"
+                                            v-model="billToCreate.amount">
+                                        <label for="addAmount">Amount</label>
+                                    </div>
+                                    <label>
+                                        <input id="addChkBx" type="checkbox" class="filled-in"
+                                            v-on:change="billToCreateRepeats = !billToCreateRepeats">
+                                        <span for="addChkBx">This bill repeats.</span>
+                                    </label>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="collapsible-header">Only fill this out if the bill repeats</div>
+                                <div class="collapsible-body">
+                                    <div class="input-field med-input-field">
+                                        <select v-model="billToCreate.periodId">
+                                            <option value="1" :selected="true">Month</option>
+                                            <option value="2">Twice a month</option>
+                                            <option value="3">Week</option>
+                                            <option value="4">Quarter</option>
+                                            <option value="5">Year</option>
+                                        </select>
+                                        <label>Bill cycle</label>
+                                    </div>
+                                    <input id="addDueDate" type="text" class="datepicker">
+                                    <label for="addDueDate">Due date</label>
+                                    <input v-if="billToCreate.periodId === 2" type="text" id="addDueDate2" class="datepicker">
+                                    <label v-if="billToCreate.periodId === 2" for="addDueDate2">Second due date</label>
+                                    <p>
+                                        <label>
+                                            <input id="addWeekDay" type="checkbox" class="filled-in"
+                                                v-on:change="billToCreate.weekDay = !billToCreate.weekDay">
+                                            <span for="addChkBx">This bill is only due on weekdays.</span>
+                                        </label>
+                                    </p>
+                                    <p>
+                                        <label>
+                                            <input id="addAutoPay" type="checkbox" class="filled-in"
+                                                v-on:change="billToCreate.autoPay = !billToCreate.autoPay">
+                                            <span for="addChkBx">This bill is on autopay.</span>
+                                        </label>
+                                    </p>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="collapsible-header">Only fill this out if the bill is on autopay</div>
+                                <div class="collapsible-body">
+                                    <div class="input-field">
+                                        <select v-model="billToCreate.accountId">
+                                            <optgroup v-for="item in user.items" :label="item.institutionName">
+                                                <option v-for="a in item.accounts" :value="a.id">{{ a.name }}</option>
+                                            </optgroup>
+                                        </select>
+                                        <label>Autopay account</label>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
                     </div>
                     <div class="card-action">
-
+                        <a id="addNewBillBtn" class="waves-effect waves-light btn"
+                            v-on:click="createOrUpdateBill(billToCreate)">Add!</a>
                     </div>
                 </div>
             </div>
-            <!-- Add new bill -->
-            <!-- Name -->
-            <!-- How much -->
-            <!-- If it recurs -->
-            <!-- Period -->
-            <!-- Due date and second due date and if it's always due on a weekday -->
-            <!-- If it's on autopay -->
-            <!-- What happens to leftovers -->
         </div>
     </div>
 
