@@ -11,7 +11,18 @@ $(document).ready(function () {
             const $vm = this;
 
             //Collapsible
-            M.Collapsible.init(document.querySelectorAll('.collapsible'), {});
+            const collapsibleOptions = {
+                accordion: false,
+                onOpenEnd: function () {
+                    if (!$vm.billToCreateRepeats){
+                        this.close(1);
+                    } 
+                    if (!$vm.billToCreate.autoPay){
+                        this.close(2);
+                    }
+                }
+            }
+            M.Collapsible.init(document.querySelectorAll('.collapsible'), collapsibleOptions);
 
             //Datepickers
             const addDueDateOptions = {
