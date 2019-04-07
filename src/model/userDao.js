@@ -99,7 +99,8 @@ module.exports = class UserDao extends Dao {
 
                         //Bills
                         for (let i = 0; i < rows[BILLS_INDEX].length; i++) {
-                            user.bills.push(new Bill(
+                            const temp1 = new Date(rows[BILLS_INDEX][i].dueDate);
+                            const temp = new Bill(
                                 rows[BILLS_INDEX][i].id,
                                 rows[BILLS_INDEX][i].userId,
                                 rows[BILLS_INDEX][i].periodId,
@@ -109,10 +110,11 @@ module.exports = class UserDao extends Dao {
                                 rows[BILLS_INDEX][i].amount,
                                 rows[BILLS_INDEX][i].autoPay === 1,
                                 rows[BILLS_INDEX][i].weekDay === 1,
-                                rows[BILLS_INDEX][i].dueDate,
-                                rows[BILLS_INDEX][i].dueDate2,
+                                new Date(rows[BILLS_INDEX][i].dueDate),
+                                rows[BILLS_INDEX][i].dueDate2 ? new Date(rows[BILLS_INDEX][i].dueDate2) : null,
                                 rows[BILLS_INDEX][i].paid === 1
-                            ));
+                            );
+                            user.bills.push(temp);
                         }
 
                         resolve(user);
