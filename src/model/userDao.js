@@ -4,6 +4,7 @@ const Item = require('./item');
 const Budget = require('./budget');
 const Tag = require('./tag');
 const PiggyBank = require('./piggyBank');
+const Bill = require('./bill');
 
 const USER_INDEX = 0;
 const TAGS_INDEX = 1;
@@ -11,6 +12,7 @@ const ITEMS_INDEX = 2;
 const BUDGET_ITEMS_INDEX = 3;
 const PIGGY_BANK_INDEX = 4;
 const PIGGY_BANK_TAGS_INDEX = 5;
+const BILLS_INDEX = 6;
 
 module.exports = class UserDao extends Dao {
     constructor(pPool) {
@@ -92,6 +94,23 @@ module.exports = class UserDao extends Dao {
                                 currentPiggyBank = user.piggyBanks[++currentPiggyBankIndex];
                             user.piggyBanks[currentPiggyBankIndex].tags.push(new Tag(
                                 rows[PIGGY_BANK_TAGS_INDEX][i].id, rows[PIGGY_BANK_TAGS_INDEX][i].userId, rows[PIGGY_BANK_TAGS_INDEX][i].name
+                            ));
+                        }
+
+                        //Bills
+                        for (let i = 0; i < rows[BILLS_INDEX].length; i++) {
+                            user.bills.push(new Bill(
+                                rows[BILLS_INDEX][i].id,
+                                rows[BILLS_INDEX][i].userId,
+                                rows[BILLS_INDEX][i].periodId,
+                                rows[BILLS_INDEX][i].accountId,
+                                new Tag(rows[BILLS_INDEX][i].tagId, rows[BILLS_INDEX][i].userId, rows[BILLS_INDEX][i].name),
+                                rows[BILLS_INDEX][i].name,
+                                rows[BILLS_INDEX][i].amount,
+                                rows[BILLS_INDEX][i].autoPay === 1,
+                                rows[BILLS_INDEX][i].weekDay === 1,
+                                rows[BILLS_INDEX][i].startDate,
+                                rows[BILLS_INDEX][i].startDate2
                             ));
                         }
 
