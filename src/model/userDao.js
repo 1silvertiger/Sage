@@ -168,18 +168,29 @@ module.exports = class UserDao extends Dao {
                         }
 
                         // Budget items
+                        let budgetItemTagIndex = 0;
                         for (let i = 0; i < rows[BUDGET_ITEMS_INDEX].length; i++) {
+                            // Budget item tags
+                            const tags = new Array();
+                            for (budgetItemTagIndex; budgetItemTagIndex < rows[BUDGET_ITEM_TAGS_INDEX].length; budgetItemTagIndex++) {
+                                if (rows[BUDGET_ITEM_TAGS_INDEX][budgetItemTagIndex].budgetItemTag === rows[BUDGET_ITEMS_INDEX][i]) {
+                                    tags.push(new Tag(
+                                        rows[BUDGET_ITEM_TAGS_INDEX][budgetItemTagIndex].tagId,
+                                        rows[BUDGET_ITEM_TAGS_INDEX][budgetItemTagIndex].userId,
+                                        rows[BUDGET_ITEM_TAGS_INDEX][budgetItemTagIndex].name
+                                    ));
+                                }
+                            }
                             user.budgetItems.push(new Budget(
-                                rows[BUDGET_ITEMS_INDEX][i].id
-                                , rows[BUDGET_ITEMS_INDEX][i].userId
-                                , rows[BUDGET_ITEMS_INDEX][i].periodId
-                                , rows[BUDGET_ITEMS_INDEX][i].name
-                                , rows[BUDGET_ITEMS_INDEX][i].amount
-                                , rows[BUDGET_ITEMS_INDEX][i].numOfPeriods
+                                rows[BUDGET_ITEMS_INDEX][i].id, 
+                                rows[BUDGET_ITEMS_INDEX][i].userId, 
+                                rows[BUDGET_ITEMS_INDEX][i].periodId, 
+                                rows[BUDGET_ITEMS_INDEX][i].name, 
+                                rows[BUDGET_ITEMS_INDEX][i].amount, 
+                                rows[BUDGET_ITEMS_INDEX][i].numOfPeriods,
+                                tags
                             ));
                         }
-
-                        // Budget item tags
 
                         // Piggy banks
                         for (let i = 0; i < rows[PIGGY_BANKS_INDEX].length; i++) {
