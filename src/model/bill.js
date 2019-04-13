@@ -1,7 +1,7 @@
 const moment = require('moment');
 
 module.exports = class Bill {
-    constructor(pId, pUserId, pPeriodId, pAccountId, pTag, pName, pAmount, pAutoPay, pWeekDay, pdueDate, pdueDate2, pPaid) {
+    constructor(pId, pUserId, pPeriodId, pAccountId, pTag, pName, pAmount, pAutoPay, pWeekDay, pDue, pPaidThisPeriod, pNotifications, pTags) {
         this.id = pId;
         this.userId = pUserId,
         this.periodId = pPeriodId,
@@ -11,9 +11,10 @@ module.exports = class Bill {
         this.amount = pAmount,
         this.autoPay = pAutoPay,
         this.weekDay = pWeekDay,
-        this.dueDate = pdueDate,
-        this.dueDate2 = pdueDate2,
-        this.paid = pPaid
+        this.due = pDue,
+        this.paid = pPaidThisPeriod,
+        this.notifications = pNotifications,
+        this.tags = pTags
     }
 
     getFormattedDueDate() {
