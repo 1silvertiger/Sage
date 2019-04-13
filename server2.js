@@ -39,6 +39,11 @@ const Transaction = require('babel-loader!./src/model/transaction.js');
 const TransactionDao = require('babel-loader!./src/model/transactionDao.js');
 const Budget = require('babel-loader!./src/model/budget.js');
 const BudgetDao = require('babel-loader!./src/model/budgetDao.js');
+const PiggyBank = require('babel-loader!./src/model/piggyBank.js');
+const PiggyBankDao = require('babel-loader!./src/model/piggyBankDao.js');
+const Bill = require('babel-loader!./src/model/bill.js');
+const BillDao = require('babel-loader!./src/model/billDao.js');
+const Tag = require('babel-loader!./src/model/tag.js');
 
 const GOOGLE_AUTH_CLIENT_ID = '426835960192-m5m68us80b86qg3ilpanmf91gm3ufqk4.apps.googleusercontent.com';
 
@@ -85,6 +90,8 @@ const itemDao = new ItemDao(pool);
 const accountDao = new AccountDao(pool);
 const transactionDao = new TransactionDao(pool);
 const budgetDao = new BudgetDao(pool);
+const piggyBankDao = new PiggyBankDao(pool);
+const billDao = new BillDao(pool);
 
 const app = express();
 const webpackConfig = require('./webpack.config.js');
@@ -99,10 +106,6 @@ app.use(require("webpack-dev-middleware")(compiler, {
 app.use(require("webpack-hot-middleware")(compiler, {
     log: console.log, path: '/__webpack_hmr', heartbeat: 10 * 1000
 }));
-
-// app.use(webpackDevMiddleware(compiler, {
-//     publicPath: webpackConfig.output.publicPath
-// }));
 
 app.set('trust proxy', 1);
 app.use(session({
@@ -153,9 +156,6 @@ app.use(function (req, res, next) {
     next();
 });
 
-const global = {
-    //Fill with global vars that are sent in every response
-}
 //\\//\\//\\//\\NAVIGATION//\\//\\//\\//\\
 
 //Authenticate
@@ -172,9 +172,7 @@ app.use(function (req, res, next) {
     }
 });
 
-// Landing page
 app.all('/', function (req, res, next) {
-    //have a landing page here
     res.render('index.ejs', {
         URL: config.URL,
     });
@@ -205,9 +203,7 @@ app.all('/home', function (req, res) {
         APP_MODE: config.APP_MODE,
         APP_PORT: config.APP_PORT,
         URL: config.URL,
-        test: req.session.test,
-        user: req.session.user,
-        debug: 'try it again'
+        user: req.session.user
     });
 });
 
@@ -267,6 +263,20 @@ app.all("/transactions", function (req, res) {
     });
 });
 
+app.all('/piggy', function (req, res) {
+    res.render('piggyBanks.ejs', {
+        URL: config.URL,
+        user : req.session.user
+    });
+});
+
+app.all('/bills', function(req, res) {
+    res.render('bills.ejs', {
+        URL: config.URL,
+        user: req.session.user
+    });
+});
+
 //\\//\\//\\//\\API//\\//\\//\\//\\
 // Sign in
 app.post('/tokensignin', function (req, res) {
@@ -282,7 +292,6 @@ app.post('/tokensignin', function (req, res) {
                 if (user) {
                     console.log(user);
                     syncWithPlaid(user).then(syncedUser => {
-                        req.session.test = "Hello, world!";
                         req.session.user = syncedUser;
                         res.sendStatus(200);
                     }).catch(err => {
@@ -290,7 +299,6 @@ app.post('/tokensignin', function (req, res) {
                     });
                 } else {
                     userDao.create(new User(userId, req.body.firstName, req.body.lastName, req.body.imageUrl, req.body.email)).then(user => {
-                        req.session.test = "Hello, world!";
                         req.session.user = user;
                         res.sendStatus(200);
                     }).catch(err => {
@@ -346,6 +354,69 @@ app.all('/deleteBudgetItems', function (req, res) {
     });
 });
 
+//Piggy banks
+app.all('/createOrUpdatePiggyBank', function(req, res) {
+    piggyBankDao.createOrUpdate(req.body.piggyBank).then(piggyBank => {
+        console.log('Piggy bank: ');
+        console.log(piggyBank);
+        
+        req.session.piggyBanks.push(piggyBank);
+        res.json(JSON.stringify(piggyBank));
+    }).catch(err => {
+        console.log(err);
+        res.sendStatus(500);
+    });
+});
+
+app.all('/deletePiggyBanks', function(req, res) {
+    piggyBankDao.deleteBatch(req.body.piggyBankIds).then(() => {
+        sync(req.session.user).then(syncedUser => {
+            req.session.user = syncedUser;
+            res.json(syncedUser);
+        }).catch(err => {
+            console.log(err);
+            res.sendStatus(500);
+        });
+    }).catch(err => {
+        console.log(err);
+        res.sendStatus(500);
+    });
+});
+
+//Bills
+app.all('/createOrUpdateBill', function(req, res) {
+    billDao.createOrUpdate(req.body.bill).then(bill => {
+        console.log('Bill:');
+        console.log(bill);
+
+        req.session.user.bills.push(bill);
+        res.json(JSON.stringify(bill));
+    }).catch(err => {
+        console.log(err);
+        res.sendStatus(500);
+    });
+});
+
+app.all('/deleteBills', function(req, res) {
+    billDao.deleteBatch(req.body.ids).then(success => {
+        if (success) {
+            sync(req.session.user).then(syncedUser => {
+                req.session.user = syncedUser;
+                res.json(syncedUser);
+            }).catch(err => {
+                console.log(err);
+                res.sendStatus(500);
+            });
+        } else {
+            console.log('Delete failed');
+            res.sendStatus(500);
+        }
+    }).catch(err => {
+        console.log(err);
+        res.sendStatus(500);
+    });
+});
+
 //Plaid
 app.all('/plaid-webhook', function (req, res, next) {
     console.log('PLAID WEBHOOK');
@@ -368,100 +439,6 @@ app.all('/plaid-webhook', function (req, res, next) {
             break;
     }
 })
-
-// Exchange token flow - exchange a Link public_token for
-// an API access_token
-// https://plaid.com/docs/#exchange-token-flow
-app.post('/get_access_token', function (req, res, next) {
-    client.exchangePublicToken(req.body.public_token, function (error, tokenResponse) {
-        if (error != null) {
-            prettyPrintResponse(error);
-            return res.json({
-                error: error,
-            });
-        }
-        //Save to DB
-        pool.getConnection().then(conn => {
-            conn.query('CALL createPlaidItem(?,?,?)', [req.session.user.id, tokenResponse.item_id, tokenResponse.access_token])
-                .catch(err => {
-                    console.log(err);
-                });
-        });
-        prettyPrintResponse(tokenResponse);
-        res.json({
-            access_token: tokenResponse.access_token,
-            item_id: tokenResponse.item_id,
-            error: null,
-        });
-    });
-});
-
-
-// Retrieve Transactions for an Item
-// https://plaid.com/docs/#transactions
-app.get('/get-transactions', function (request, response, next) {
-    // Pull transactions for the Item for the last 30 days
-    var startDate = moment().subtract(30, 'days').format('YYYY-MM-DD');
-    var endDate = moment().format('YYYY-MM-DD');
-    client.getTransactions('access-sandbox-2efb1838-a358-403f-a806-dbac32d4ff84', startDate, endDate, {
-        count: 250,
-        offset: 0,
-    }, function (error, transactionsResponse) {
-        if (error != null) {
-            prettyPrintResponse(error);
-            return response.json({
-                error: error
-            });
-        } else {
-            response.json({ error: null, transactions: transactionsResponse });
-        }
-    });
-});
-
-// Retrieve Identity for an Item
-// https://plaid.com/docs/#identity
-app.get('/identity', function (request, response, next) {
-    client.getIdentity(ACCESS_TOKEN, function (error, identityResponse) {
-        if (error != null) {
-            prettyPrintResponse(error);
-            return response.json({
-                error: error,
-            });
-        }
-        prettyPrintResponse(identityResponse);
-        response.json({ error: null, identity: identityResponse });
-    });
-});
-
-// Retrieve real-time Balances for each of an Item's accounts
-// https://plaid.com/docs/#balance
-app.get('/balance', function (request, response, next) {
-    client.getBalance(ACCESS_TOKEN, function (error, balanceResponse) {
-        if (error != null) {
-            prettyPrintResponse(error);
-            return response.json({
-                error: error,
-            });
-        }
-        prettyPrintResponse(balanceResponse);
-        response.json({ error: null, balance: balanceResponse });
-    });
-});
-
-// Retrieve an Item's accounts
-// https://plaid.com/docs/#accounts
-app.get('/accounts', function (request, response, next) {
-    client.getAccounts(ACCESS_TOKEN, function (error, accountsResponse) {
-        if (error != null) {
-            prettyPrintResponse(error);
-            return response.json({
-                error: error,
-            });
-        }
-        prettyPrintResponse(accountsResponse);
-        response.json({ error: null, accounts: accountsResponse });
-    });
-});
 
 function sync(user) {
     return new Promise(function (resolve, reject) {
@@ -578,6 +555,100 @@ function getTransactions(startDate, endDate, accessToken, count, offset) {
         );
     });
 }
+
+// Exchange token flow - exchange a Link public_token for
+// an API access_token
+// https://plaid.com/docs/#exchange-token-flow
+app.post('/get_access_token', function (req, res, next) {
+    client.exchangePublicToken(req.body.public_token, function (error, tokenResponse) {
+        if (error != null) {
+            prettyPrintResponse(error);
+            return res.json({
+                error: error,
+            });
+        }
+        //Save to DB
+        pool.getConnection().then(conn => {
+            conn.query('CALL createPlaidItem(?,?,?)', [req.session.user.id, tokenResponse.item_id, tokenResponse.access_token])
+                .catch(err => {
+                    console.log(err);
+                });
+        });
+        prettyPrintResponse(tokenResponse);
+        res.json({
+            access_token: tokenResponse.access_token,
+            item_id: tokenResponse.item_id,
+            error: null,
+        });
+    });
+});
+
+
+// Retrieve Transactions for an Item
+// https://plaid.com/docs/#transactions
+app.get('/get-transactions', function (request, response, next) {
+    // Pull transactions for the Item for the last 30 days
+    var startDate = moment().subtract(30, 'days').format('YYYY-MM-DD');
+    var endDate = moment().format('YYYY-MM-DD');
+    client.getTransactions('access-sandbox-2efb1838-a358-403f-a806-dbac32d4ff84', startDate, endDate, {
+        count: 250,
+        offset: 0,
+    }, function (error, transactionsResponse) {
+        if (error != null) {
+            prettyPrintResponse(error);
+            return response.json({
+                error: error
+            });
+        } else {
+            response.json({ error: null, transactions: transactionsResponse });
+        }
+    });
+});
+
+// Retrieve Identity for an Item
+// https://plaid.com/docs/#identity
+app.get('/identity', function (request, response, next) {
+    client.getIdentity(ACCESS_TOKEN, function (error, identityResponse) {
+        if (error != null) {
+            prettyPrintResponse(error);
+            return response.json({
+                error: error,
+            });
+        }
+        prettyPrintResponse(identityResponse);
+        response.json({ error: null, identity: identityResponse });
+    });
+});
+
+// Retrieve real-time Balances for each of an Item's accounts
+// https://plaid.com/docs/#balance
+app.get('/balance', function (request, response, next) {
+    client.getBalance(ACCESS_TOKEN, function (error, balanceResponse) {
+        if (error != null) {
+            prettyPrintResponse(error);
+            return response.json({
+                error: error,
+            });
+        }
+        prettyPrintResponse(balanceResponse);
+        response.json({ error: null, balance: balanceResponse });
+    });
+});
+
+// Retrieve an Item's accounts
+// https://plaid.com/docs/#accounts
+app.get('/accounts', function (request, response, next) {
+    client.getAccounts(ACCESS_TOKEN, function (error, accountsResponse) {
+        if (error != null) {
+            prettyPrintResponse(error);
+            return response.json({
+                error: error,
+            });
+        }
+        prettyPrintResponse(accountsResponse);
+        response.json({ error: null, accounts: accountsResponse });
+    });
+});
 
 // Retrieve ACH or ETF Auth data for an Item's accounts
 // https://plaid.com/docs/#auth

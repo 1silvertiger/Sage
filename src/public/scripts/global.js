@@ -1,4 +1,7 @@
 $(document).ready(function () {
+    M.Sidenav.init(document.querySelectorAll('.sidenav'), {});
+    M.FloatingActionButton.init(document.querySelectorAll('.fixed-action-btn'), {});
+
     $("#logout").click(function () {
         $.ajax({
             type: "POST",
@@ -29,6 +32,8 @@ function refreshUser() {
                 refresh = JSON.parse(data);
                 user.items = refresh.items;
                 user.budgetItems = refresh.budgetItems;
+                user.piggyBanks = refresh.piggyBanks;
+                user.bills = refresh.bills;
                 resolve(true);
             }
             , error: function (jqxhr, status, error) {
