@@ -52,6 +52,9 @@ $(document).ready(function () {
             M.FormSelect.init(document.querySelectorAll('select'), {});
         },
         methods: {
+            getSemanticPeriod: function(periodId) {
+                return getSemanticPeriod(periodId);
+            },
             createOrUpdateBill: function (bill) {
                 $.ajax({
                     url: URL + '/createOrUpdateBill',
@@ -87,8 +90,28 @@ $(document).ready(function () {
                     }
                 });
             },
+            getDueDate: function(periodId, dueInPeriod) {
+                let dueDate = moment();
+                switch(periodId) {
+                    case 1:
+                    break;
+                    case 2:
+                    break;
+                    case 3:
+                    dueDate.
+                    break;
+                    case 4:
+                    break;
+                    case 5:
+                    break;
+                }
+                return dueDate;
+            },
             getFormattedDate: function (date) {
                 return moment(date).format('MMM DD, YYYY');
+            },
+            getFormattedCurrency: function(amount) {
+                return numeral(amount).format('$0,0.00');
             },
             toggleBillToCreateRepeats: function () {
                 // billToCreateRepeats = !billToCreateRepeats;
@@ -99,8 +122,6 @@ $(document).ready(function () {
                 //     temp.close(1);
                 //     temp.close(2);
                 // }
-                user.test = 'test';
-                alert(test);
             }
         },
         computed: {

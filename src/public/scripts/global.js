@@ -43,3 +43,23 @@ function refreshUser() {
         });
     });
 }
+
+function getSemanticPeriod(periodId) {
+    switch(periodId) {
+        case 1: return 'day(s)'
+        case 2: return 'week(s)'
+        case 3: return 'month(s)'
+        case 4: return 'quarter(s)'
+        case 5: return 'year(s)'
+    }
+}
+
+function getMomentPeriod(periodId) {
+    switch(periodId) {
+        case 1: return 'days'
+        case 2: return 'weeks'
+        case 3: return 'months'
+        case 4: return 'quarters'
+        case 5: return 'years'
+    }
+}
