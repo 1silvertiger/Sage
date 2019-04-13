@@ -8,6 +8,29 @@
         <div class="row">
             <h1>Bills</h1>
         </div>
+        <div class="row" v-if="lateBills.length > 0">
+            <div class="col s12 l12">
+                <div class="card">
+                    <div class="card-content">
+                        <span class="card-title">Late bills</span>
+                        <table class="striped highlight">
+                            <thead>
+                                <th>Name</th>
+                                <th>Amount</th>
+                                <th>Due date</th>
+                            </thead>
+                            <tbody>
+                                <tr v-for="bill in lateBills">
+                                    <td class="modal-trigger" :date-target="bill.id">{{ bill.name }}</td>
+                                    <td class="modal-trigger" :data-target="bill.id">{{ bill.amount }}</td>
+                                    <td class="modal-trigger" :date-target="bill.id">{{ getFormattedDate(bill.dueDate) }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="row">
             <div class="col s12 l12">
                 <div class="card">
@@ -37,7 +60,7 @@
                                     <td class="modal-trigger" :data-target="b.id">{{ b.name }}</td>
                                     <td class="modal-trigger" :data-target="b.id">{{ b.amount }}</td>
                                     <td class="modal-trigger" :data-target="b.id">{{ b.periodId }}</td>
-                                    <td class="modal-trigger" :data-target="b.id">{{ b.dueDate }}</td>
+                                    <td class="modal-trigger" :data-target="b.id">{{ getFormattedDate(b.dueDate) }}</td>
                                     <td class="modal-trigger" :data-target="b.id">{{ b.weekDay ? 'Yes' : 'No' }}</td>
                                     <td class="modal-trigger" :data-target="b.id">{{ b.autoPay ? 'Yes' : 'No' }}</td>
                                 </tr>
@@ -56,7 +79,7 @@
                 <div class="card">
                     <div class="card-content">
                         <span class="card-title">Add new bill</span>
-                        <ul class="collapsible expandible">
+                        <ul id="addBill" class="collapsible expandible">
                             <li class="active">
                                 <div class="collapsible-header">Bill details</div>
                                 <div class="collapsible-body">
@@ -74,7 +97,7 @@
                                     <p>
                                         <label>
                                             <input id="addChkBx" type="checkbox" class="filled-in"
-                                                v-on:change="billToCreateRepeats = !billToCreateRepeats">
+                                                v-on:change="toggleBillToCreateRepeats()">
                                             <span for="addChkBx">This bill repeats.</span>
                                         </label>
                                     </p>

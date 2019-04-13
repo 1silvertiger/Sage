@@ -5,7 +5,8 @@ $(document).ready(function () {
             user: user,
             billsToDelete: new Array(),
             billToCreate: { userId: user.id, autoPay: false, weekDay: false, tag: {} },
-            billToCreateRepeats: false
+            billToCreateRepeats: false,
+            test: 'test'
         },
         mounted: function () {
             const $vm = this;
@@ -14,10 +15,10 @@ $(document).ready(function () {
             const collapsibleOptions = {
                 accordion: false,
                 onOpenEnd: function () {
-                    if (!$vm.billToCreateRepeats){
+                    if (!$vm.billToCreateRepeats) {
                         this.close(1);
-                    } 
-                    if (!$vm.billToCreate.autoPay){
+                    }
+                    if (!$vm.billToCreate.autoPay) {
                         this.close(2);
                     }
                 }
@@ -85,6 +86,31 @@ $(document).ready(function () {
                         let i = 0;
                     }
                 });
+            },
+            getFormattedDate: function (date) {
+                return moment(date).format('MMM DD, YYYY');
+            },
+            toggleBillToCreateRepeats: function () {
+                // billToCreateRepeats = !billToCreateRepeats;
+                // const temp = M.Collapsible.getInstance(document.querySelector('#addBill'));
+                // if (billToCreateRepeats)
+                //     temp.open(1);
+                // else {
+                //     temp.close(1);
+                //     temp.close(2);
+                // }
+                user.test = 'test';
+                alert(test);
+            }
+        },
+        computed: {
+            lateBills: function () {
+                // return user.bills.filter(bill => (bill.dueDate > new Date()) - (bill.dueDate < new Date()));
+                return user.bills.filter(bill => {
+                    const now = new Date();
+                    const temp = new Date(bill.dueDate) < now; 
+                    return  temp;
+                });
             }
         }
     });
@@ -93,3 +119,4 @@ $(document).ready(function () {
 function appendTime(dateFromPicker) {
     return new Date(dateFromPicker.concat(' 00:00:00'));
 }
+
