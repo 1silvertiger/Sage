@@ -9,6 +9,7 @@ const TransactionItem = require('./transactionItem');
 const Budget = require('./budget');
 const PiggyBank = require('./piggyBank');
 const Bill = require('./bill');
+const BillNotification = require('./billNotification');
 
 const USER_INDEX = 0;
 const TAGS_INDEX = 1;
@@ -217,8 +218,25 @@ module.exports = class UserDao extends Dao {
                         }
 
                         // Bills
+                        let billNotificationIndex = 0;
+                        let billTagIndex = 0;
                         for (let i = 0; i < rows[BILLS_INDEX].length; i++) {
-                            const temp1 = new Date(rows[BILLS_INDEX][i].dueDate);
+                            // Bill notifications
+                            const billNotifications = new Array();
+                            for (billNotificationIndex; billNotificationIndex < rows[BILL_NOTIFICATIONS_INDEX].length; billNotificationIndex++) {
+                                if (rows[BILL_NOTIFICATIONS_INDEX][billNotificationIndex].billId === rows[BILLS_INDEX].id) {
+                                    billNotifications.push(new BillNotification(
+                                        rows[BILL_NOTIFICATIONS_INDEX][billNotificationIndex].id,
+                                        rows[BILL_NOTIFICATIONS_INDEX][billNotificationIndex].billId,
+                                        rows[BILL_NOTIFICATIONS_INDEX][billNotificationIndex].periodId,
+                                        rows[BILL_NOTIFICATIONS_INDEX][billNotificationIndex].periodsBeforeBillIsDue
+                                    ));
+                                }
+                            }
+
+                            // Bill tags
+
+
                             const temp = new Bill(
                                 rows[BILLS_INDEX][i].id,
                                 rows[BILLS_INDEX][i].userId,
@@ -235,10 +253,6 @@ module.exports = class UserDao extends Dao {
                             );
                             user.bills.push(temp);
                         }
-
-                        // Bill notifications
-
-                        // Bill tags
 
                         resolve(user);
                     } else
