@@ -271,22 +271,6 @@ app.all('/piggy', function (req, res) {
 });
 
 app.all('/bills', function(req, res) {
-    // const temp = new Bill(
-    //     req.session.user.bills[0].id, 
-    //     req.session.user.bills[0].userId, 
-    //     req.session.user.bills[0].periodId, 
-    //     req.session.user.bills[0].accountId, 
-    //     null, 
-    //     req.session.user.bills[0].name, 
-    //     req.session.user.bills[0].amount, 
-    //     req.session.user.bills[0].autoPay, 
-    //     req.session.user.bills[0].weekDay, 
-    //     req.session.user.bills[0].dueDate, 
-    //     req.session.user.bills[0].dueDate2, 
-    //     req.session.user.bills[0].paid
-    // );
-    // console.log(req.session.user.bills[0] instanceof Bill);
-    // const temp1 = req.session.user.bills[0].getFormattedDueDate();
     res.render('bills.ejs', {
         URL: config.URL,
         user: req.session.user
@@ -456,100 +440,6 @@ app.all('/plaid-webhook', function (req, res, next) {
     }
 })
 
-// Exchange token flow - exchange a Link public_token for
-// an API access_token
-// https://plaid.com/docs/#exchange-token-flow
-app.post('/get_access_token', function (req, res, next) {
-    client.exchangePublicToken(req.body.public_token, function (error, tokenResponse) {
-        if (error != null) {
-            prettyPrintResponse(error);
-            return res.json({
-                error: error,
-            });
-        }
-        //Save to DB
-        pool.getConnection().then(conn => {
-            conn.query('CALL createPlaidItem(?,?,?)', [req.session.user.id, tokenResponse.item_id, tokenResponse.access_token])
-                .catch(err => {
-                    console.log(err);
-                });
-        });
-        prettyPrintResponse(tokenResponse);
-        res.json({
-            access_token: tokenResponse.access_token,
-            item_id: tokenResponse.item_id,
-            error: null,
-        });
-    });
-});
-
-
-// Retrieve Transactions for an Item
-// https://plaid.com/docs/#transactions
-app.get('/get-transactions', function (request, response, next) {
-    // Pull transactions for the Item for the last 30 days
-    var startDate = moment().subtract(30, 'days').format('YYYY-MM-DD');
-    var endDate = moment().format('YYYY-MM-DD');
-    client.getTransactions('access-sandbox-2efb1838-a358-403f-a806-dbac32d4ff84', startDate, endDate, {
-        count: 250,
-        offset: 0,
-    }, function (error, transactionsResponse) {
-        if (error != null) {
-            prettyPrintResponse(error);
-            return response.json({
-                error: error
-            });
-        } else {
-            response.json({ error: null, transactions: transactionsResponse });
-        }
-    });
-});
-
-// Retrieve Identity for an Item
-// https://plaid.com/docs/#identity
-app.get('/identity', function (request, response, next) {
-    client.getIdentity(ACCESS_TOKEN, function (error, identityResponse) {
-        if (error != null) {
-            prettyPrintResponse(error);
-            return response.json({
-                error: error,
-            });
-        }
-        prettyPrintResponse(identityResponse);
-        response.json({ error: null, identity: identityResponse });
-    });
-});
-
-// Retrieve real-time Balances for each of an Item's accounts
-// https://plaid.com/docs/#balance
-app.get('/balance', function (request, response, next) {
-    client.getBalance(ACCESS_TOKEN, function (error, balanceResponse) {
-        if (error != null) {
-            prettyPrintResponse(error);
-            return response.json({
-                error: error,
-            });
-        }
-        prettyPrintResponse(balanceResponse);
-        response.json({ error: null, balance: balanceResponse });
-    });
-});
-
-// Retrieve an Item's accounts
-// https://plaid.com/docs/#accounts
-app.get('/accounts', function (request, response, next) {
-    client.getAccounts(ACCESS_TOKEN, function (error, accountsResponse) {
-        if (error != null) {
-            prettyPrintResponse(error);
-            return response.json({
-                error: error,
-            });
-        }
-        prettyPrintResponse(accountsResponse);
-        response.json({ error: null, accounts: accountsResponse });
-    });
-});
-
 function sync(user) {
     return new Promise(function (resolve, reject) {
         userDao.getById(user.id).then(userFromDb => {
@@ -665,6 +555,100 @@ function getTransactions(startDate, endDate, accessToken, count, offset) {
         );
     });
 }
+
+// Exchange token flow - exchange a Link public_token for
+// an API access_token
+// https://plaid.com/docs/#exchange-token-flow
+app.post('/get_access_token', function (req, res, next) {
+    client.exchangePublicToken(req.body.public_token, function (error, tokenResponse) {
+        if (error != null) {
+            prettyPrintResponse(error);
+            return res.json({
+                error: error,
+            });
+        }
+        //Save to DB
+        pool.getConnection().then(conn => {
+            conn.query('CALL createPlaidItem(?,?,?)', [req.session.user.id, tokenResponse.item_id, tokenResponse.access_token])
+                .catch(err => {
+                    console.log(err);
+                });
+        });
+        prettyPrintResponse(tokenResponse);
+        res.json({
+            access_token: tokenResponse.access_token,
+            item_id: tokenResponse.item_id,
+            error: null,
+        });
+    });
+});
+
+
+// Retrieve Transactions for an Item
+// https://plaid.com/docs/#transactions
+app.get('/get-transactions', function (request, response, next) {
+    // Pull transactions for the Item for the last 30 days
+    var startDate = moment().subtract(30, 'days').format('YYYY-MM-DD');
+    var endDate = moment().format('YYYY-MM-DD');
+    client.getTransactions('access-sandbox-2efb1838-a358-403f-a806-dbac32d4ff84', startDate, endDate, {
+        count: 250,
+        offset: 0,
+    }, function (error, transactionsResponse) {
+        if (error != null) {
+            prettyPrintResponse(error);
+            return response.json({
+                error: error
+            });
+        } else {
+            response.json({ error: null, transactions: transactionsResponse });
+        }
+    });
+});
+
+// Retrieve Identity for an Item
+// https://plaid.com/docs/#identity
+app.get('/identity', function (request, response, next) {
+    client.getIdentity(ACCESS_TOKEN, function (error, identityResponse) {
+        if (error != null) {
+            prettyPrintResponse(error);
+            return response.json({
+                error: error,
+            });
+        }
+        prettyPrintResponse(identityResponse);
+        response.json({ error: null, identity: identityResponse });
+    });
+});
+
+// Retrieve real-time Balances for each of an Item's accounts
+// https://plaid.com/docs/#balance
+app.get('/balance', function (request, response, next) {
+    client.getBalance(ACCESS_TOKEN, function (error, balanceResponse) {
+        if (error != null) {
+            prettyPrintResponse(error);
+            return response.json({
+                error: error,
+            });
+        }
+        prettyPrintResponse(balanceResponse);
+        response.json({ error: null, balance: balanceResponse });
+    });
+});
+
+// Retrieve an Item's accounts
+// https://plaid.com/docs/#accounts
+app.get('/accounts', function (request, response, next) {
+    client.getAccounts(ACCESS_TOKEN, function (error, accountsResponse) {
+        if (error != null) {
+            prettyPrintResponse(error);
+            return response.json({
+                error: error,
+            });
+        }
+        prettyPrintResponse(accountsResponse);
+        response.json({ error: null, accounts: accountsResponse });
+    });
+});
 
 // Retrieve ACH or ETF Auth data for an Item's accounts
 // https://plaid.com/docs/#auth
