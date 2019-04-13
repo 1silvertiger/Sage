@@ -22,13 +22,13 @@ module.exports = class BillDao extends Dao {
                 bill.amount,
                 bill.autoPay,
                 bill.weekDay,
-                bill.dueDate,
-                bill.dueDate2 || null,
-                bill.paid || null
+                bill.numOfPeriods,
+                bill.paid || null,
+                bill.dueDate
             ];
             pool.query(Dao.composeQuery('createOrUpdateBill', params), params).then(rows => {
                 const tempTag = new Tag(rows[1][0].id, rows[1][0].userId, rows[1][0].name);
-                const temp = new Bill(rows[0][0].id, rows[0][0].userId, rows[0][0].periodId, rows[0][0].accountId, tempTag, rows[0][0].name, rows[0][0].amount, rows[0][0].autoPay, rows[0][0].weekDay, rows[0][0].dueDate, rows[0][0].dueDate2, rows[0][0].paid);
+                const temp = new Bill(rows[0][0].id, rows[0][0].userId, rows[0][0].periodId, rows[0][0].accountId, tempTag, rows[0][0].name, rows[0][0].amount, rows[0][0].autoPay, rows[0][0].weekDay, rows[0][0].numOfPeriods, rows[0][0].paid, rows[0][0].dueDate);
                 resolve(temp);
             }).catch(err => {
                 Dao.handleQueryCatch(err);
