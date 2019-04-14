@@ -1,6 +1,3 @@
-let overviewSelector;
-let addNewSelector;
-
 $(document).ready(function () {
     const table = new Vue({
         el: '#app',
@@ -11,6 +8,7 @@ $(document).ready(function () {
         },
         mounted: function () {
             const $vm = this;
+
             //Initialize modals
             M.Modal.init(document.querySelectorAll('.modal'), { preventScrolling: true });
 
@@ -29,7 +27,7 @@ $(document).ready(function () {
             for (let i = 0; i < user.budgetItems.length; i++) {
                 //Get existing tags
                 const chips = new Array();
-                for (let j = 0; j < user.budgetItems[i].tags.length; i++)
+                for (let j = 0; j < user.budgetItems[i].tags.length; j++)
                     chips.push({ tag: user.budgetItems[i].tags[j].name });
                 //Initialize chips
                 M.Chips.init(document.querySelector('#tags' + user.budgetItems[i].id), {
@@ -68,14 +66,12 @@ $(document).ready(function () {
                     for (let i = 0; i < chips.chipsData.length; i++)
                         tagNames.push(chips.chipsData[i].tag);
                     budgetItem.tags = getTagsFromNames(tagNames);
-                    alert(budgetItem.tags[0].id);
                 } else {
                     const tagNames = new Array();
                     const chips = M.Chips.getInstance(document.querySelector('#addNewTags'));
                     for (let i = 0; i < chips.chipsData.length; i++)
                         tagNames.push(chips.chipsData[i].tag);
                     budgetItem.tags = getTagsFromNames(tagNames);
-                    alert(budgetItem.tags[0].id);
                 }
                 $.ajax({
                     url: URL + '/createOrUpdateBudgetItem'
@@ -86,7 +82,6 @@ $(document).ready(function () {
                     , success: function (data) {
                         refreshUser().then(refreshedUser => {
                             drawOverviewChart();
-                            budgetItem = new ClientBudget(null, user.id, null, null, null, null);
                         }).catch(err => { console.log(err) });
                     }, error: function (jqxhr, status, error) {
                         let i = 0;
