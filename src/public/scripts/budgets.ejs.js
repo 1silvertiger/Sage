@@ -7,13 +7,41 @@ $(document).ready(function () {
         data: {
             user: user,
             budgetItemsToDelete: new Array(),
-            budgetItemToCreate: new ClientBudget(null, user.id, 3, null, null, null)
+            budgetItemToCreate: { userId: user.id, tags: new Array() }
         },
         mounted: function () {
+            const $vm = this;
             //Initialize modals
             M.Modal.init(document.querySelectorAll('.modal'), { preventScrolling: true });
+
+            //Chips
+            //Autocomplete options
+            const autocompleteOptions = { data: new Object() };
+            for (let i = 0; i < user.tags.length; i++)
+                autocompleteOptions.data[user.tags[i].name] = null;
+
+            //Add new tags
+            M.Chips.init(document.querySelector('#addNewTags'), {
+                autocompleteOptions: autocompleteOptions
+            });
+
+            //Budget item modal tags
+            for (let i = 0; i < user.budgetItems.length; i++) {
+                //Get existing tags
+                const chips = new Array();
+                for (let j = 0; j < user.budgetItems[i].tags.length; i++)
+                    chips.push({ tag: user.budgetItems[i].tags[j].name });
+                //Initialize chips
+                M.Chips.init(document.querySelector('#tags' + user.budgetItems[i].id), {
+                    data: chips,
+                    autocompleteOptions: autocompleteOptions
+                });
+            }
+
+            //Select
             M.FormSelect.init(document.querySelectorAll('select'), {});
-            addNewSelector = M.FormSelect.getInstance(document.querySelector('#period'));
+
+            //Draw charts
             refreshUser().then(refreshedUser => {
                 drawOverviewChart();
             }).catch(err => { console.log(err) });
@@ -34,6 +62,21 @@ $(document).ready(function () {
         },
         methods: {
             createOrUpdateBudgetItem: function (budgetItem) {
+                if (budgetItem.id) {
+                    const tagNames = new Array();
+                    const chips = M.Chips.getInstance(document.querySelector('#tags' + budgetItem.id));
+                    for (let i = 0; i < chips.chipsData.length; i++)
+                        tagNames.push(chips.chipsData[i].tag);
+                    budgetItem.tags = getTagsFromNames(tagNames);
+                    alert(budgetItem.tags[0].id);
+                } else {
+                    const tagNames = new Array();
+                    const chips = M.Chips.getInstance(document.querySelector('#addNewTags'));
+                    for (let i = 0; i < chips.chipsData.length; i++)
+                        tagNames.push(chips.chipsData[i].tag);
+                    budgetItem.tags = getTagsFromNames(tagNames);
+                    alert(budgetItem.tags[0].id);
+                }
                 $.ajax({
                     url: URL + '/createOrUpdateBudgetItem'
                     , type: 'POST'
@@ -64,6 +107,12 @@ $(document).ready(function () {
                         drawOverviewChart();
                     }
                 });
+            },
+            addTagsFromChips: function (budgetItem) {
+                const chips = M.Chips.getInstance(document.querySelector('#tags' + budgetItem.id));
+                const chip = chips.chipsData[chips.chipsData.length - 1];
+                budgetItem.tags.push({ id: getTagId(chip.tag), name: chip.tag, userId: user.id });
+                alert(budgetItem.tags[0].name);
             },
             getPeriodName: function (periodId) {
                 switch (periodId) {
