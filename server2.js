@@ -330,11 +330,10 @@ app.all('/refreshUser', function (req, res) {
 });
 
 app.all('/createOrUpdateBudgetItem', function (req, res) {
-    budgetDao.createOrUpdate(Budget.parseClientBudget(req.body.budget)).then(budget => {
+    budgetDao.createOrUpdate(req.body.budget).then(budget => {
         console.log('Budget:');
         console.log(budget);
-        const temp = budget.toClientBudget(budget);
-        res.json(JSON.stringify(temp));
+        res.json(JSON.stringify(budget));
     }).catch(err => {
         console.log(err);
         res.sendStatus(500);
