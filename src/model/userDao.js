@@ -170,9 +170,9 @@ module.exports = class UserDao extends Dao {
                             // Budget item tags
                             const tags = new Array();
                             for (budgetItemTagIndex; budgetItemTagIndex < rows[BUDGET_ITEM_TAGS_INDEX].length; budgetItemTagIndex++) {
-                                if (rows[BUDGET_ITEM_TAGS_INDEX][budgetItemTagIndex].budgetItemTag === rows[BUDGET_ITEMS_INDEX][i]) {
+                                if (rows[BUDGET_ITEM_TAGS_INDEX][budgetItemTagIndex].budgetItemId === rows[BUDGET_ITEMS_INDEX][i].id) {
                                     tags.push(new Tag(
-                                        rows[BUDGET_ITEM_TAGS_INDEX][budgetItemTagIndex].tagId,
+                                        rows[BUDGET_ITEM_TAGS_INDEX][budgetItemTagIndex].id,
                                         rows[BUDGET_ITEM_TAGS_INDEX][budgetItemTagIndex].userId,
                                         rows[BUDGET_ITEM_TAGS_INDEX][budgetItemTagIndex].name
                                     ));
@@ -184,6 +184,7 @@ module.exports = class UserDao extends Dao {
                                 rows[BUDGET_ITEMS_INDEX][i].id,
                                 rows[BUDGET_ITEMS_INDEX][i].userId,
                                 rows[BUDGET_ITEMS_INDEX][i].periodId,
+                                new Tag(rows[BUDGET_ITEMS_INDEX][i].tagId, rows[BUDGET_ITEMS_INDEX][i].userId, rows[BUDGET_ITEMS_INDEX][i].name),
                                 rows[BUDGET_ITEMS_INDEX][i].name,
                                 rows[BUDGET_ITEMS_INDEX][i].amount,
                                 rows[BUDGET_ITEMS_INDEX][i].numOfPeriods,
