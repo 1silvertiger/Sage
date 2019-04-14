@@ -479,10 +479,10 @@ function syncWithPlaid(user) {
 function getAccounts(accessToken) {
     return new Promise(function (resolve, reject) {
         client.getAccounts(accessToken, function (error, accountsResponse) {
-            console.log('Plaid accounts:')
-            prettyPrintResponse(accountsResponse);
+            // console.log('Plaid accounts:')
+            // prettyPrintResponse(accountsResponse);
             if (!error) {
-                console.log('Account objects:');
+                // console.log('Account objects:');
                 const accountsFromPlaid = new Array();
                 for (let i = 0; i < accountsResponse.accounts.length; i++) {
                     //Convert JSON from Plaid to Account object
@@ -495,12 +495,12 @@ function getAccounts(accessToken) {
                         , accountsResponse.accounts[i].official_name
                         , accountsResponse.accounts[i].type
                         , accountsResponse.accounts[i].subtype);
-                    console.log(tempAccount);
+                    // console.log(tempAccount);
                     accountsFromPlaid.push(tempAccount);
                 }
                 accountDao.batchCreateOrUpdate(accountsFromPlaid).then(updatedAccounts => {
-                    console.log('Final result:');
-                    console.log(updatedAccounts);
+                    // console.log('Final result:');
+                    // console.log(updatedAccounts);
                     resolve(updatedAccounts);
                 }).catch(err => {
                     Dao.handleQueryError(err);
@@ -521,11 +521,11 @@ function getTransactions(startDate, endDate, accessToken, count, offset) {
             offset: offset,
         },
             function (error, transactionsResponse) {
-                console.log('Plaid transactions:');
-                prettyPrintResponse(transactionsResponse);
+                // console.log('Plaid transactions:');
+                // prettyPrintResponse(transactionsResponse);
                 if (!error) {
                     const newTransactions = new Array();
-                    console.log('Transaction objects:');
+                    // console.log('Transaction objects:');
                     for (let i = 0; i < transactionsResponse.transactions.length; i++) {
                         const tempTransaction = new Transaction(transactionsResponse.transactions[i].transaction_id
                             , transactionsResponse.item.item_id
@@ -533,13 +533,13 @@ function getTransactions(startDate, endDate, accessToken, count, offset) {
                             , transactionsResponse.transactions[i].amount
                             , transactionsResponse.transactions[i].name
                             , transactionsResponse.transactions[i].date);
-                        console.log(tempTransaction);
+                        // console.log(tempTransaction);
                         newTransactions.push(tempTransaction);
                     }
                     transactionDao.batchCreate(newTransactions).then(newTransactionsFromDb => {
                         transactionDao.getAllByItemId(transactionsResponse.item.item_id).then(allTransactions => {
-                            console.log('Transactions from DB:');
-                            console.log(allTransactions);
+                            // console.log('Transactions from DB:');
+                            // console.log(allTransactions);
                             resolve(allTransactions);
                         }).catch(err => {
                             console.log(err);
