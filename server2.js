@@ -23,6 +23,8 @@ const config = require('config'),
     fs = require('fs'),
     http = require('http'),
     https = require('https'),
+    favicon = require('serve-favicon'),
+    path = require('path'),
 
     session = require('express-session'),
 
@@ -155,6 +157,8 @@ app.use(function (req, res, next) {
     res.setHeader("Access-Control-Allow-Credentials", true);
     next();
 });
+
+app.use(favicon(path.join('./src/public/assets/icons', 'favicon.ico')));
 
 //\\//\\//\\//\\NAVIGATION//\\//\\//\\//\\
 
