@@ -1,0 +1,16 @@
+{
+ "name": "Sage Savings",
+ "short_name": "Sage Savings",
+ "description": "Budgeting",
+ "icons": [
+    {
+        "src": "/assets/icons/android-chrome-72x72.png",
+        "sizes": "72x72",
+        "type": "image/png"
+    }
+ ],
+ "start_url": "/",
+ "display": "fullscreen",
+ "theme_color": "#000",
+ "background_color": "#fff"
+}
