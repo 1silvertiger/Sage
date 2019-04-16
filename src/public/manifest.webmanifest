@@ -10,7 +10,7 @@
     }
  ],
  "start_url": "/",
- "display": "fullscreen",
+ "display": "standalone",
  "theme_color": "#000",
  "background_color": "#fff"
 }
