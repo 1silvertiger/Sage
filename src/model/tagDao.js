@@ -9,7 +9,7 @@ module.exports = class TagDao extends Dao {
 
     createOrUpdate(pTag) {
         const pool = this.pool;
-        return new Promise(function(resolve, reject) {
+        return new Promise(function (resolve, reject) {
 
         });
     }
@@ -25,7 +25,7 @@ module.exports = class TagDao extends Dao {
             ]);
         }
 
-        return new Promise(function(resolve, reject) {
+        return new Promise(function (resolve, reject) {
             pool.batch('CALL createOrUpdateTag(?,?,?)', params).then(rows => {
                 const tags = new Array();
                 for (let i = 0; i < rows.length; i += 2) {
@@ -39,6 +39,18 @@ module.exports = class TagDao extends Dao {
             }).catch(err => {
                 Dao.handleQueryCatch(err);
                 resolve(null);
+            });
+        });
+    }
+
+    tagBudgetItemsBatch(ids) {
+        const pool = this.pool;
+        return new Promise(function (resolve, reject) {
+            pool.batch('tagBudgetItem(?,?)', ids).then(rows => {
+                resolve(true);
+            }).catch(err => {
+                Dao.handleQueryCatch(err);
+                resolve(false);
             });
         });
     }

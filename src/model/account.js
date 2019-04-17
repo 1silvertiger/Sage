@@ -2,7 +2,7 @@
 // import {TransactionDao } from './transactionDao.js';
 
 module.exports = class Account {
-    constructor(id, plaidItemId, institutionName, availableBalance, currentBalance, name, officialName, type, subType) {
+    constructor(id, plaidItemId, institutionName, availableBalance, currentBalance, name, officialName, type, subType, accountNotifications) {
         this.id = id;
         this.plaidItemId = plaidItemId;
         this.institutionName = institutionName;
@@ -12,6 +12,7 @@ module.exports = class Account {
         this.officialName = officialName;
         this.type = type;
         this.subType = subType;
+        this.accountNotifications = accountNotifications || new Array();
     }
 
 }

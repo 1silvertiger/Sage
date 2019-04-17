@@ -45,10 +45,6 @@ module.exports = class ItemDao extends Dao {
         });
     }
 
-    update(item) {
-
-    }
-
     updateLastSync(item) {
         const pool = this.pool;
         return new Promise(function (resolve, reject) {

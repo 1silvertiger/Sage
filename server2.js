@@ -23,6 +23,8 @@ const config = require('config'),
     fs = require('fs'),
     http = require('http'),
     https = require('https'),
+    favicon = require('serve-favicon'),
+    path = require('path'),
 
     session = require('express-session'),
 
@@ -156,6 +158,8 @@ app.use(function (req, res, next) {
     next();
 });
 
+app.use(favicon(path.join('./src/public/assets/icons', 'favicon.ico')));
+
 //\\//\\//\\//\\NAVIGATION//\\//\\//\\//\\
 
 //Authenticate
@@ -203,9 +207,7 @@ app.all('/home', function (req, res) {
         APP_MODE: config.APP_MODE,
         APP_PORT: config.APP_PORT,
         URL: config.URL,
-        test: req.session.test,
-        user: req.session.user,
-        debug: 'try it again'
+        user: req.session.user
     });
 });
 
@@ -276,7 +278,7 @@ app.all('/bills', function(req, res) {
     res.render('bills.ejs', {
         URL: config.URL,
         user: req.session.user
-    })
+    });
 });
 
 //\\//\\//\\//\\API//\\//\\//\\//\\
@@ -294,7 +296,6 @@ app.post('/tokensignin', function (req, res) {
                 if (user) {
                     console.log(user);
                     syncWithPlaid(user).then(syncedUser => {
-                        req.session.test = "Hello, world!";
                         req.session.user = syncedUser;
                         res.sendStatus(200);
                     }).catch(err => {
@@ -302,7 +303,6 @@ app.post('/tokensignin', function (req, res) {
                     });
                 } else {
                     userDao.create(new User(userId, req.body.firstName, req.body.lastName, req.body.imageUrl, req.body.email)).then(user => {
-                        req.session.test = "Hello, world!";
                         req.session.user = user;
                         res.sendStatus(200);
                     }).catch(err => {
@@ -334,11 +334,10 @@ app.all('/refreshUser', function (req, res) {
 });
 
 app.all('/createOrUpdateBudgetItem', function (req, res) {
-    budgetDao.createOrUpdate(Budget.parseClientBudget(req.body.budget)).then(budget => {
+    budgetDao.createOrUpdate(req.body.budget).then(budget => {
         console.log('Budget:');
         console.log(budget);
-        const temp = budget.toClientBudget(budget);
-        res.json(JSON.stringify(temp));
+        res.json(JSON.stringify(budget));
     }).catch(err => {
         console.log(err);
         res.sendStatus(500);
@@ -444,6 +443,122 @@ app.all('/plaid-webhook', function (req, res, next) {
     }
 })
 
+function sync(user) {
+    return new Promise(function (resolve, reject) {
+        userDao.getById(user.id).then(userFromDb => {
+            console.log(userFromDb);
+            syncWithPlaid(userFromDb).then(syncedUser => {
+                resolve(syncedUser);
+            }).catch(err => {
+                Dao.handleQueryError(err);
+            });
+        });
+    });
+}
+
+function syncWithPlaid(user) {
+    return new Promise(function (resolve, reject) {
+        let promises = new Array();
+        for (let i = 0; i < user.items.length; i++) {
+            promises.push(getAccounts(user.items[i].accessToken));
+            promises.push(getTransactions(moment(user.items[i].lastSync).subtract(90, 'days').format('YYYY-MM-DD') || moment().format('YYYY-MM-DD'), moment().format('YYYY-MM-DD'), user.items[i].accessToken, 500, 0));
+        }
+        Promise.all(promises).then(values => {
+            for (let i = 0; i < values.length; i++) {
+                if (i % 2 === 0) {
+                    user.items[Math.floor(i / 2)].accounts = values[i];
+                } else {
+                    user.items[Math.floor(i / 2)].transactions = values[i];
+                    itemDao.updateLastSync(user.items[Math.floor(i / 2)]);
+                }
+            }
+            resolve(user);
+        }).catch(err => {
+            console.log(err);
+        });
+    });
+}
+
+function getAccounts(accessToken) {
+    return new Promise(function (resolve, reject) {
+        client.getAccounts(accessToken, function (error, accountsResponse) {
+            // console.log('Plaid accounts:')
+            // prettyPrintResponse(accountsResponse);
+            if (!error) {
+                // console.log('Account objects:');
+                const accountsFromPlaid = new Array();
+                for (let i = 0; i < accountsResponse.accounts.length; i++) {
+                    //Convert JSON from Plaid to Account object
+                    const tempAccount = new Account(accountsResponse.accounts[i].account_id
+                        , accountsResponse.item.item_id
+                        , accountsResponse.item.institution_id
+                        , accountsResponse.accounts[i].balances.available
+                        , accountsResponse.accounts[i].balances.current
+                        , accountsResponse.accounts[i].name
+                        , accountsResponse.accounts[i].official_name
+                        , accountsResponse.accounts[i].type
+                        , accountsResponse.accounts[i].subtype);
+                    // console.log(tempAccount);
+                    accountsFromPlaid.push(tempAccount);
+                }
+                accountDao.batchCreateOrUpdate(accountsFromPlaid).then(updatedAccounts => {
+                    // console.log('Final result:');
+                    // console.log(updatedAccounts);
+                    resolve(updatedAccounts);
+                }).catch(err => {
+                    Dao.handleQueryError(err);
+                });
+            }
+            else {
+                prettyPrintResponse(error);
+                resolve(null);
+            }
+        });
+    });
+}
+
+function getTransactions(startDate, endDate, accessToken, count, offset) {
+    return new Promise(function (resolve, reject) {
+        client.getTransactions(accessToken, startDate, endDate, {
+            count: count,
+            offset: offset,
+        },
+            function (error, transactionsResponse) {
+                // console.log('Plaid transactions:');
+                // prettyPrintResponse(transactionsResponse);
+                if (!error) {
+                    const newTransactions = new Array();
+                    // console.log('Transaction objects:');
+                    for (let i = 0; i < transactionsResponse.transactions.length; i++) {
+                        const tempTransaction = new Transaction(transactionsResponse.transactions[i].transaction_id
+                            , transactionsResponse.item.item_id
+                            , transactionsResponse.transactions[i].account_id
+                            , transactionsResponse.transactions[i].amount
+                            , transactionsResponse.transactions[i].name
+                            , transactionsResponse.transactions[i].date);
+                        // console.log(tempTransaction);
+                        newTransactions.push(tempTransaction);
+                    }
+                    transactionDao.batchCreate(newTransactions).then(newTransactionsFromDb => {
+                        transactionDao.getAllByItemId(transactionsResponse.item.item_id).then(allTransactions => {
+                            // console.log('Transactions from DB:');
+                            // console.log(allTransactions);
+                            resolve(allTransactions);
+                        }).catch(err => {
+                            console.log(err);
+                        });
+                    }).catch(err => {
+                        console.log(err);
+                    });
+                } else {
+                    prettyPrintResponse(error);
+                    resolve(null);
+                }
+            }
+        );
+    });
+}
+
 // Exchange token flow - exchange a Link public_token for
 // an API access_token
 // https://plaid.com/docs/#exchange-token-flow
@@ -537,122 +652,6 @@ app.get('/accounts', function (request, response, next) {
         response.json({ error: null, accounts: accountsResponse });
     });
 });
-
-function sync(user) {
-    return new Promise(function (resolve, reject) {
-        userDao.getById(user.id).then(userFromDb => {
-            console.log(userFromDb);
-            syncWithPlaid(userFromDb).then(syncedUser => {
-                resolve(syncedUser);
-            }).catch(err => {
-                Dao.handleQueryError(err);
-            });
-        });
-    });
-}
-
-function syncWithPlaid(user) {
-    return new Promise(function (resolve, reject) {
-        let promises = new Array();
-        for (let i = 0; i < user.items.length; i++) {
-            promises.push(getAccounts(user.items[i].accessToken));
-            promises.push(getTransactions(moment(user.items[i].lastSync).subtract(90, 'days').format('YYYY-MM-DD') || moment().format('YYYY-MM-DD'), moment().format('YYYY-MM-DD'), user.items[i].accessToken, 500, 0));
-        }
-        Promise.all(promises).then(values => {
-            for (let i = 0; i < values.length; i++) {
-                if (i % 2 === 0) {
-                    user.items[Math.floor(i / 2)].accounts = values[i];
-                } else {
-                    user.items[Math.floor(i / 2)].transactions = values[i];
-                    itemDao.updateLastSync(user.items[Math.floor(i / 2)]);
-                }
-            }
-            resolve(user);
-        }).catch(err => {
-            console.log(err);
-        });
-    });
-}
-
-function getAccounts(accessToken) {
-    return new Promise(function (resolve, reject) {
-        client.getAccounts(accessToken, function (error, accountsResponse) {
-            console.log('Plaid accounts:')
-            prettyPrintResponse(accountsResponse);
-            if (!error) {
-                console.log('Account objects:');
-                const accountsFromPlaid = new Array();
-                for (let i = 0; i < accountsResponse.accounts.length; i++) {
-                    //Convert JSON from Plaid to Account object
-                    const tempAccount = new Account(accountsResponse.accounts[i].account_id
-                        , accountsResponse.item.item_id
-                        , accountsResponse.item.institution_id
-                        , accountsResponse.accounts[i].balances.available
-                        , accountsResponse.accounts[i].balances.current
-                        , accountsResponse.accounts[i].name
-                        , accountsResponse.accounts[i].official_name
-                        , accountsResponse.accounts[i].type
-                        , accountsResponse.accounts[i].subtype);
-                    console.log(tempAccount);
-                    accountsFromPlaid.push(tempAccount);
-                }
-                accountDao.batchCreateOrUpdate(accountsFromPlaid).then(updatedAccounts => {
-                    console.log('Final result:');
-                    console.log(updatedAccounts);
-                    resolve(updatedAccounts);
-                }).catch(err => {
-                    Dao.handleQueryError(err);
-                });
-            }
-            else {
-                prettyPrintResponse(error);
-                resolve(null);
-            }
-        });
-    });
-}
-
-function getTransactions(startDate, endDate, accessToken, count, offset) {
-    return new Promise(function (resolve, reject) {
-        client.getTransactions(accessToken, startDate, endDate, {
-            count: count,
-            offset: offset,
-        },
-            function (error, transactionsResponse) {
-                console.log('Plaid transactions:');
-                prettyPrintResponse(transactionsResponse);
-                if (!error) {
-                    const newTransactions = new Array();
-                    console.log('Transaction objects:');
-                    for (let i = 0; i < transactionsResponse.transactions.length; i++) {
-                        const tempTransaction = new Transaction(transactionsResponse.transactions[i].transaction_id
-                            , transactionsResponse.item.item_id
-                            , transactionsResponse.transactions[i].account_id
-                            , transactionsResponse.transactions[i].amount
-                            , transactionsResponse.transactions[i].name
-                            , transactionsResponse.transactions[i].date);
-                        console.log(tempTransaction);
-                        newTransactions.push(tempTransaction);
-                    }
-                    transactionDao.batchCreate(newTransactions).then(newTransactionsFromDb => {
-                        transactionDao.getAllByItemId(transactionsResponse.item.item_id).then(allTransactions => {
-                            console.log('Transactions from DB:');
-                            console.log(allTransactions);
-                            resolve(allTransactions);
-                        }).catch(err => {
-                            console.log(err);
-                        });
-                    }).catch(err => {
-                        console.log(err);
-                    });
-                } else {
-                    prettyPrintResponse(error);
-                    resolve(null);
-                }
-            }
-        );
-    });
-}
 
 // Retrieve ACH or ETF Auth data for an Item's accounts
 // https://plaid.com/docs/#auth
