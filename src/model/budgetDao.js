@@ -53,21 +53,6 @@ module.exports = class BudgetDao extends Dao {
                 Dao.handleQueryCatch(err);
                 resolve(null);
             });
-
-            // pool.query(Dao.composeQuery('createOrUpdateBudgetItem', params), params).then(rows => {
-            //     resolve(new Budget(
-            //         rows[0][0].id, 
-            //         rows[0][0].userId, 
-            //         rows[0][0].periodId, 
-            //         new Tag(rows[1][0].id, rows[1][0].userId, rows[1][0].name),
-            //         rows[0][0].name, 
-            //         rows[0][0].amount, 
-            //         rows[0][0].numOfPeriods
-            //     ));
-            // }).catch(err => {
-            //     Dao.handleQueryCatch(err);
-            //     resolve(null);
-            // });
         });
     }
 
@@ -77,7 +62,6 @@ module.exports = class BudgetDao extends Dao {
             pool.batch('CALL deleteBudgetItem(?)', budgetItemIds).then(rows => {
                 resolve(true);
             }).catch(err => {
-                console.log(err);
                 Dao.handleQueryCatch(err);
                 resolve(null);
             });

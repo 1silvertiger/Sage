@@ -89,6 +89,7 @@ $(document).ready(function () {
                 });
             },
             deleteBudgetItems: function (budgetItemIds) {
+                const $vm = this;
                 $.ajax({
                     url: URL + '/deleteBudgetItems',
                     type: 'POST',
@@ -100,6 +101,9 @@ $(document).ready(function () {
                         user.items = temp.items;
                         user.budgetItems = temp.budgetItems;
                         drawOverviewChart();
+                    },
+                    complete: function() {
+                        $vm.budgetItemsToDelete.length = 0;
                     }
                 });
             },
@@ -107,7 +111,6 @@ $(document).ready(function () {
                 const chips = M.Chips.getInstance(document.querySelector('#tags' + budgetItem.id));
                 const chip = chips.chipsData[chips.chipsData.length - 1];
                 budgetItem.tags.push({ id: getTagId(chip.tag), name: chip.tag, userId: user.id });
-                alert(budgetItem.tags[0].name);
             },
             getPeriodName: function (periodId) {
                 switch (periodId) {
