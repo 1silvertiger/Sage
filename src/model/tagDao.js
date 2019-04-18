@@ -52,6 +52,18 @@ module.exports = class TagDao extends Dao {
                 Dao.handleQueryCatch(err);
                 resolve(false);
             });
+    tagBill(ids) {
+        const pool = this.pool;
+        return new Promise(function (resolve, reject) {
+            pool.batch('tagBill(?,?)', ids).then(rows => {
+                resolve(true);
+            }).catch(err => {
+                Dao.handleQueryCatch(err);
+                resolve(false);
+            });
+        }).catch(err => {
+            Dao.handleQueryCatch(err);
+            resolve(false);
         });
     }
 }
