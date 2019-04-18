@@ -1,6 +1,5 @@
 const Dao = require('./dao');
 const PiggyBank = require('./piggyBank');
-const Tag = require('./tag');
 const TagDao = require('./tagDao');
 
 module.exports = class PiggyBankDao extends Dao {
@@ -18,7 +17,6 @@ module.exports = class PiggyBankDao extends Dao {
                 piggyBank.id || null,
                 piggyBank.userId,
                 piggyBank.accountId,
-                piggyBank.tagId || null,
                 piggyBank.name,
                 piggyBank.balance,
                 piggyBank.goal
@@ -30,7 +28,15 @@ module.exports = class PiggyBankDao extends Dao {
                 promises.push(tagDao.createOrUpdateBatch(piggyBank.tags));
 
             Promise.all(promises).then(values => {
-                const temp = new PiggyBank(values[0][0][0].id, values[0][0][0].userId, values[0][0][0].accountId, values[0][0][0].tagId, values[0][0][0].name, values[0][0][0].balance, values[0][0][0].goal, values[1]);
+                const temp = new PiggyBank(
+                    values[0][0][0].id, 
+                    values[0][0][0].userId, 
+                    values[0][0][0].accountId, 
+                    values[0][0][0].name, 
+                    values[0][0][0].balance, 
+                    values[0][0][0].goal, 
+                    values[1]
+                );
                 resolve(temp);
             }).catch(err => {
                 Dao.handleQueryCatch(err);
