@@ -56,23 +56,25 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="bi in sortedBudgetItems">
-                                    <td>
-                                        <form>
-                                            <p><label>
-                                                    <input :id="'chkBx' + bi.id" type="checkbox" class="filled-in"
-                                                        v-on:change="budgetItemsToDelete.push(bi.id)">
-                                                    <span :for="'chkBx' + bi.id"></span>
-                                                </label></p>
-                                        </form>
-                                    </td>
-                                    <td :data-target="bi.id" class="modal-trigger">{{ bi.name }}</td>
-                                    <td :data-target="bi.id" class="modal-trigger">${{ bi.amount }}</td>
-                                    <td :data-target="bi.id" class="modal-trigger hide-on-small-only">
-                                        {{ getPeriodName(bi.periodId) }}</td>
-                                    <td :data-target="bi.id" class="modal-trigger hide-on-small-only">
-                                        {{ bi.numOfPeriods }}</td>
-                                </tr>
+                                <transition appear name="scale" appear-active-class="scale-in" leave-active-class="scale-out">
+                                    <tr v-for="bi in sortedBudgetItems" class="scale-transition">
+                                        <td>
+                                            <form>
+                                                <p><label>
+                                                        <input :id="'chkBx' + bi.id" type="checkbox" class="filled-in"
+                                                            :value="bi.id" v-model="budgetItemsToDelete">
+                                                        <span :for="'chkBx' + bi.id"></span>
+                                                    </label></p>
+                                            </form>
+                                        </td>
+                                        <td :data-target="bi.id" class="modal-trigger">{{ bi.name }}</td>
+                                        <td :data-target="bi.id" class="modal-trigger">${{ bi.amount }}</td>
+                                        <td :data-target="bi.id" class="modal-trigger hide-on-small-only">
+                                            {{ getPeriodName(bi.periodId) }}</td>
+                                        <td :data-target="bi.id" class="modal-trigger hide-on-small-only">
+                                            {{ bi.numOfPeriods }}</td>
+                                    </tr>
+                                </transition>
                             </tbody>
                         </table>
                     </div>
