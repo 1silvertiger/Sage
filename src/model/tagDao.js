@@ -66,4 +66,34 @@ module.exports = class TagDao extends Dao {
             resolve(false);
         });
     }
+
+    tagPiggyBank(ids) {
+        const pool = this.pool;
+        return new Promise(function (resolve, reject) {
+            pool.batch('tagPiggyBank(?,?)', ids).then(rows => {
+                resolve(true);
+            }).catch(err => {
+                Dao.handleQueryCatch(err);
+                resolve(false);
+            });
+        }).catch(err => {
+            Dao.handleQueryCatch(err);
+            resolve(false);
+        });
+    }
+
+    tagTransactionItem(ids) {
+        const pool = this.pool;
+        return new Promise(function (resolve, reject) {
+            pool.batch('tagTransactionItem(?,?)', ids).then(rows => {
+                resolve(true);
+            }).catch(err => {
+                Dao.handleQueryCatch(err);
+                resolve(false);
+            });
+        }).catch(err => {
+            Dao.handleQueryCatch(err);
+            resolve(false);
+        });
+    }
 }
