@@ -25,7 +25,6 @@ const PIGGY_BANKS_INDEX = 10;
 const PIGGY_BANK_TAGS_INDEX = 11;
 const BILLS_INDEX = 12;
 const BILL_NOTIFICATIONS_INDEX = 13;
-const BILL_TAGS_INDEX = 14;
 
 module.exports = class UserDao extends Dao {
     constructor(pPool) {
@@ -247,18 +246,6 @@ module.exports = class UserDao extends Dao {
                                 }
                             }
 
-                            // Bill tags
-                            const tags = new Array();
-                            for (billTagIndex; billTagIndex < rows[BILL_TAGS_INDEX].length; billTagIndex++) {
-                                if (rows[BILL_TAGS_INDEX][billTagIndex].billId === rows[BILLS_INDEX][billIndex].id) {
-                                    tags.push(new Tag(
-                                        rows[BILL_TAGS_INDEX][billTagIndex].id,
-                                        rows[BILL_TAGS_INDEX][billTagIndex].userId,
-                                        rows[BILL_TAGS_INDEX][billTagIndex].name
-                                    ));
-                                }
-                            }
-
                             const temp = new Bill(
                                 rows[BILLS_INDEX][billIndex].id,
                                 rows[BILLS_INDEX][billIndex].userId,
@@ -266,13 +253,11 @@ module.exports = class UserDao extends Dao {
                                 rows[BILLS_INDEX][billIndex].accountId,
                                 rows[BILLS_INDEX][billIndex].name,
                                 rows[BILLS_INDEX][billIndex].amount,
-                                rows[BILLS_INDEX][billIndex].autoPay === 1,
                                 rows[BILLS_INDEX][billIndex].weekDay === 1,
                                 rows[BILLS_INDEX][billIndex].numOfPeriods,
                                 rows[BILLS_INDEX][billIndex].paidThisPeriod === 1,
                                 rows[BILLS_INDEX][billIndex].dueDate,
                                 billNotifications,
-                                tags
                             );
                             user.bills.push(temp);
                         }
