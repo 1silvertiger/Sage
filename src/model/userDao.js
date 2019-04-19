@@ -184,7 +184,6 @@ module.exports = class UserDao extends Dao {
                                 rows[BUDGET_ITEMS_INDEX][i].id,
                                 rows[BUDGET_ITEMS_INDEX][i].userId,
                                 rows[BUDGET_ITEMS_INDEX][i].periodId,
-                                new Tag(rows[BUDGET_ITEMS_INDEX][i].tagId, rows[BUDGET_ITEMS_INDEX][i].userId, rows[BUDGET_ITEMS_INDEX][i].name),
                                 rows[BUDGET_ITEMS_INDEX][i].name,
                                 rows[BUDGET_ITEMS_INDEX][i].amount,
                                 rows[BUDGET_ITEMS_INDEX][i].numOfPeriods,
