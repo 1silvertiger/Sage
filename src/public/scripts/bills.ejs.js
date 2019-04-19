@@ -4,26 +4,22 @@ $(document).ready(function () {
         data: {
             user: user,
             billsToDelete: new Array(),
-            billToCreate: { userId: user.id, autoPay: false, weekDay: false, tag: {} },
+            billToCreate: { userId: user.id, autoPay: false, weekDay: false, notifications: new Array() },
             billToUpdate: new Object(),
-            billToCreateRepeats: false
+            billNotificationToCreate: {}
         },
         mounted: function () {
             const $vm = this;
 
-            //Collapsible
-            const collapsibleOptions = {
-                accordion: false,
-                onOpenEnd: function () {
-                    if (!$vm.billToCreateRepeats) {
-                        this.close(1);
-                    }
-                    if (!$vm.billToCreate.autoPay) {
-                        this.close(2);
-                    }
+            //Carousel
+            M.Carousel.init(document.querySelector('#addBillCarousel'), {
+                fullWidth: true,
+                indicators: false,
+                padding: 10,
+                onCycleTo: function() {
+                    $('#autopayBtn').removeClass('hide');
                 }
-            }
-            M.Collapsible.init(document.querySelectorAll('.collapsible'), collapsibleOptions);
+            });
 
             //Datepickers
             const addDueDateOptions = {
@@ -36,17 +32,6 @@ $(document).ready(function () {
                 }
             }
             M.Datepicker.init(document.querySelector('#addDueDate'), addDueDateOptions);
-
-            const addDueDate2Options = {
-                autoClose: true,
-                defaultDate: new Date(),
-                minDate: new Date(),
-                format: 'mmmm dd, yyyy',
-                onClose: function () {
-                    $vm.billToCreate.dueDate2 = appendTime(this.toString());
-                }
-            }
-            M.Datepicker.init(document.querySelector('#addDueDate2'), addDueDate2Options);
 
             //Selects
             M.FormSelect.init(document.querySelectorAll('select'), {});
@@ -112,16 +97,6 @@ $(document).ready(function () {
             },
             getFormattedCurrency: function(amount) {
                 return numeral(amount).format('$0,0.00');
-            },
-            toggleBillToCreateRepeats: function () {
-                // billToCreateRepeats = !billToCreateRepeats;
-                // const temp = M.Collapsible.getInstance(document.querySelector('#addBill'));
-                // if (billToCreateRepeats)
-                //     temp.open(1);
-                // else {
-                //     temp.close(1);
-                //     temp.close(2);
-                // }
             }
         },
         computed: {
@@ -136,6 +111,16 @@ $(document).ready(function () {
         }
     });
 });
+
+function prevAddCarouselItem() {
+    const carousel = M.Carousel.getInstance(document.querySelector('#addBillCarousel'));
+    carousel.prev();
+}
+
+function nextAddCarouselItem() {
+    const carousel = M.Carousel.getInstance(document.querySelector('#addBillCarousel'));
+    carousel.next();
+}
 
 function appendTime(dateFromPicker) {
     return new Date(dateFromPicker.concat(' 00:00:00'));
