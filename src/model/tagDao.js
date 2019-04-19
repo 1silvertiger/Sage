@@ -52,22 +52,6 @@ module.exports = class TagDao extends Dao {
         });
     }
 
-    tagBill(ids) {
-        const pool = this.pool;
-        return new Promise(function (resolve, reject) {
-            pool.query('CALL untagBill(?)', [ids[0][0]]).then(rows => {
-                pool.batch('CALL tagBill(?,?)', ids).then(rows => {
-                    resolve(true);
-                }).catch(err => {
-                    Dao.handleQueryCatch(err);
-                });
-            }).catch(err => {
-                resolve(false);
-                Dao.handleQueryCatch(err);
-            });
-        });
-    }
-
     tagPiggyBank(ids) {
         const pool = this.pool;
         return new Promise(function (resolve, reject) {

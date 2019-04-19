@@ -1,6 +1,5 @@
 const Dao = require('./dao');
 const Bill = require('./bill');
-const Tag = require('./tag');
 
 module.exports = class BillDao extends Dao {
     constructor(pPool) {
@@ -10,7 +9,6 @@ module.exports = class BillDao extends Dao {
 
     createOrUpdate(bill) {
         const pool = this.pool;
-        const tagDao = this.TagDao;
         return new Promise(function(resolve, reject) {
             const params = [
                 bill.id || null,
@@ -33,7 +31,6 @@ module.exports = class BillDao extends Dao {
                     rows[0][0].accountId, 
                     rows[0][0].name, 
                     rows[0][0].amount, 
-                    rows[0][0].autoPay, 
                     rows[0][0].weekDay, 
                     rows[0][0].numOfPeriods, 
                     rows[0][0].paid, 
