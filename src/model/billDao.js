@@ -21,8 +21,8 @@ module.exports = class BillDao extends Dao {
                 bill.amount,
                 bill.autoPay,
                 bill.weekDay,
-                bill.numOfPeriods,
-                bill.paid || null,
+                bill.numOfPeriods || null,
+                bill.paid || false,
                 bill.dueDate
             ];
             pool.query(Dao.composeQuery('createOrUpdateBill', params), params).then(rows => {
