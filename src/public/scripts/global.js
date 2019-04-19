@@ -19,10 +19,11 @@ $(document).ready(function () {
     M.FloatingActionButton.init(document.querySelectorAll('.fixed-action-btn'), {});
 
     $("#logout").click(function () {
+        alert(URL);
         $.ajax({
             type: "POST",
             url: URL + '/logout',
-            data: null,
+            data: JSON.stringify({}),
             dataType: "text",
             headers: { 'Content-Type': 'application/json' },
             credentials: 'same-origin',
@@ -34,9 +35,13 @@ $(document).ready(function () {
             },
             error: function (jqXHR, status, error) {
                 //TODO: handle error
+                console.log('jqxhr: ' + JSON.stringify(jqXHR));
+                console.log('status: ' + status);
+                console.log('error:' + error);
                 alert("An error occurred: \n" + status + "\n" + error);
             }
         });
+        GoogleAuth.signOut();
     });
 });
 
