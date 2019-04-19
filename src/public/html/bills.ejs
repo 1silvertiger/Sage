@@ -54,7 +54,7 @@
                                         <form>
                                             <p><label>
                                                     <input :id="'chkBx' + b.id" type="checkbox" class="filled-in"
-                                                        v-on:change="billsToDelete.push(b.id)">
+                                                        :value="b.id" v-model="billsToDelete">
                                                     <span :for="'chkBx' + b.id"></span>
                                                 </label></p>
                                         </form>
@@ -175,8 +175,10 @@
                                         </div>
                                         <p>
                                             <label>
-                                                <input type="checkbox" id="addWeekDay" class="filled-in" v-model="billToCreate.weekDay">
-                                                <span>If the due date falls on a weekend, this bill is due the following Monday.</span>
+                                                <input type="checkbox" id="addWeekDay" class="filled-in"
+                                                    v-model="billToCreate.weekDay">
+                                                <span>If the due date falls on a weekend, this bill is due the following
+                                                    Monday.</span>
                                             </label>
                                         </p>
                                     </div>
