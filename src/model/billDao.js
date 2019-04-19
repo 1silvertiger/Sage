@@ -17,7 +17,6 @@ module.exports = class BillDao extends Dao {
                 bill.accountId || null,
                 bill.name,
                 bill.amount,
-                bill.autoPay,
                 bill.weekDay,
                 bill.numOfPeriods || null,
                 bill.paid || false,
