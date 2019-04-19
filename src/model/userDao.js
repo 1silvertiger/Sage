@@ -54,8 +54,8 @@ module.exports = class UserDao extends Dao {
         return new Promise(function (resolve, reject) {
             pool.getConnection().then(conn => {
                 conn.query('CALL getUserByGoogleId(?)', [id]).then(rows => {
-                    console.log('rows: ');
-                    console.log(rows);
+                    //console.log('rows: ');
+                    // console.log(rows);
                     if (rows[0].length > 0) {
                         // Create user object
                         const user = new User(rows[USER_INDEX][0].googleId, rows[USER_INDEX][0].firstName, rows[USER_INDEX][0].lastName, rows[USER_INDEX][0].imageUrl, rows[USER_INDEX][0].email);
