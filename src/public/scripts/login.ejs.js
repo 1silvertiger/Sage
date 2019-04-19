@@ -1,5 +1,6 @@
 function onSignIn(googleUser) {
     $('.preloader-wrapper').addClass('active');
+    $('#logging-in').removeClass('hide');
     $('.form-signin').addClass('hide');
     var profile = googleUser.getBasicProfile();
 
@@ -28,6 +29,7 @@ function onSignIn(googleUser) {
         error: function(jqXHR, status, error) {
             //TODO: handle error
             $('.preloader-wrapper').removeClass('active');
+            $('#logging-in').addClass('hide');
             $('.form-signin').removeClass('hide');
             alert("An error occurred: \n" + status + "\n" + error);
         }
