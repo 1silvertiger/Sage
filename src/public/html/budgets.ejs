@@ -56,7 +56,8 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <transition appear name="scale" appear-active-class="scale-in" leave-active-class="scale-out">
+                                <transition appear name="scale" appear-active-class="scale-in"
+                                    leave-active-class="scale-out">
                                     <tr v-for="bi in sortedBudgetItems" class="scale-transition">
                                         <td>
                                             <form>
@@ -67,11 +68,15 @@
                                                     </label></p>
                                             </form>
                                         </td>
-                                        <td v-on:click="setBudgetItemToUpdate(bi)" data-target="updateModal" class="modal-trigger">{{ bi.name }}</td>
-                                        <td v-on:click="setBudgetItemToUpdate(bi)" data-target="updateModal" class="modal-trigger">${{ bi.amount }}</td>
-                                        <td v-on:click="setBudgetItemToUpdate(bi)" data-target="updateModal" class="modal-trigger hide-on-small-only">
+                                        <td v-on:click="setBudgetItemToUpdate(bi)" data-target="updateModal"
+                                            class="modal-trigger">{{ bi.name }}</td>
+                                        <td v-on:click="setBudgetItemToUpdate(bi)" data-target="updateModal"
+                                            class="modal-trigger">${{ bi.amount }}</td>
+                                        <td v-on:click="setBudgetItemToUpdate(bi)" data-target="updateModal"
+                                            class="modal-trigger hide-on-small-only">
                                             {{ getPeriodName(bi.periodId) }}</td>
-                                        <td v-on:click="setBudgetItemToUpdate(bi)" data-target="updateModal" class="modal-trigger hide-on-small-only">
+                                        <td v-on:click="setBudgetItemToUpdate(bi)" data-target="updateModal"
+                                            class="modal-trigger hide-on-small-only">
                                             {{ bi.numOfPeriods }}</td>
                                     </tr>
                                 </transition>

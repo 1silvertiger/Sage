@@ -112,6 +112,7 @@ $(document).ready(function () {
                     budgetItem.tags = getTagsFromNames(tagNames);
                 } else {
                     const tagNames = new Array();
+                    const element = document.querySelector('#updateTags');
                     const chips = M.Chips.getInstance(document.querySelector('#addNewTags'));
                     for (let i = 0; i < chips.chipsData.length; i++)
                         tagNames.push(chips.chipsData[i].tag);
