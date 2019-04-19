@@ -46,7 +46,7 @@ module.exports = class TagDao extends Dao {
     tagBudgetItemsBatch(ids) {
         const pool = this.pool;
         return new Promise(function (resolve, reject) {
-            pool.batch('tagBudgetItem(?,?)', ids).then(rows => {
+            pool.batch('CALL tagBudgetItem(?,?)', ids).then(rows => {
                 resolve(true);
             }).catch(err => {
                 Dao.handleQueryCatch(err);
@@ -58,7 +58,7 @@ module.exports = class TagDao extends Dao {
     tagBill(ids) {
         const pool = this.pool;
         return new Promise(function (resolve, reject) {
-            pool.batch('tagBill(?,?)', ids).then(rows => {
+            pool.batch('CALL tagBill(?,?)', ids).then(rows => {
                 resolve(true);
             }).catch(err => {
                 Dao.handleQueryCatch(err);
@@ -73,7 +73,7 @@ module.exports = class TagDao extends Dao {
     tagPiggyBank(ids) {
         const pool = this.pool;
         return new Promise(function (resolve, reject) {
-            pool.batch('tagPiggyBank(?,?)', ids).then(rows => {
+            pool.batch('CALL tagPiggyBank(?,?)', ids).then(rows => {
                 resolve(true);
             }).catch(err => {
                 Dao.handleQueryCatch(err);
