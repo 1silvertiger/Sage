@@ -22,7 +22,8 @@
                             <tbody>
                                 <tr v-for="bill in lateBills">
                                     <td class="modal-trigger" :date-target="bill.id">{{ bill.name }}</td>
-                                    <td class="modal-trigger" :data-target="bill.id">{{ getFormattedCurrency(bill.amount) }}</td>
+                                    <td class="modal-trigger" :data-target="bill.id">
+                                        {{ getFormattedCurrency(bill.amount) }}</td>
                                     <td class="modal-trigger" :date-target="bill.id">
                                         {{ getFormattedDate(bill.dueDate) }}</td>
                                 </tr>
@@ -65,7 +66,7 @@
                                         {{ getSemanticPeriod(b.periodId) }}</td>
                                     <td class="modal-trigger" :data-target="b.id">{{ getFormattedDate(b.dueDate) }}</td>
                                     <td class="modal-trigger" :data-target="b.id">{{ b.weekDay ? 'Yes' : 'No' }}</td>
-                                    <td class="modal-trigger" :data-target="b.id">{{ b.autoPay ? 'Yes' : 'No' }}</td>
+                                    <td class="modal-trigger" :data-target="b.id">{{ b.accountId ? 'Yes' : 'No' }}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -172,6 +173,12 @@
                                                 <option value="5">year(s)</option>
                                             </select>
                                         </div>
+                                        <p>
+                                            <label>
+                                                <input type="checkbox" id="addWeekDay" class="filled-in" v-model="billToCreate.weekDay">
+                                                <span>If the due date falls on a weekend, this bill is due the following Monday.</span>
+                                            </label>
+                                        </p>
                                     </div>
                                     <div class="card-action">
                                         <a class="waves-effect btn" onclick="prevAddCarouselItem();">Notifications</a>
