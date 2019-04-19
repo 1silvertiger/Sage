@@ -363,7 +363,7 @@ app.all('/createOrUpdatePiggyBank', function(req, res) {
         console.log('Piggy bank: ');
         console.log(piggyBank);
         
-        req.session.piggyBanks.push(piggyBank);
+        req.session.user.piggyBanks.push(piggyBank);
         res.json(JSON.stringify(piggyBank));
     }).catch(err => {
         console.log(err);
