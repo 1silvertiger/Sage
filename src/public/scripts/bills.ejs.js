@@ -5,8 +5,8 @@ $(document).ready(function () {
             user: user,
             billsToDelete: new Array(),
             billToCreate: { userId: user.id, autoPay: false, weekDay: false, tag: {} },
-            billToCreateRepeats: false,
-            test: 'test'
+            billToUpdate: new Object(),
+            billToCreateRepeats: false
         },
         mounted: function () {
             const $vm = this;
