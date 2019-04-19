@@ -3,30 +3,41 @@
 <%- include ./head.html %>
 
 <body>
-<%- include ./navbar.html %>
+    <%- include ./navbar.html %>
 
     <div class="container">
-        <div class="row">
-            <table id="table" class="striped">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Official name</th>
-                        <th>Type</th>
-                        <th>Subtype</th>
-                        <th>Mask</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="account in accounts">
-                        <td>{{account.name}}</td>
-                        <td>{{account.official_name}}</td>
-                        <td>{{account.type}}</td>
-                        <td>{{account.subtype}}</td>
-                        <td>{{account.mask}}</td>
-                    </tr>
-                </tbody>
-            </table>
+        <div id="table" class="row">
+            <div class="input-field col s12 l3">
+                <select id="showSelector" v-model="typesToShow" multiple>
+                    <option value="0" selected>All</option>
+                    <option value="1">Debit</option>
+                    <option value="2">Credit</option>
+                    <option value="3">Investment</option>
+                </select>
+                <label>Show:</label>
+            </div>
+            <div class="col s12">
+                <table class="striped">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Official name</th>
+                            <th>Type</th>
+                            <th>Subtype</th>
+                            <th>Mask</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="account in filteredAccounts">
+                            <td>{{account.name}}</td>
+                            <td>{{account.official_name}}</td>
+                            <td>{{account.type}}</td>
+                            <td>{{account.subtype}}</td>
+                            <td>{{account.mask}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </body>
@@ -35,4 +46,5 @@
     const accounts = JSON.parse('<%- JSON.stringify(accounts) %>');
 </script>
 <script src="scripts/accounts.ejs.js" defer></script>
+
 </html>
