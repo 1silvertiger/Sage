@@ -7,13 +7,6 @@ module.exports = class TagDao extends Dao {
         this.Dao = new Dao();
     }
 
-    createOrUpdate(pTag) {
-        const pool = this.pool;
-        return new Promise(function (resolve, reject) {
-
-        });
-    }
-
     createOrUpdateBatch(tags) {
         const pool = this.pool;
         const params = new Array();
@@ -46,7 +39,11 @@ module.exports = class TagDao extends Dao {
     tagBudgetItemsBatch(ids) {
         const pool = this.pool;
         return new Promise(function (resolve, reject) {
-            pool.batch('CALL tagBudgetItem(?,?)', ids).then(rows => {
+            const promises = [
+                pool.query('CALL untagBudgetItem(?)', [ids[0][0]]),
+                pool.batch('CALL tagBudgetItem(?,?)', ids)
+            ]
+            Promise.all(promises).then(rows => {
                 resolve(true);
             }).catch(err => {
                 Dao.handleQueryCatch(err);
@@ -58,45 +55,48 @@ module.exports = class TagDao extends Dao {
     tagBill(ids) {
         const pool = this.pool;
         return new Promise(function (resolve, reject) {
-            pool.batch('CALL tagBill(?,?)', ids).then(rows => {
+            const promises = [
+                pool.query('CALL untagBill(?)', ids[0][0]),
+                pool.batch('CALL tagBill(?,?)', ids)
+            ];
+            Promise.all(promises).then(rows => {
                 resolve(true);
             }).catch(err => {
                 Dao.handleQueryCatch(err);
                 resolve(false);
             });
-        }).catch(err => {
-            Dao.handleQueryCatch(err);
-            resolve(false);
         });
     }
 
     tagPiggyBank(ids) {
         const pool = this.pool;
         return new Promise(function (resolve, reject) {
-            pool.batch('CALL tagPiggyBank(?,?)', ids).then(rows => {
+            const promises = [
+                pool.query('CALL untagPiggyBank(?)', ids[0][0]),
+                pool.batch('CALL tagPiggyBank(?,?)', ids)
+            ];
+            Promise.all(promises).then(rows => {
                 resolve(true);
             }).catch(err => {
                 Dao.handleQueryCatch(err);
                 resolve(false);
             });
-        }).catch(err => {
-            Dao.handleQueryCatch(err);
-            resolve(false);
         });
     }
 
     tagTransactionItem(ids) {
         const pool = this.pool;
         return new Promise(function (resolve, reject) {
-            pool.batch('tagTransactionItem(?,?)', ids).then(rows => {
+            const promises = [
+                pool.query('untagTransactionItem(?)', ids[0][0]),
+                pool.batch('tagTransactionItem(?,?)', ids)
+            ];
+            Promise.all(promises).then(rows => {
                 resolve(true);
             }).catch(err => {
                 Dao.handleQueryCatch(err);
                 resolve(false);
             });
-        }).catch(err => {
-            Dao.handleQueryCatch(err);
-            resolve(false);
         });
     }
 }
