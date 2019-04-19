@@ -4,25 +4,22 @@ $(document).ready(function () {
         data: {
             user: user,
             billsToDelete: new Array(),
-            billToCreate: { userId: user.id, autoPay: false, weekDay: false, tag: {} },
-            billToCreateRepeats: false
+            billToCreate: { userId: user.id, autoPay: false, weekDay: false, notifications: new Array() },
+            billToUpdate: new Object(),
+            billNotificationToCreate: {}
         },
         mounted: function () {
             const $vm = this;
 
-            //Collapsible
-            const collapsibleOptions = {
-                accordion: false,
-                onOpenEnd: function () {
-                    if (!$vm.billToCreateRepeats){
-                        this.close(1);
-                    } 
-                    if (!$vm.billToCreate.autoPay){
-                        this.close(2);
-                    }
+            //Carousel
+            M.Carousel.init(document.querySelector('#addBillCarousel'), {
+                fullWidth: true,
+                indicators: false,
+                padding: 10,
+                onCycleTo: function() {
+                    $('#autopayBtn').removeClass('hide');
                 }
-            }
-            M.Collapsible.init(document.querySelectorAll('.collapsible'), collapsibleOptions);
+            });
 
             //Datepickers
             const addDueDateOptions = {
@@ -36,21 +33,13 @@ $(document).ready(function () {
             }
             M.Datepicker.init(document.querySelector('#addDueDate'), addDueDateOptions);
 
-            const addDueDate2Options = {
-                autoClose: true,
-                defaultDate: new Date(),
-                minDate: new Date(),
-                format: 'mmmm dd, yyyy',
-                onClose: function () {
-                    $vm.billToCreate.dueDate2 = appendTime(this.toString());
-                }
-            }
-            M.Datepicker.init(document.querySelector('#addDueDate2'), addDueDate2Options);
-
             //Selects
             M.FormSelect.init(document.querySelectorAll('select'), {});
         },
         methods: {
+            getSemanticPeriod: function(periodId) {
+                return getSemanticPeriod(periodId);
+            },
             createOrUpdateBill: function (bill) {
                 $.ajax({
                     url: URL + '/createOrUpdateBill',
@@ -85,11 +74,55 @@ $(document).ready(function () {
                         let i = 0;
                     }
                 });
+            },
+            getDueDate: function(periodId, dueInPeriod) {
+                let dueDate = moment();
+                switch(periodId) {
+                    case 1:
+                    break;
+                    case 2:
+                    break;
+                    case 3:
+                    dueDate.
+                    break;
+                    case 4:
+                    break;
+                    case 5:
+                    break;
+                }
+                return dueDate;
+            },
+            getFormattedDate: function (date) {
+                return moment(date).format('MMM DD, YYYY');
+            },
+            getFormattedCurrency: function(amount) {
+                return numeral(amount).format('$0,0.00');
+            }
+        },
+        computed: {
+            lateBills: function () {
+                // return user.bills.filter(bill => (bill.dueDate > new Date()) - (bill.dueDate < new Date()));
+                return user.bills.filter(bill => {
+                    const now = new Date();
+                    const temp = new Date(bill.dueDate) < now; 
+                    return  temp;
+                });
             }
         }
     });
 });
 
+function prevAddCarouselItem() {
+    const carousel = M.Carousel.getInstance(document.querySelector('#addBillCarousel'));
+    carousel.prev();
+}
+
+function nextAddCarouselItem() {
+    const carousel = M.Carousel.getInstance(document.querySelector('#addBillCarousel'));
+    carousel.next();
+}
+
 function appendTime(dateFromPicker) {
     return new Date(dateFromPicker.concat(' 00:00:00'));
 }
+
