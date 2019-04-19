@@ -18,7 +18,6 @@ module.exports = class BudgetDao extends Dao {
                 budget.id || null,
                 budget.userId,
                 budget.periodId,
-                budget.tag ? budget.tag.id : null,
                 budget.name,
                 budget.amount,
                 budget.numOfPeriods
@@ -43,7 +42,6 @@ module.exports = class BudgetDao extends Dao {
                     values[0][0][0].id,
                     values[0][0][0].userId,
                     values[0][0][0].periodId,
-                    new Tag(values[0][1][0].id, values[0][1][0].userId, values[0][1][0].name),
                     values[0][0][0].name,
                     values[0][0][0].amount,
                     values[0][0][0].numOfPeriods,
