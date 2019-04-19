@@ -1,10 +1,53 @@
 $(document).ready(function () {
-    const table = new Vue({
+    Vue.component('update-modal', {
+        props: ['bi'],
+        template: `
+            <div id='updateModal' class='modal'>
+                <div class="modal-content">
+                    <h4>Edit '{{ bi.name }}' </h4>
+                    Designate&nbsp;$
+                    <div class="input-field inline short-input-field">
+                        <input :id="'amount' + bi.id" class="validate" placeholder="0.00" type="number"
+                            v-model="bi.amount">
+                    </div>
+                    &nbsp;every&nbsp;
+                    <div class="input-field inline short-input-field">
+                        <input :id="'numOfPeriods' + bi.id" class="validate short-input-field" placeholder="1"
+                            type="number" v-model="bi.numOfPeriods">
+                    </div>
+                    &nbsp;
+                    <div class="input-field inline short-input-field">
+                        <select :id="'period' + bi.id">
+                            <option value="1" :selected="bi.periodId === 1">days</option>
+                            <option value="2" :selected="bi.periodId === 2">week(s)</option>
+                            <option value="3" :selected="bi.periodId === 3">month(s)</option>
+                            <option value="4" :selected="bi.periodId === 4">quarter(s)</option>
+                            <option value="5" :selected="bi.periodId === 5">year</option>
+                        </select>
+                    </div>
+                    &nbsp;for&nbsp;
+                    <div class="input-field inline">
+                        <input type="text" class="validate short-input-field" placeholder="expense"
+                            v-model="bi.name">
+                    </div>
+                    <div id="updateTags" class="chips chips-initial"></div>
+                </div>
+                <div class="modal-footer">
+                    <a class="modal-close waves-effect waves-green btn-flat"
+                        v-on:click="$emit('save', bi)">Save</a>
+                    <a class="modal-close waves-effect waves-green btn-flat">Cancel</a>
+                </div>
+            </div>
+        `
+    });
+
+    const app = new Vue({
         el: '#app',
         data: {
             user: user,
             budgetItemsToDelete: new Array(),
-            budgetItemToCreate: { userId: user.id, tags: new Array() }
+            budgetItemToCreate: { userId: user.id, tags: new Array() },
+            budgetItemToUpdate: {}
         },
         mounted: function () {
             const $vm = this;
@@ -23,18 +66,10 @@ $(document).ready(function () {
                 autocompleteOptions: autocompleteOptions
             });
 
-            //Budget item modal tags
-            for (let i = 0; i < user.budgetItems.length; i++) {
-                //Get existing tags
-                const chips = new Array();
-                for (let j = 0; j < user.budgetItems[i].tags.length; j++)
-                    chips.push({ tag: user.budgetItems[i].tags[j].name });
-                //Initialize chips
-                M.Chips.init(document.querySelector('#tags' + user.budgetItems[i].id), {
-                    data: chips,
-                    autocompleteOptions: autocompleteOptions
-                });
-            }
+            //Update tags
+            M.Chips.init(document.querySelector('#updateTags'), {
+                autocompleteOptions: autocompleteOptions
+            });
 
             //Select
             M.FormSelect.init(document.querySelectorAll('select'), {});
@@ -60,19 +95,11 @@ $(document).ready(function () {
         },
         methods: {
             createOrUpdateBudgetItem: function (budgetItem) {
-                if (budgetItem.id) {
-                    const tagNames = new Array();
-                    const chips = M.Chips.getInstance(document.querySelector('#tags' + budgetItem.id));
-                    for (let i = 0; i < chips.chipsData.length; i++)
-                        tagNames.push(chips.chipsData[i].tag);
-                    budgetItem.tags = getTagsFromNames(tagNames);
-                } else {
-                    const tagNames = new Array();
-                    const chips = M.Chips.getInstance(document.querySelector('#addNewTags'));
-                    for (let i = 0; i < chips.chipsData.length; i++)
-                        tagNames.push(chips.chipsData[i].tag);
-                    budgetItem.tags = getTagsFromNames(tagNames);
-                }
+                const tagNames = new Array();
+                const chips = M.Chips.getInstance(document.querySelector(budgetItem.id ? '#updateTags' : '#addNewTags'));
+                for (let i = 0; i < chips.chipsData.length; i++)
+                    tagNames.push(chips.chipsData[i].tag);
+                budgetItem.tags = getTagsFromNames(tagNames);
                 $.ajax({
                     url: URL + '/createOrUpdateBudgetItem'
                     , type: 'POST'
@@ -87,6 +114,10 @@ $(document).ready(function () {
                         let i = 0;
                     }
                 });
+                if (budgetItem == this.budgetItemToCreate)
+                    this.budgetItemToCreate = { userId: user.id, tags: new Array() };
+                else if (budgetItem == this.budgetItemToUpdate)
+                    this.budgetItemToUpdate = {};
             },
             deleteBudgetItems: function (budgetItemIds) {
                 const $vm = this;
@@ -102,9 +133,26 @@ $(document).ready(function () {
                         user.budgetItems = temp.budgetItems;
                         drawOverviewChart();
                     },
-                    complete: function() {
+                    complete: function () {
                         $vm.budgetItemsToDelete.length = 0;
                     }
+                });
+            },
+            setBudgetItemToUpdate: function (budgetItem) {
+                this.budgetItemToUpdate = Object.assign({}, budgetItem);
+                const tempTags = new Array();
+                //Put chips in modal
+                //Autocomplete options
+                const autocompleteOptions = { data: new Object() };
+                for (let i = 0; i < user.tags.length; i++)
+                    autocompleteOptions.data[user.tags[i].name] = null;
+                for (let i = 0; i < this.budgetItemToUpdate.tags.length; i++)
+                    tempTags.push({ tag: this.budgetItemToUpdate.tags[i].name });
+                M.Chips.init(document.querySelector('#updateTags'), {
+                    data: tempTags,
+                    autocompleteOptions: autocompleteOptions,
+                    placeholder: 'Add tags',
+                    secondaryPlaceholder: 'Add more tags'
                 });
             },
             addTagsFromChips: function (budgetItem) {

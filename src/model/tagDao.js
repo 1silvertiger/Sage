@@ -7,13 +7,6 @@ module.exports = class TagDao extends Dao {
         this.Dao = new Dao();
     }
 
-    createOrUpdate(pTag) {
-        const pool = this.pool;
-        return new Promise(function (resolve, reject) {
-
-        });
-    }
-
     createOrUpdateBatch(tags) {
         const pool = this.pool;
         const params = new Array();
@@ -46,54 +39,64 @@ module.exports = class TagDao extends Dao {
     tagBudgetItemsBatch(ids) {
         const pool = this.pool;
         return new Promise(function (resolve, reject) {
-            pool.batch('tagBudgetItem(?,?)', ids).then(rows => {
-                resolve(true);
+            pool.query('CALL untagBudgetItem(?)', [ids[0][0]]).then(rows => {
+                pool.batch('CALL tagBudgetItem(?,?)', ids).then(rows => {
+                    resolve(true);
+                }).catch(err => {
+                    Dao.handleQueryCatch(err);
+                });
             }).catch(err => {
-                Dao.handleQueryCatch(err);
                 resolve(false);
+                Dao.handleQueryCatch(err);
             });
+        });
+    }
+
     tagBill(ids) {
         const pool = this.pool;
         return new Promise(function (resolve, reject) {
-            pool.batch('tagBill(?,?)', ids).then(rows => {
-                resolve(true);
+            pool.query('CALL untagBill(?)', [ids[0][0]]).then(rows => {
+                pool.batch('CALL tagBill(?,?)', ids).then(rows => {
+                    resolve(true);
+                }).catch(err => {
+                    Dao.handleQueryCatch(err);
+                });
             }).catch(err => {
-                Dao.handleQueryCatch(err);
                 resolve(false);
+                Dao.handleQueryCatch(err);
             });
-        }).catch(err => {
-            Dao.handleQueryCatch(err);
-            resolve(false);
         });
     }
 
     tagPiggyBank(ids) {
         const pool = this.pool;
         return new Promise(function (resolve, reject) {
-            pool.batch('tagPiggyBank(?,?)', ids).then(rows => {
-                resolve(true);
+            pool.query('CALL untagPiggyBank(?)', [ids[0][0]]).then(rows => {
+                pool.batch('CALL tagPiggyBank(?,?)', ids).then(rows => {
+                    resolve(true);
+                }).catch(err => {
+                    Dao.handleQueryCatch(err);
+                });
             }).catch(err => {
-                Dao.handleQueryCatch(err);
                 resolve(false);
+                Dao.handleQueryCatch(err);
             });
-        }).catch(err => {
-            Dao.handleQueryCatch(err);
-            resolve(false);
         });
     }
 
     tagTransactionItem(ids) {
         const pool = this.pool;
         return new Promise(function (resolve, reject) {
-            pool.batch('tagTransactionItem(?,?)', ids).then(rows => {
-                resolve(true);
+            pool.query('CALL untagTransactionItem(?)', [ids[0][0]]).then(rows => {
+                pool.batch('CALL tagTransactionItem(?,?)', ids).then(rows => {
+                    resolve(true);
+                }).catch(err => {
+                    Dao.handleQueryCatch(err);
+                });
             }).catch(err => {
-                Dao.handleQueryCatch(err);
                 resolve(false);
+                Dao.handleQueryCatch(err);
             });
-        }).catch(err => {
-            Dao.handleQueryCatch(err);
-            resolve(false);
         });
     }
 }
