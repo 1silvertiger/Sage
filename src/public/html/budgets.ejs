@@ -56,23 +56,30 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="bi in sortedBudgetItems">
-                                    <td>
-                                        <form>
-                                            <p><label>
-                                                    <input :id="'chkBx' + bi.id" type="checkbox" class="filled-in"
-                                                        v-on:change="budgetItemsToDelete.push(bi.id)">
-                                                    <span :for="'chkBx' + bi.id"></span>
-                                                </label></p>
-                                        </form>
-                                    </td>
-                                    <td :data-target="bi.id" class="modal-trigger">{{ bi.name }}</td>
-                                    <td :data-target="bi.id" class="modal-trigger">${{ bi.amount }}</td>
-                                    <td :data-target="bi.id" class="modal-trigger hide-on-small-only">
-                                        {{ getPeriodName(bi.periodId) }}</td>
-                                    <td :data-target="bi.id" class="modal-trigger hide-on-small-only">
-                                        {{ bi.numOfPeriods }}</td>
-                                </tr>
+                                <transition appear name="scale" appear-active-class="scale-in"
+                                    leave-active-class="scale-out">
+                                    <tr v-for="bi in sortedBudgetItems" class="scale-transition">
+                                        <td>
+                                            <form>
+                                                <p><label>
+                                                        <input :id="'chkBx' + bi.id" type="checkbox" class="filled-in"
+                                                            :value="bi.id" v-model="budgetItemsToDelete">
+                                                        <span :for="'chkBx' + bi.id"></span>
+                                                    </label></p>
+                                            </form>
+                                        </td>
+                                        <td v-on:click="setBudgetItemToUpdate(bi)" data-target="updateModal"
+                                            class="modal-trigger">{{ bi.name }}</td>
+                                        <td v-on:click="setBudgetItemToUpdate(bi)" data-target="updateModal"
+                                            class="modal-trigger">${{ bi.amount }}</td>
+                                        <td v-on:click="setBudgetItemToUpdate(bi)" data-target="updateModal"
+                                            class="modal-trigger hide-on-small-only">
+                                            {{ getPeriodName(bi.periodId) }}</td>
+                                        <td v-on:click="setBudgetItemToUpdate(bi)" data-target="updateModal"
+                                            class="modal-trigger hide-on-small-only">
+                                            {{ bi.numOfPeriods }}</td>
+                                    </tr>
+                                </transition>
                             </tbody>
                         </table>
                     </div>
@@ -111,7 +118,7 @@
                                     <input id="expense" type="text" class="validate short-input-field"
                                         placeholder="expense" v-model="budgetItemToCreate.name">
                                 </div>
-
+                                <div id="addNewTags" class="chips"></div>
                             </div>
                             <div class="card-action">
                                 <a id="addNewBudgetBtn" class="waves-effect waves-light btn"
@@ -121,46 +128,11 @@
                     </div>
                 </div>
 
-                <div v-for="bi in user.budgetItems" :id="bi.id" class="modal">
-                    <div class="modal-content">
-                        <h4>Edit budget item</h4>
-                        Designate&nbsp;$
-                        <div class="input-field inline short-input-field">
-                            <input id="'amount' + bi.id" class="validate" placeholder="0.00" type="number"
-                                v-model="bi.amount">
-                        </div>
-                        &nbsp;every&nbsp;
-                        <div class="input-field inline short-input-field">
-                            <input id="'numOfPeriods' + bi.id" class="validate short-input-field" placeholder="1"
-                                type="number" v-model="bi.numOfPeriods">
-                        </div>
-                        &nbsp;
-                        <div class="input-field inline short-input-field">
-                            <select id="'period' + bi.id">
-                                <option value="1" :selected="bi.periodId === 1">days</option>
-                                <option value="2" :selected="bi.periodId === 2">week(s)</option>
-                                <option value="3" :selected="bi.periodId === 3">month(s)</option>
-                                <option value="4" :selected="bi.periodId === 4">quarter(s)</option>
-                                <option value="5" :selected="bi.periodId === 5">year</option>
-                            </select>
-                        </div>
-                        &nbsp;for&nbsp;
-                        <div class="input-field inline">
-                            <input type="text" class="validate short-input-field" placeholder="expense"
-                                v-model="bi.name">
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <a class="modal-close waves-effect waves-green btn-flat"
-                            v-on:click="createOrUpdateBudgetItem(bi)">Save</a>
-                        <a class="modal-close waves-effect waves-green btn-flat">Cancel</a>
-                    </div>
-                </div>
+                <update-modal v-bind:bi="budgetItemToUpdate" v-on:save="createOrUpdateBudgetItem"></update-modal>
             </div>
         </div>
     </div>
 
-    <script src='model/clientBudget.js' defer></script>
     <script src='scripts/budgets.ejs.js' defer></script>
     <script defer>
         const URL = '<%= URL %>';

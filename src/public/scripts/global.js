@@ -1,4 +1,20 @@
+const tagMap = new Object();
+
+//Register service worker
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/serviceWorker.js')
+        .then(function (reg) {
+            // registration worked
+            console.log('Registration succeeded. Scope is ' + reg.scope);
+        }).catch(function (error) {
+            // registration failed
+            console.log('Registration failed with ' + error);
+        });
+}
+
 $(document).ready(function () {
+    refreshTagMap();
+
     M.Sidenav.init(document.querySelectorAll('.sidenav'), {});
     M.FloatingActionButton.init(document.querySelectorAll('.fixed-action-btn'), {});
 
@@ -35,6 +51,7 @@ function refreshUser() {
                 user.piggyBanks = refresh.piggyBanks;
                 user.bills = refresh.bills;
                 resolve(true);
+                refreshTagMap();
             }
             , error: function (jqxhr, status, error) {
                 console.log(error);
@@ -62,4 +79,20 @@ function getMomentPeriod(periodId) {
         case 4: return 'quarters'
         case 5: return 'years'
     }
+}
+
+function getTagId(tagName) {
+    return tagMap[tagName];
+}
+
+function getTagsFromNames(tagNames) {
+    const tags = new Array();
+    for (let i = 0; i < tagNames.length; i++)
+        tags.push({ id: getTagId(tagNames[i]) || null, userId: user.id, name: tagNames[i] });
+    return tags;
+}
+
+async function refreshTagMap() {
+    for (let i = 0; i < user.tags.length; i++)
+        tagMap[user.tags[i].name] = user.tags[i].id;
 }

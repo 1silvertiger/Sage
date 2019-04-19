@@ -1,4 +1,6 @@
 function onSignIn(googleUser) {
+    $('.preloader-wrapper').addClass('active');
+    $('.form-signin').addClass('hide');
     var profile = googleUser.getBasicProfile();
 
     var data = {
@@ -25,6 +27,8 @@ function onSignIn(googleUser) {
         },
         error: function(jqXHR, status, error) {
             //TODO: handle error
+            $('.preloader-wrapper').removeClass('active');
+            $('.form-signin').removeClass('hide');
             alert("An error occurred: \n" + status + "\n" + error);
         }
     });

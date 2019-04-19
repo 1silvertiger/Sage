@@ -1,9 +1,8 @@
 module.exports = class PiggyBank {
-    constructor(pId, pUserId, pAccountId, pTagId, pName, pBalance, pGoal, pTags){
+    constructor(pId, pUserId, pAccountId, pName, pBalance, pGoal, pTags){
         this.id = pId;
         this.userId = pUserId;
         this.accountId = pAccountId;
-        this.tagId = pTagId;
         this.name = pName;
         this.balance = pBalance;
         this.goal = pGoal;

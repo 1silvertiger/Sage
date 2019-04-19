@@ -54,8 +54,8 @@ module.exports = class UserDao extends Dao {
         return new Promise(function (resolve, reject) {
             pool.getConnection().then(conn => {
                 conn.query('CALL getUserByGoogleId(?)', [id]).then(rows => {
-                    console.log('rows: ');
-                    console.log(rows);
+                    //console.log('rows: ');
+                    // console.log(rows);
                     if (rows[0].length > 0) {
                         // Create user object
                         const user = new User(rows[USER_INDEX][0].googleId, rows[USER_INDEX][0].firstName, rows[USER_INDEX][0].lastName, rows[USER_INDEX][0].imageUrl, rows[USER_INDEX][0].email);
@@ -170,9 +170,9 @@ module.exports = class UserDao extends Dao {
                             // Budget item tags
                             const tags = new Array();
                             for (budgetItemTagIndex; budgetItemTagIndex < rows[BUDGET_ITEM_TAGS_INDEX].length; budgetItemTagIndex++) {
-                                if (rows[BUDGET_ITEM_TAGS_INDEX][budgetItemTagIndex].budgetItemTag === rows[BUDGET_ITEMS_INDEX][i]) {
+                                if (rows[BUDGET_ITEM_TAGS_INDEX][budgetItemTagIndex].budgetItemId === rows[BUDGET_ITEMS_INDEX][i].id) {
                                     tags.push(new Tag(
-                                        rows[BUDGET_ITEM_TAGS_INDEX][budgetItemTagIndex].tagId,
+                                        rows[BUDGET_ITEM_TAGS_INDEX][budgetItemTagIndex].id,
                                         rows[BUDGET_ITEM_TAGS_INDEX][budgetItemTagIndex].userId,
                                         rows[BUDGET_ITEM_TAGS_INDEX][budgetItemTagIndex].name
                                     ));
@@ -212,7 +212,6 @@ module.exports = class UserDao extends Dao {
                                 rows[PIGGY_BANKS_INDEX][i].id,
                                 rows[PIGGY_BANKS_INDEX][i].userId,
                                 rows[PIGGY_BANKS_INDEX][i].accountId,
-                                rows[PIGGY_BANKS_INDEX][i].tagId,
                                 rows[PIGGY_BANKS_INDEX][i].name,
                                 rows[PIGGY_BANKS_INDEX][i].balance,
                                 rows[PIGGY_BANKS_INDEX][i].goal,
@@ -265,7 +264,6 @@ module.exports = class UserDao extends Dao {
                                 rows[BILLS_INDEX][billIndex].userId,
                                 rows[BILLS_INDEX][billIndex].periodId,
                                 rows[BILLS_INDEX][billIndex].accountId,
-                                new Tag(rows[BILLS_INDEX][billIndex].tagId, rows[BILLS_INDEX][billIndex].userId, rows[BILLS_INDEX][billIndex].name),
                                 rows[BILLS_INDEX][billIndex].name,
                                 rows[BILLS_INDEX][billIndex].amount,
                                 rows[BILLS_INDEX][billIndex].autoPay === 1,
