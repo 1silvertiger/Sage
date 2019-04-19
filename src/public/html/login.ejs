@@ -3,6 +3,12 @@
 <head>
   <%- include('./head.html') %>
 
+  <!-- Google Sign In -->
+  <!-- <meta name="google-signin-scope" content="profile email"> -->
+  <meta name="google-signin-client_id"
+    content="426835960192-m5m68us80b86qg3ilpanmf91gm3ufqk4.apps.googleusercontent.com">
+  
+
   <!-- Custom styles -->
   <link rel="stylesheet" type="text/css" href="stylesheets/css/login.css">
 
@@ -16,9 +22,10 @@
     <div class="row">
       <div class="col s12 m12 l12">
         <form class="form-signin">
-          <img class="mb-4" src="" alt="Logo" width="72" height="72">
-          <h1 class="h3 mb-3 font-weight-normal">Please sign in</h1>
-          <div class="g-signin2" data-onsuccess="onSignIn" data-theme="dark"></div>
+          <img class="mb-4" src="/assets/logo.png" alt="Logo" width="72" height="72">
+          <h3 class="h3 mb-3 font-weight-normal">Please sign in</h3>
+          <!-- <div class="g-signin2" data-onsuccess="onSignIn" data-theme="dark"></div> -->
+          <div id="loginBtn"></div>
           <p class="mt-5 mb-3 text-muted">&copy; 2019</p>
         </form>
 
@@ -49,5 +56,7 @@
   const returnPath = '<%= returnPath %>';
   const PLAID_ENV = '<%= PLAID_ENV %>'
 </script>
+
+<script src="https://apis.google.com/js/platform.js?onload=renderButton" async defer></script>
 
 </html>
