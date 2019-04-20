@@ -62,7 +62,9 @@
                                     <td class="modal-trigger" :data-target="b.id">{{ b.name }}</td>
                                     <td class="modal-trigger" :data-target="b.id">{{ getFormattedCurrency(b.amount) }}
                                     </td>
-                                    <td class="modal-trigger" :data-target="b.id">{{ b.periodId ? 'Every '.concat(b.numOfPeriods, ' ', getSemanticPeriod(b.periodId)) : 'No' }}</td>
+                                    <td class="modal-trigger" :data-target="b.id">
+                                        {{ b.periodId ? 'Every '.concat(b.numOfPeriods, ' ', getSemanticPeriod(b.periodId)) : 'No' }}
+                                    </td>
                                     <td class="modal-trigger" :data-target="b.id">{{ getFormattedDate(b.dueDate) }}</td>
                                     <td class="modal-trigger" :data-target="b.id">{{ b.weekDay ? 'Yes' : 'No' }}</td>
                                     <td class="modal-trigger" :data-target="b.id">{{ b.accountId ? 'Yes' : 'No' }}</td>
@@ -121,6 +123,7 @@
                                                 <tr v-for="n in billToCreate.notifications">
                                                     <td>{{ n.periodsBeforeBillIsDue }}</td>
                                                     <td>{{ getSemanticPeriod(n.periodId) }}</td>
+                                                    <td>Remove</td>
                                                 </tr>
                                                 <tr>
                                                     <td>
@@ -141,6 +144,9 @@
                                                             <option value="5">year(s)</option>
                                                         </select>
                                                         <label>Notification cycle</label>
+                                                    </td>
+                                                    <td>
+                                                        <a class="waves-effect waves-teal btn-flat" v-on:click="billToCreate.notifications.push(billNotificationToCreate)">Add</a>
                                                     </td>
                                                 </tr>
                                             </tbody>

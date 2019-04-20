@@ -75,22 +75,9 @@ $(document).ready(function () {
                     }
                 });
             },
-            getDueDate: function(periodId, dueInPeriod) {
-                let dueDate = moment();
-                switch(periodId) {
-                    case 1:
-                    break;
-                    case 2:
-                    break;
-                    case 3:
-                    dueDate.
-                    break;
-                    case 4:
-                    break;
-                    case 5:
-                    break;
-                }
-                return dueDate;
+            addNotificationToCreate: function() {
+                billToCreate.notifications.push(billNotificationToCreate);
+                billNotificationToCreate = new Object();
             },
             getFormattedDate: function (date) {
                 return moment(date).format('MMM DD, YYYY');
