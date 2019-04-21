@@ -19,8 +19,8 @@
             "type": "image/png"
         }
     ],
-    "start_url": "/",
+    "start_url": "/login",
     "display": "standalone",
-    "theme_color": "#000",
-    "background_color": "#fff"
+    "theme_color": "#7986cb",
+    "background_color": "#f5f5f5"
 }

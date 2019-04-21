@@ -74,6 +74,12 @@ $(document).ready(function () {
             //Select
             M.FormSelect.init(document.querySelectorAll('select'), {});
 
+            //Carousel
+            M.Carousel.init(document.querySelector('#budgetsCarousel'), {
+                fullWidth: true,
+                indicators: true
+            });
+
             //Draw charts
             refreshUser().then(refreshedUser => {
                 drawOverviewChart();
@@ -208,6 +214,8 @@ $(document).ready(function () {
             };
             const weekChart = new google.visualization.PieChart(document.getElementById('weekChart'));
             weekChart.draw(dataWeek, weekOptions);
+            const weekChartMobile = new google.visualization.PieChart(document.getElementById('weekChartMobile'));
+            weekChartMobile.draw(dataWeek, weekOptions);
 
             const dataMonth = google.visualization.arrayToDataTable(budgetDataMonth);
             const monthOptions = {
@@ -215,6 +223,8 @@ $(document).ready(function () {
             };
             const monthChart = new google.visualization.PieChart(document.getElementById('monthChart'));
             monthChart.draw(dataMonth, monthOptions);
+            const monthChartMobile = new google.visualization.PieChart(document.getElementById('monthChartMobile'));
+            monthChartMobile.draw(dataMonth, monthOptions);
 
             const dataQuarter = google.visualization.arrayToDataTable(budgetDataQuarter);
             const quarterOptions = {
@@ -222,6 +232,8 @@ $(document).ready(function () {
             };
             const quarterChart = new google.visualization.PieChart(document.getElementById('quarterChart'));
             quarterChart.draw(dataQuarter, quarterOptions);
+            const quarterChartMobile = new google.visualization.PieChart(document.getElementById('quarterChartMobile'));
+            quarterChartMobile.draw(dataQuarter, quarterOptions);
 
             const dataYear = google.visualization.arrayToDataTable(budgetDataYear);
             const yearOptions = {
@@ -229,6 +241,8 @@ $(document).ready(function () {
             };
             const yearChart = new google.visualization.PieChart(document.getElementById('yearChart'));
             yearChart.draw(dataYear, yearOptions);
+            const yearChartMobile = new google.visualization.PieChart(document.getElementById('yearChartMobile'));
+            yearChartMobile.draw(dataYear, yearOptions);
         }
     }
 });
