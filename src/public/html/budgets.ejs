@@ -12,31 +12,176 @@
         <div class="row">
             <h1>Budgets</h1>
         </div>
-        <div class="row">
-            <div class="col s12 l6">
-                <div class="card-panel">
-                    <span class="card-title">Weekly budget</span>
-                    <div id="weekChart" class="responsive-google-chart"></div>
-                </div>
-            </div>
-            <div class="col s12 l6">
-                <div class="card-panel">
-                    <span class="card-title">Monthly budget</span>
-                    <div id="monthChart" class="responsive-google-chart"></div>
+        <div class="row hide-on-large-only">
+            <div class="card">
+                <div class="card-content">
+                    <span class="card-title">Charts</span>
+                    <div id="budgetsCarousel" class="carousel carousel-slider">
+                        <div class="carousel-item">
+                            <div class="card-panel center">
+                                <span class="card-title">Weekly budget</span>
+                                <div id="weekChartMobile" class="responsive-google-chart">
+                                    <div class="preloader-wrapper small active">
+                                        <div class="spinner-layer spinner-green-only">
+                                            <div class="circle-clipper left">
+                                                <div class="circle"></div>
+                                            </div>
+                                            <div class="gap-patch">
+                                                <div class="circle"></div>
+                                            </div>
+                                            <div class="circle-clipper right">
+                                                <div class="circle"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="carousel-item">
+                            <div class="card-panel center">
+                                <span class="card-title">Monthly budget</span>
+                                <div id="monthChartMobile" class="responsive-google-chart">
+                                    <div class="preloader-wrapper small active">
+                                        <div class="spinner-layer spinner-green-only">
+                                            <div class="circle-clipper left">
+                                                <div class="circle"></div>
+                                            </div>
+                                            <div class="gap-patch">
+                                                <div class="circle"></div>
+                                            </div>
+                                            <div class="circle-clipper right">
+                                                <div class="circle"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="carousel-item">
+                            <div class="card-panel center">
+                                <span class="card-title">Quarterly budget</span>
+                                <div id="quarterChartMobile" class="responsive-google-chart">
+                                    <div class="preloader-wrapper small active">
+                                        <div class="spinner-layer spinner-green-only">
+                                            <div class="circle-clipper left">
+                                                <div class="circle"></div>
+                                            </div>
+                                            <div class="gap-patch">
+                                                <div class="circle"></div>
+                                            </div>
+                                            <div class="circle-clipper right">
+                                                <div class="circle"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="carousel-item">
+                            <div class="card-panel center">
+                                <span class="card-title">Yearly budget</span>
+                                <div id="yearChartMobile" class="responsive-google-chart">
+                                    <div class="preloader-wrapper small active">
+                                        <div class="spinner-layer spinner-green-only">
+                                            <div class="circle-clipper left">
+                                                <div class="circle"></div>
+                                            </div>
+                                            <div class="gap-patch">
+                                                <div class="circle"></div>
+                                            </div>
+                                            <div class="circle-clipper right">
+                                                <div class="circle"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="row">
+        <div class="row hide-on-med-and-down">
             <div class="col s12 l6">
-                <div class="card-panel">
-                    <span class="card-title">Quarterly budget</span>
-                    <div id="quarterChart" class="responsive-google-chart"></div>
+                <div class="card-panel center">
+                    <span class="card-title">Weekly budget</span>
+                    <div id="weekChart" class="responsive-google-chart">
+                        <div class="preloader-wrapper small active">
+                            <div class="spinner-layer spinner-green-only">
+                                <div class="circle-clipper left">
+                                    <div class="circle"></div>
+                                </div>
+                                <div class="gap-patch">
+                                    <div class="circle"></div>
+                                </div>
+                                <div class="circle-clipper right">
+                                    <div class="circle"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="col s12 l6">
-                <div class="card-panel">
+                <div class="card-panel center">
+                    <span class="card-title">Monthly budget</span>
+                    <div id="monthChart" class="responsive-google-chart">
+                        <div class="preloader-wrapper small active">
+                            <div class="spinner-layer spinner-green-only">
+                                <div class="circle-clipper left">
+                                    <div class="circle"></div>
+                                </div>
+                                <div class="gap-patch">
+                                    <div class="circle"></div>
+                                </div>
+                                <div class="circle-clipper right">
+                                    <div class="circle"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row hide-on-med-and-down">
+            <div class="col s12 l6">
+                <div class="card-panel center">
+                    <span class="card-title">Quarterly budget</span>
+                    <div id="quarterChart" class="responsive-google-chart">
+                        <div class="preloader-wrapper small active">
+                            <div class="spinner-layer spinner-green-only">
+                                <div class="circle-clipper left">
+                                    <div class="circle"></div>
+                                </div>
+                                <div class="gap-patch">
+                                    <div class="circle"></div>
+                                </div>
+                                <div class="circle-clipper right">
+                                    <div class="circle"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col s12 l6">
+                <div class="card-panel center">
                     <span class="card-title">Yearly budget</span>
-                    <div id="yearChart" class="responsive-google-chart"></div>
+                    <div id="yearChart" class="responsive-google-chart">
+                        <div class="preloader-wrapper small active">
+                            <div class="spinner-layer spinner-green-only">
+                                <div class="circle-clipper left">
+                                    <div class="circle"></div>
+                                </div>
+                                <div class="gap-patch">
+                                    <div class="circle"></div>
+                                </div>
+                                <div class="circle-clipper right">
+                                    <div class="circle"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
