@@ -196,7 +196,7 @@ app.all('/login', function (req, res) {
 
 app.all('/logout', function (req, res) {
     req.session.user = null;
-    res.sendStatus(200);
+    res.redirect('/login');
 });
 
 app.all('/home', function (req, res) {

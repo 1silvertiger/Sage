@@ -1,7 +1,7 @@
 function onSignIn(googleUser) {
     $('.preloader-wrapper').addClass('active');
     $('#logging-in').removeClass('hide');
-    $('.form-signin').addClass('hide');
+    $('#signIn').addClass('hide');
     var profile = googleUser.getBasicProfile();
 
     var data = {
