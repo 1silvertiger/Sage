@@ -13,28 +13,23 @@ if ('serviceWorker' in navigator) {
 }
 
 $(document).ready(function () {
+    loadGapi();
     refreshTagMap();
 
     M.Sidenav.init(document.querySelectorAll('.sidenav'), {});
     M.FloatingActionButton.init(document.querySelectorAll('.fixed-action-btn'), {});
-
-    const url = URL + '/logout';
-    $("#logout").click(function () {
-        alert(URL);
-        $.ajax({
-            // url: URL + '/logout',
-            url: url, 
-            success: function (data) {
-                let i = 0;
-            }, 
-            error: function (jqxhr, status, error) {
-                console.log(error);
-                let i = 0;
-            }
-        });
-        GoogleAuth.signOut();
-    });
 });
+
+function logout() {
+    const auth2 = gapi.auth2.getAuthInstance();
+    auth2.signOut();
+}
+
+async function loadGapi() {
+    gapi.load('auth2', function () {
+        gapi.auth2.init();
+    });
+}
 
 function refreshUser() {
     return new Promise(function (resolve, reject) {
@@ -58,7 +53,7 @@ function refreshUser() {
 }
 
 function getSemanticPeriod(periodId) {
-    switch(periodId) {
+    switch (periodId) {
         case 1: return 'day(s)'
         case 2: return 'week(s)'
         case 3: return 'month(s)'
@@ -68,7 +63,7 @@ function getSemanticPeriod(periodId) {
 }
 
 function getMomentPeriod(periodId) {
-    switch(periodId) {
+    switch (periodId) {
         case 1: return 'days'
         case 2: return 'weeks'
         case 3: return 'months'

@@ -1,7 +1,8 @@
 <div class="navbar-fixed">
-  <nav class="lighten-1" role="navigation">
+  <nav class="indigo lighten-2" role="navigation">
     <div class="nav-wrapper container">
-      <a href="<%= URL %>/home" class="brand-logo"><img src="/assets/logo.png" class="responsive-img">&nbsp;Sage&nbsp;Savings</a>
+      <a href="<%= URL %>/home" class="brand-logo"><img src="/assets/logo.png"
+          class="responsive-img">&nbsp;Sage&nbsp;Savings</a>
       <ul class="right hide-on-med-and-down">
         <li><a href="<%= URL %>/budgets">Budgets</a></li>
         <li><a href="<%= URL %>/transactions">Transactions</a></li>
@@ -9,19 +10,8 @@
         <li><a href="<%= URL %>/piggy">Piggy banks</a></li>
         <li><a href="<%= URL %>/bills">Bills</a></li>
         <li><a href="<%= URL %>/accounts">Accounts</a></li>
-        <li><a id="logout" href="<%= URL %>">Logout</a></li>
+        <li><a id="logout" href="<%= URL %>/logout" onclick="logout();">Logout</a></li>
       </ul>
-
-      <!-- <ul id="sidenav" class="sidenav">
-        <li><a href="<%= URL %>/budgets">Budgets</a></li>
-        <li><a href="<%= URL %>/transactions">Transactions</a></li>
-        <li><a href="<%= URL %>/spending">Spending</a></li>
-        <li><a href="<%= URL %>/piggy">Piggy banks</a></li>
-        <li><a href="<%= URL %>/bills">Bills</a></li>
-        <li><a href="<%= URL %>/accounts">Accounts</a></li>
-        <li><a id="logout" href="<%= URL %>">Logout</a></li>
-      </ul>
-      <a href="#" data-target="sidenav" class="sidenav-trigger"><i class="material-icons">menu</i></a> -->
     </div>
   </nav>
 </div>
