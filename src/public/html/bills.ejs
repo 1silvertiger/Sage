@@ -21,11 +21,9 @@
                             </thead>
                             <tbody>
                                 <tr v-for="bill in lateBills">
-                                    <td class="modal-trigger" :date-target="bill.id">{{ bill.name }}</td>
-                                    <td class="modal-trigger" :data-target="bill.id">
-                                        {{ getFormattedCurrency(bill.amount) }}</td>
-                                    <td class="modal-trigger" :date-target="bill.id">
-                                        {{ getFormattedDate(bill.dueDate) }}</td>
+                                    <td>{{ bill.name }}</td>
+                                    <td>{{ getFormattedCurrency(bill.amount) }}</td>
+                                    <td>{{ getFormattedDate(bill.dueDate) }}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -38,39 +36,105 @@
                 <div class="card">
                     <div class="card-content">
                         <span class="card-title">Current bills</span>
-                        <table class="striped highlight">
+                        <table>
                             <thead>
                                 <th></th>
                                 <th>Name</th>
                                 <th>Amount</th>
-                                <th>Repeats</th>
+                                <th class="hide-on-med-and-down">Repeats</th>
                                 <th>Due next</th>
-                                <th>Charged on weekday?</th>
-                                <th>Autopay?</th>
+                                <th class="hide-on-med-and-down">Charged on weekday?</th>
+                                <th class="hide-on-med-and-down">Autopay?</th>
                             </thead>
                             <tbody>
-                                <tr v-for="b in user.bills">
-                                    <td>
-                                        <form>
-                                            <p><label>
-                                                    <input :id="'chkBx' + b.id" type="checkbox" class="filled-in"
-                                                        :value="b.id" v-model="billsToDelete">
-                                                    <span :for="'chkBx' + b.id"></span>
-                                                </label></p>
-                                        </form>
-                                    </td>
-                                    <td class="modal-trigger" :data-target="b.id">{{ b.name }}</td>
-                                    <td class="modal-trigger" :data-target="b.id">{{ getFormattedCurrency(b.amount) }}
-                                    </td>
-                                    <td class="modal-trigger" :data-target="b.id">
-                                        {{ b.periodId ? 'Every '.concat(b.numOfPeriods, ' ', getSemanticPeriod(b.periodId)) : 'No' }}
-                                    </td>
-                                    <td class="modal-trigger" :data-target="b.id">{{ getFormattedDate(b.dueDate) }}</td>
-                                    <td class="modal-trigger" :data-target="b.id">{{ b.weekDay ? 'Yes' : 'No' }}</td>
-                                    <td class="modal-trigger" :data-target="b.id">{{ b.accountId ? 'Yes' : 'No' }}</td>
-                                </tr>
+                                <template v-for="b in user.bills">
+                                    <tr class="header">
+                                        <td>
+                                            <form>
+                                                <p><label>
+                                                        <input :id="'chkBx' + b.id" type="checkbox" class="filled-in"
+                                                            :value="b.id" v-model="billsToDelete">
+                                                        <span :for="'chkBx' + b.id"></span>
+                                                    </label></p>
+                                            </form>
+                                        </td>
+                                        <td v-on:click="setBillToUpdate(b)">
+                                            {{ b.name }}</td>
+                                        <td v-on:click="setBillToUpdate(b)" data-target="updateModal"
+                                            class="modal-trigger">
+                                            {{ getFormattedCurrency(b.amount) }}
+                                        </td>
+                                        <td v-on:click="setBillToUpdate(b)" data-target="updateModal"
+                                            class="modal-trigger hide-on-med-and-down">
+                                            {{ b.periodId ? 'Every '.concat(b.numOfPeriods, ' ', getSemanticPeriod(b.periodId)) : 'No' }}
+                                        </td>
+                                        <td v-on:click="setBillToUpdate(b)" data-target="updateModal"
+                                            class="modal-trigger">
+                                            {{ getFormattedDate(b.dueDate) }}</td>
+                                        <td v-on:click="setBillToUpdate(b)" data-target="updateModal"
+                                            class="modal-trigger hide-on-med-and-down">
+                                            {{ b.weekDay ? 'Yes' : 'No' }}</td>
+                                        <td v-on:click="setBillToUpdate(b)" data-target="updateModal"
+                                            class="modal-trigger hide-on-med-and-down">
+                                            {{ b.accountId ? 'Yes' : 'No' }}</td>
+                                    </tr>
+                                    <tr style="display:none">
+                                        <td colspan="7">
+                                            <bill-carousel v-bind:user="user" v-bind:bill="billToUpdate"
+                                                        v-on:save="createOrUpdateBill"></bill-carousel>
+                                            <!-- Test: {{ b.name }} -->
+                                        </td>
+                                    </tr>
+                                </template>
                             </tbody>
                         </table>
+                        <!-- <ul id="billsAccordion" class="collapsible" data-collaspible="accordion">
+                            <li v-for="b in user.bills">
+                                <table class="collapsible-header">
+                                    <tbody>
+                                        <tr v-on:click="setBillToUpdate(b)">
+                                            <td>
+                                                <form>
+                                                    <p><label>
+                                                            <input :id="'chkBx' + b.id" type="checkbox"
+                                                                class="filled-in" :value="b.id" v-model="billsToDelete">
+                                                            <span :for="'chkBx' + b.id"></span>
+                                                        </label></p>
+                                                </form>
+                                            </td>
+                                            <td v-on:click="setBillToUpdate(b)" data-target="updateModal"
+                                                class="modal-trigger">
+                                                {{ b.name }}</td>
+                                            <td v-on:click="setBillToUpdate(b)" data-target="updateModal"
+                                                class="modal-trigger">
+                                                {{ getFormattedCurrency(b.amount) }}
+                                            </td>
+                                            <td v-on:click="setBillToUpdate(b)" data-target="updateModal"
+                                                class="modal-trigger hide-on-med-and-down">
+                                                {{ b.periodId ? 'Every '.concat(b.numOfPeriods, ' ', getSemanticPeriod(b.periodId)) : 'No' }}
+                                            </td>
+                                            <td v-on:click="setBillToUpdate(b)" data-target="updateModal"
+                                                class="modal-trigger">
+                                                {{ getFormattedDate(b.dueDate) }}</td>
+                                            <td v-on:click="setBillToUpdate(b)" data-target="updateModal"
+                                                class="modal-trigger hide-on-med-and-down">
+                                                {{ b.weekDay ? 'Yes' : 'No' }}</td>
+                                            <td v-on:click="setBillToUpdate(b)" data-target="updateModal"
+                                                class="modal-trigger hide-on-med-and-down">
+                                                {{ b.accountId ? 'Yes' : 'No' }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <table class="collapsible-body">
+                                    <tr>
+                                        <td colspan="7">
+                                            <bill-carousel v-bind:user="user" v-bind:bill="billToUpdate"
+                                                v-on:save="createOrUpdateBill"></bill-carousel>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </li>
+                        </ul> -->
                     </div>
                     <div class="card-action">
                         <a id="deleteBillsBtn" class="waves-effect waves-green btn green lighten-2"
@@ -106,7 +170,8 @@
                                     <div class="card-action">
                                         <a id="autopayBtn" class="waves-effect btn green lighten-2 hide"
                                             onclick="prevAddCarouselItem();">Autopay</a>
-                                        <a class="waves-effect btn green lighten-2" onclick="nextAddCarouselItem();">Notifications</a>
+                                        <a class="waves-effect btn green lighten-2"
+                                            onclick="nextAddCarouselItem();">Notifications</a>
                                     </div>
                                 </div>
                             </div>
@@ -120,10 +185,12 @@
                                                 <th colspan="2">Periods before bill is due:</th>
                                             </thead>
                                             <tbody>
-                                                <tr v-for="n in billToCreate.notifications">
+                                                <tr v-for="(n, i) in billToCreate.notifications">
                                                     <td>{{ n.periodsBeforeBillIsDue }}</td>
                                                     <td>{{ getSemanticPeriod(n.periodId) }}</td>
-                                                    <td>Remove</td>
+                                                    <td><a class="waves-effect btn-flat"
+                                                            v-on:click="billToCreate.notifications.splice(i, 1);">Remove</a>
+                                                    </td>
                                                 </tr>
                                                 <tr>
                                                     <td>
@@ -132,12 +199,12 @@
                                                                 v-model="billNotificationToCreate.periodsBeforeBillIsDue"
                                                                 id="addNotificationNumber" type="number"
                                                                 class="validate">
-                                                            <label for="#addNotificationNumber"></label>
+                                                            <label for="addNotificationNumber"></label>
                                                         </div>
                                                     </td>
                                                     <td>
                                                         <select v-model="billNotificationToCreate.periodId">
-                                                            <option value="1" :selected="true">day(s)</option>
+                                                            <option value="1">day(s)</option>
                                                             <option value="2">week(s)</option>
                                                             <option value="3">month(s)</option>
                                                             <option value="4">quarter(s)</option>
@@ -146,15 +213,18 @@
                                                         <label>Notification cycle</label>
                                                     </td>
                                                     <td>
-                                                        <a class="waves-effect waves-teal btn-flat" v-on:click="billToCreate.notifications.push(billNotificationToCreate)">Add</a>
+                                                        <a class="waves-effect btn-flat"
+                                                            v-on:click="billToCreate.notifications.push(billNotificationToCreate)">Add</a>
                                                     </td>
                                                 </tr>
                                             </tbody>
                                         </table>
                                     </div>
                                     <div class="card-action">
-                                        <a class="waves-effect btn green lighten-2" onclick="prevAddCarouselItem();">Details</a>
-                                        <a class="waves-effect btn green lighten-2" onclick="nextAddCarouselItem();">Cycle</a>
+                                        <a class="waves-effect btn green lighten-2"
+                                            onclick="prevAddCarouselItem();">Details</a>
+                                        <a class="waves-effect btn green lighten-2"
+                                            onclick="nextAddCarouselItem();">Cycle</a>
                                     </div>
                                 </div>
                             </div>
@@ -188,8 +258,10 @@
                                         </p>
                                     </div>
                                     <div class="card-action">
-                                        <a class="waves-effect btn green lighten-2" onclick="prevAddCarouselItem();">Notifications</a>
-                                        <a class="waves-effect btn green lighten-2" onclick="nextAddCarouselItem();">Autopay</a>
+                                        <a class="waves-effect btn green lighten-2"
+                                            onclick="prevAddCarouselItem();">Notifications</a>
+                                        <a class="waves-effect btn green lighten-2"
+                                            onclick="nextAddCarouselItem();">Autopay</a>
                                     </div>
                                 </div>
                             </div>
@@ -209,8 +281,10 @@
                                         </div>
                                     </div>
                                     <div class="card-action">
-                                        <a class="waves-effect btn green lighten-2" onclick="prevAddCarouselItem();">Cycle</a>
-                                        <a class="waves-effect btn green lighten-2" onclick="nextAddCarouselItem();">Details</a>
+                                        <a class="waves-effect btn green lighten-2"
+                                            onclick="prevAddCarouselItem();">Cycle</a>
+                                        <a class="waves-effect btn green lighten-2"
+                                            onclick="nextAddCarouselItem();">Details</a>
                                     </div>
                                 </div>
                             </div>
@@ -223,6 +297,9 @@
                 </div>
             </div>
         </div>
+
+        <!-- <update-bill-modal v-bind:user="user" v-bind:bill="billToUpdate" v-on:save="createOrUpdateBill">
+        </update-bill-modal> -->
     </div>
 
     <script src='scripts/bills.ejs.js' defer></script>
