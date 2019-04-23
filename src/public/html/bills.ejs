@@ -78,63 +78,15 @@
                                             class="modal-trigger hide-on-med-and-down">
                                             {{ b.accountId ? 'Yes' : 'No' }}</td>
                                     </tr>
-                                    <tr style="display:none">
+                                    <tr >
                                         <td colspan="7">
-                                            <bill-carousel v-bind:user="user" v-bind:bill="billToUpdate"
-                                                        v-on:save="createOrUpdateBill"></bill-carousel>
-                                            <!-- Test: {{ b.name }} -->
+                                            <bill-carousel v-bind:user="user" v-bind:bill="b"
+                                                v-on:save="createOrUpdateBill"></bill-carousel>
                                         </td>
                                     </tr>
                                 </template>
                             </tbody>
                         </table>
-                        <!-- <ul id="billsAccordion" class="collapsible" data-collaspible="accordion">
-                            <li v-for="b in user.bills">
-                                <table class="collapsible-header">
-                                    <tbody>
-                                        <tr v-on:click="setBillToUpdate(b)">
-                                            <td>
-                                                <form>
-                                                    <p><label>
-                                                            <input :id="'chkBx' + b.id" type="checkbox"
-                                                                class="filled-in" :value="b.id" v-model="billsToDelete">
-                                                            <span :for="'chkBx' + b.id"></span>
-                                                        </label></p>
-                                                </form>
-                                            </td>
-                                            <td v-on:click="setBillToUpdate(b)" data-target="updateModal"
-                                                class="modal-trigger">
-                                                {{ b.name }}</td>
-                                            <td v-on:click="setBillToUpdate(b)" data-target="updateModal"
-                                                class="modal-trigger">
-                                                {{ getFormattedCurrency(b.amount) }}
-                                            </td>
-                                            <td v-on:click="setBillToUpdate(b)" data-target="updateModal"
-                                                class="modal-trigger hide-on-med-and-down">
-                                                {{ b.periodId ? 'Every '.concat(b.numOfPeriods, ' ', getSemanticPeriod(b.periodId)) : 'No' }}
-                                            </td>
-                                            <td v-on:click="setBillToUpdate(b)" data-target="updateModal"
-                                                class="modal-trigger">
-                                                {{ getFormattedDate(b.dueDate) }}</td>
-                                            <td v-on:click="setBillToUpdate(b)" data-target="updateModal"
-                                                class="modal-trigger hide-on-med-and-down">
-                                                {{ b.weekDay ? 'Yes' : 'No' }}</td>
-                                            <td v-on:click="setBillToUpdate(b)" data-target="updateModal"
-                                                class="modal-trigger hide-on-med-and-down">
-                                                {{ b.accountId ? 'Yes' : 'No' }}</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                                <table class="collapsible-body">
-                                    <tr>
-                                        <td colspan="7">
-                                            <bill-carousel v-bind:user="user" v-bind:bill="billToUpdate"
-                                                v-on:save="createOrUpdateBill"></bill-carousel>
-                                        </td>
-                                    </tr>
-                                </table>
-                            </li>
-                        </ul> -->
                     </div>
                     <div class="card-action">
                         <a id="deleteBillsBtn" class="waves-effect waves-green btn green lighten-2"
@@ -297,9 +249,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- <update-bill-modal v-bind:user="user" v-bind:bill="billToUpdate" v-on:save="createOrUpdateBill">
-        </update-bill-modal> -->
     </div>
 
     <script src='scripts/bills.ejs.js' defer></script>

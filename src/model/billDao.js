@@ -36,22 +36,27 @@ module.exports = class BillDao extends Dao {
                     rows[0][0].weekDay,
                     rows[0][0].numOfPeriods,
                     rows[0][0].paid,
-                    rows[0][0].dueDate
+                    rows[0][0].dueDate,
+                    new Array()
                 );
-                for (let i = 0; i < bill.notifications.length; i++)
-                    bill.notifications[i].billId = temp.id;
-                billNotificationDao.deleteAllByBillId(temp.id).then(() => {
-                    billNotificationDao.createOrUpdateBatch(bill.notifications).then(notifications => {
-                        temp.notifications = notifications || new Array();
-                        resolve(temp);
+                if (bill.notifications.length) {
+                    for (let i = 0; i < bill.notifications.length; i++)
+                        bill.notifications[i].billId = temp.id;
+                    billNotificationDao.deleteAllByBillId(temp.id).then(() => {
+                        billNotificationDao.createOrUpdateBatch(bill.notifications).then(notifications => {
+                            temp.notifications = notifications || new Array();
+                            resolve(temp);
+                        }).catch(err => {
+                            Dao.handleQueryCatch(err);
+                            resolve(null);
+                        });
                     }).catch(err => {
                         Dao.handleQueryCatch(err);
                         resolve(null);
                     });
-                }).catch(err => {
-                    Dao.handleQueryCatch(err);
-                    resolve(null);
-                });
+                } else {
+                    resolve(temp);
+                }
             }).catch(err => {
                 Dao.handleQueryCatch(err);
                 resolve(null);
