@@ -231,19 +231,19 @@ module.exports = class UserDao extends Dao {
 
                         // Bills
                         let billNotificationIndex = 0;
-                        let billTagIndex = 0;
                         for (let billIndex = 0; billIndex < rows[BILLS_INDEX].length; billIndex++) {
                             // Bill notifications
                             const billNotifications = new Array();
-                            for (billNotificationIndex; billNotificationIndex < rows[BILL_NOTIFICATIONS_INDEX].length; billNotificationIndex++) {
-                                if (rows[BILL_NOTIFICATIONS_INDEX][billNotificationIndex].billId === rows[BILLS_INDEX][billIndex].id) {
+                            for (let i = billNotificationIndex; i < rows[BILL_NOTIFICATIONS_INDEX].length; i++) {
+                                if (rows[BILL_NOTIFICATIONS_INDEX][i].billId === rows[BILLS_INDEX][billIndex].id) {
+                                    billNotificationIndex++;
                                     billNotifications.push(new BillNotification(
-                                        rows[BILL_NOTIFICATIONS_INDEX][billNotificationIndex].id,
-                                        rows[BILL_NOTIFICATIONS_INDEX][billNotificationIndex].billId,
-                                        rows[BILL_NOTIFICATIONS_INDEX][billNotificationIndex].periodId,
-                                        rows[BILL_NOTIFICATIONS_INDEX][billNotificationIndex].periodsBeforeBillIsDue
+                                        rows[BILL_NOTIFICATIONS_INDEX][i].id,
+                                        rows[BILL_NOTIFICATIONS_INDEX][i].billId,
+                                        rows[BILL_NOTIFICATIONS_INDEX][i].periodId,
+                                        rows[BILL_NOTIFICATIONS_INDEX][i].periodsBeforeBillIsDue
                                     ));
-                                }
+                                } 
                             }
 
                             const temp = new Bill(
