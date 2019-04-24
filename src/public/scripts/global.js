@@ -13,32 +13,23 @@ if ('serviceWorker' in navigator) {
 }
 
 $(document).ready(function () {
+    loadGapi();
     refreshTagMap();
 
     M.Sidenav.init(document.querySelectorAll('.sidenav'), {});
     M.FloatingActionButton.init(document.querySelectorAll('.fixed-action-btn'), {});
-
-    $("#logout").click(function () {
-        $.ajax({
-            type: "POST",
-            url: URL + '/logout',
-            data: null,
-            dataType: "text",
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'same-origin',
-            xhrFields: {
-                withCredentials: true
-            },
-            success: function (data, status) {
-                // window.location.replace(URL);
-            },
-            error: function (jqXHR, status, error) {
-                //TODO: handle error
-                alert("An error occurred: \n" + status + "\n" + error);
-            }
-        });
-    });
 });
+
+function logout() {
+    const auth2 = gapi.auth2.getAuthInstance();
+    auth2.signOut();
+}
+
+async function loadGapi() {
+    gapi.load('auth2', function () {
+        gapi.auth2.init();
+    });
+}
 
 function refreshUser() {
     return new Promise(function (resolve, reject) {
@@ -59,6 +50,37 @@ function refreshUser() {
             }
         });
     });
+}
+
+function getSemanticPeriod(periodId) {
+    const temp = periodId === "1";
+    switch (periodId) {
+        case 1:
+        case "1":
+            return 'day(s)';
+        case 2:
+        case "2":
+            return 'week(s)';
+        case 3:
+        case "3":
+            return 'month(s)';
+        case 4:
+        case "4":
+            return 'quarter(s)';
+        case 5:
+        case "5":
+            return 'year(s)';
+    }
+}
+
+function getMomentPeriod(periodId) {
+    switch (periodId) {
+        case 1: return 'days'
+        case 2: return 'weeks'
+        case 3: return 'months'
+        case 4: return 'quarters'
+        case 5: return 'years'
+    }
 }
 
 function getTagId(tagName) {
