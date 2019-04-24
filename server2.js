@@ -224,39 +224,10 @@ app.all("/accounts", function (req, res) {
         accounts = accounts.concat(req.session.user.items[i].accounts);
     res.render('accounts.ejs', {
         URL: config.URL,
-        accounts: accounts
-    });
-});
-
-app.all('/old-accounts', function (req, res) {
-    pool.getConnection().then(conn => {
-        conn.query('CALL getAllPlaidItemsByUserId(?)', [req.session.user.id])
-            .then(async rows => {
-                if (rows[0].length > 0) {
-                    let accounts = new Array();
-                    for (let i = 0; i < rows[0].length; i++) {
-                        await getAccounts(rows[0][i].accessToken).then(item => {
-                            accounts = accounts.concat(item.accounts);
-                        }).catch(err => {
-                            console.log(err);
-                        });
-                    }
-                    res.render('accounts.ejs', {
-                        URL: config.URL,
-                        accounts: accounts
-                    });
-                } else {
-                    console.log('no data');
-                    res.end();
-                }
-            })
-            .catch(err => {
-                console.log(err);
-                res.sendStatus('500');
-            });
-    }).catch(err => {
-        console.log(err);
-        res.sendStatus('500');
+        user: req.session.user,
+        PLAID_PUBLIC_KEY: PLAID_PUBLIC_KEY,
+        PLAID_ENV: PLAID_ENV,
+        PLAID_PRODUCTS: PLAID_PRODUCTS
     });
 });
 
@@ -270,11 +241,11 @@ app.all("/transactions", function (req, res) {
 app.all('/piggy', function (req, res) {
     res.render('piggyBanks.ejs', {
         URL: config.URL,
-        user : req.session.user
+        user: req.session.user
     });
 });
 
-app.all('/bills', function(req, res) {
+app.all('/bills', function (req, res) {
     res.render('bills.ejs', {
         URL: config.URL,
         user: req.session.user
@@ -358,11 +329,11 @@ app.all('/deleteBudgetItems', function (req, res) {
 });
 
 //Piggy banks
-app.all('/createOrUpdatePiggyBank', function(req, res) {
+app.all('/createOrUpdatePiggyBank', function (req, res) {
     piggyBankDao.createOrUpdate(req.body.piggyBank).then(piggyBank => {
         console.log('Piggy bank: ');
         console.log(piggyBank);
-        
+
         req.session.user.piggyBanks.push(piggyBank);
         res.json(JSON.stringify(piggyBank));
     }).catch(err => {
@@ -371,7 +342,7 @@ app.all('/createOrUpdatePiggyBank', function(req, res) {
     });
 });
 
-app.all('/deletePiggyBanks', function(req, res) {
+app.all('/deletePiggyBanks', function (req, res) {
     piggyBankDao.deleteBatch(req.body.piggyBankIds).then(() => {
         sync(req.session.user).then(syncedUser => {
             req.session.user = syncedUser;
@@ -387,7 +358,7 @@ app.all('/deletePiggyBanks', function(req, res) {
 });
 
 //Bills
-app.all('/createOrUpdateBill', function(req, res) {
+app.all('/createOrUpdateBill', function (req, res) {
     billDao.createOrUpdate(req.body.bill).then(bill => {
         console.log('Bill:');
         console.log(bill);
@@ -400,7 +371,7 @@ app.all('/createOrUpdateBill', function(req, res) {
     });
 });
 
-app.all('/deleteBills', function(req, res) {
+app.all('/deleteBills', function (req, res) {
     billDao.deleteBatch(req.body.ids).then(success => {
         if (success) {
             sync(req.session.user).then(syncedUser => {
@@ -570,13 +541,17 @@ app.post('/get_access_token', function (req, res, next) {
                 error: error,
             });
         }
+
         //Save to DB
-        pool.getConnection().then(conn => {
-            conn.query('CALL createPlaidItem(?,?,?)', [req.session.user.id, tokenResponse.item_id, tokenResponse.access_token])
-                .catch(err => {
-                    console.log(err);
-                });
-        });
+        const params = [
+            req.session.user.id,
+            tokenResponse.item_id,
+            tokenResponse.access_token,
+            req.body.institutionName
+        ];
+        pool.query('CALL createPlaidItem(?,?,?,?)', params).catch(err => {
+                console.log(err);
+            });
         prettyPrintResponse(tokenResponse);
         res.json({
             access_token: tokenResponse.access_token,

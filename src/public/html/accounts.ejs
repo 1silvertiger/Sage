@@ -5,46 +5,52 @@
 <body>
     <%- include ./navbar.html %>
 
-    <div class="container">
-        <div id="table" class="row">
-            <div class="input-field col s12 l3">
-                <select id="showSelector" v-model="typesToShow" multiple>
-                    <option value="0" selected>All</option>
-                    <option value="1">Debit</option>
-                    <option value="2">Credit</option>
-                    <option value="3">Investment</option>
-                </select>
-                <label>Show:</label>
+    <div id="app" class="container">
+        <div class="row">
+            <h1>Accounts</h1>
+        </div>
+        <div class="row">
+            <div class="col s12 m12 l12">
+                <div class="card" v-for="item in user.items">
+                    <div class="card-content">
+                        <span class="card-title">{{ item.institutionName }} accounts:</span>
+                        <table class="striped highlight">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Official name</th>
+                                    <th>Type</th>
+                                    <th>Subtype</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="account in item.accounts">
+                                    <td>{{account.name}}</td>
+                                    <td>{{account.officialName}}</td>
+                                    <td>{{account.type}}</td>
+                                    <td>{{account.subType}}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
-            <div class="col s12">
-                <table class="striped">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Official name</th>
-                            <th>Type</th>
-                            <th>Subtype</th>
-                            <th>Mask</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="account in filteredAccounts">
-                            <td>{{account.name}}</td>
-                            <td>{{account.official_name}}</td>
-                            <td>{{account.type}}</td>
-                            <td>{{account.subtype}}</td>
-                            <td>{{account.mask}}</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+        </div>
+        <div class="row">
+            <button id="plaid" class="btn green lighten-2" >Add new</button>
         </div>
     </div>
 </body>
 
-<script>
-    const accounts = JSON.parse('<%- JSON.stringify(accounts) %>');
-</script>
+<script src="scripts/plaid.js" type="text/javascript" defer></script>
 <script src="scripts/accounts.ejs.js" defer></script>
+
+<script defer>
+    const URL = '<%= URL %>';
+    const user = JSON.parse(`<%- JSON.stringify(user) %>`);
+    const PLAID_ENV = '<%= PLAID_ENV %>';
+    const PLAID_PUBLIC_KEY = '<%= PLAID_PUBLIC_KEY %>';
+    const PLAID_PRODUCTS = '<%= PLAID_PRODUCTS %>';
+</script>
 
 </html>

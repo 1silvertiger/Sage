@@ -5,20 +5,24 @@ const ALL = '0',
 
 $(document).ready(function () {
     const table = new Vue({
-        el: '#table',
+        el: '#app',
         data: {
-            rawAccounts: accounts,
+            user: user,
             typesToShow: new Array('0'),
+            allAccounts: new Array()
         },
         mounted: function () {
-            M.AutoInit();
-            showSelector = M.FormSelect.getInstance(document.querySelector("#showSelector"));
-            typesToShow = showSelector.getSelectedValues();
+            for (let i = 0; i < user.items.length; i++) {
+                this.allAccounts = this.allAccounts.concat(user.items[i]);
+            }
+
+            //Selects
+            
         },
         computed: {
-            filteredAccounts: function (rawAccounts) {
+            filteredAccounts: function (allAccounts) {
                 let typesToShow = this.typesToShow;
-                return this.rawAccounts.filter(function (account) {
+                return this.allAccounts.filter(function (account) {
                     if (typesToShow) {
                         if (typesToShow.includes(ALL)
                             || (typesToShow.includes(DEBIT)
@@ -58,6 +62,10 @@ $(document).ready(function () {
                 });
             }
         }
+    });
+
+    $('#plaid').click(function() {
+        handler.open();
     });
 });
 
