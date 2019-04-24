@@ -8,91 +8,39 @@ $(document).ready(function () {
         el: '#app',
         data: {
             user: user,
-            typesToShow: new Array('0'),
-            allAccounts: new Array()
+            showLoader: false
         },
         mounted: function () {
-            for (let i = 0; i < user.items.length; i++) {
-                this.allAccounts = this.allAccounts.concat(user.items[i]);
-            }
-
-            //Selects
-            
+            //Modals
+            M.Modal.init(document.querySelectorAll('.modal'), {
+                preventScrolling: true,
+                dismissible: true
+            });
         },
-        computed: {
-            filteredAccounts: function (allAccounts) {
-                let typesToShow = this.typesToShow;
-                return this.allAccounts.filter(function (account) {
-                    if (typesToShow) {
-                        if (typesToShow.includes(ALL)
-                            || (typesToShow.includes(DEBIT)
-                                && typesToShow.includes(CREDIT)
-                                && typesToShow.includes(INVESTMENT)))
-                            return true;
-                        else if (typesToShow.includes(DEBIT)
-                            && !typesToShow.includes(CREDIT)
-                            && !typesToShow.includes(INVESTMENT)) {
-                            return isDebit(account);
-                        }
-                        else if (typesToShow.includes(DEBIT)
-                            && typesToShow.includes(CREDIT)
-                            && !typesToShow.includes(INVESTMENT)) {
-                            return isDebit(account) || isCredit(account);
-                        }
-                        else if (typesToShow.includes(DEBIT)
-                            && !typesToShow.includes(CREDIT)
-                            && typesToShow.includes(INVESTMENT)) {
-                            return isDebit(account) || isInvestment(account);
-                        }
-                        else if (!typesToShow.includes(DEBIT)
-                            && typesToShow.includes(CREDIT)
-                            && !typesToShow.includes(INVESTMENT)) {
-                            return isCredit(account);
-                        } else if (!typesToShow.includes(DEBIT)
-                            && typesToShow.includes(CREDIT)
-                            && typesToShow.includes(INVESTMENT)) {
-                            return isCredit(account) || isInvestment(account);
-                        } else if (!typesToShow.includes(DEBIT)
-                            && !typesToShow.includes(CREDIT)
-                            && typesToShow.includes(INVESTMENT)) {
-                            return isInvestment(account);
-                        }
-                    } else
-                        return true;
+        methods: {
+            deleteItem: function (id) {
+                this.showLoader = true;
+                $.ajax({
+                    url: URL + '/deletePlaidItem',
+                    type: 'POST',
+                    data: JSON.stringify({ id: id }),
+                    dataType: 'json',
+                    contentType: 'application/json',
+                    success: function (refreshedUser) {
+                        user.items = refreshedUser.items;
+                        user.budgetItems = refreshedUser.budgetItems;
+                        user.piggyBanks = refreshedUser.piggyBanks;
+                        user.bills = refreshedUser.bills;
+                        const modal = M.Modal.getInstance(document.querySelector('#confirmDelete-' + id));
+                        modal.close();
+                        this.showLoader = false;
+                    },
+                    error: function (jqxhr, status, error) {
+                        let i = 0;
+                        this.showLoader = false;
+                    }
                 });
             }
         }
     });
-
-    $('#plaid').click(function() {
-        handler.open();
-    });
 });
-
-function showDebit(selectedTypes) {
-    return selectedTypes.includes(DEBIT);
-}
-
-function showCredit(selectedTypes) {
-    return selectedTypes.includes(CREDIT);
-}
-
-function showInvestments(selectedTypes) {
-    return selectedTypes.includes(INVESTMENT);
-}
-
-
-function isDebit(account) {
-    return account.subtype === 'checking' || account.subtype === 'savings';
-}
-
-function isCredit(account) {
-    return account.subtype === 'credit card';
-}
-
-function isInvestment(account) {
-    return account.subtype === 'cd'
-        || account.subtype === 'money market'
-        || account.subtype === 'ira'
-        || account.subtype === '401k';
-}

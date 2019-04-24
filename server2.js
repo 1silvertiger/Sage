@@ -391,6 +391,26 @@ app.all('/deleteBills', function (req, res) {
     });
 });
 
+app.all('/deletePlaidItem', function (req, res) {
+    itemDao.delete(req.body.id).then(success => {
+        if (success) {
+            sync(req.session.user).then(syncedUser => {
+                req.session.user = syncedUser;
+                res.json(syncedUser);
+            }).catch(err => {
+                console.log(err);
+                res.sendStatus(500);
+            });
+        } else {
+            console.log('Delete failed');
+            res.sendStatus(500);
+        }
+    }).catch(err => {
+        res.sendStatus(500);
+        Dao.handleQueryError(err);
+    });
+});
+
 //Plaid
 app.all('/plaid-webhook', function (req, res, next) {
     console.log('PLAID WEBHOOK');
@@ -550,8 +570,8 @@ app.post('/get_access_token', function (req, res, next) {
             req.body.institutionName
         ];
         pool.query('CALL createPlaidItem(?,?,?,?)', params).catch(err => {
-                console.log(err);
-            });
+            console.log(err);
+        });
         prettyPrintResponse(tokenResponse);
         res.json({
             access_token: tokenResponse.access_token,

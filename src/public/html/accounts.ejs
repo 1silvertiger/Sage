@@ -33,11 +33,28 @@
                             </tbody>
                         </table>
                     </div>
+                    <div class="card-action">
+                        <a class="btn modal-trigger green lighten-2" :href="'#confirmDelete-' + item.id">Delete</a>
+                    </div>
+                    <div :id="'confirmDelete-' + item.id" class="modal">
+                        <div class="modal-content">
+                            <h4>Confirm delete</h4>
+                            <p>Are you sure you want to delete {{ item.institutionName }}? Deletion will permanently
+                                remove all associated accounts, transactions, and piggy banks.</p>
+                            <div class="progress" v-show="showLoader">
+                                <div class="indeterminate"></div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <a class="btn red lighten-2" v-on:click="deleteItem(item.id)">Confirm</a>
+                            <a class="btn modal-close green lighten-2">Cancel</a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
         <div class="row">
-            <button id="plaid" class="btn green lighten-2" >Add new</button>
+            <button id="plaid" class="btn green lighten-2" onclick="handler.open()">Add new</button>
         </div>
     </div>
 </body>
