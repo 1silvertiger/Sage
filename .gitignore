@@ -9,3 +9,5 @@
 node_modules
 
 server\.js
+
+src/public/scripts/temp\.html
