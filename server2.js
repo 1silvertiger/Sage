@@ -268,12 +268,17 @@ app.post('/tokensignin', function (req, res) {
         if (payload['aud'] == GOOGLE_AUTH_CLIENT_ID) {
             userDao.getById(userId).then(user => {
                 if (user) {
-                    console.log(user);
                     syncWithPlaid(user).then(syncedUser => {
-                        req.session.user = syncedUser;
-                        res.sendStatus(200);
+                        userDao.getById(user.id).then(user2 => {
+                            req.session.user = user2;
+                            res.sendStatus(200);
+                        }).catch(err => {
+                            console.log(err);
+                            res.sendStatus(500);
+                        });
                     }).catch(err => {
                         console.log(err);
+                        res.sendStatus(500);
                     });
                 } else {
                     userDao.create(new User(userId, req.body.firstName, req.body.lastName, req.body.imageUrl, req.body.email)).then(user => {
