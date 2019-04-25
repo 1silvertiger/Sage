@@ -6,120 +6,46 @@
 <body>
     <%- include('./navbar.html') %>
 
-    <div class="container">
+    <div id="app" class="container">
         <div class="row">
-            <h4>Transactions</h4>
-            <!-- <div id="accountSelector" class="input-field col s12">
-                <option value="0" selected>All</option>
-                <option v-for="(account, index) in accounts" value="{{ index + 1 }}">{{ account }}</option>
-            </div> -->
+            <h1>Transactions</h1>
 
-            <div class="col">
-                <h6>Show from </h6>
-                <input id="beginDatePicker" type="text" class="datepicker">
-
-                <h6> to </h6>
-                <input id="endDatePicker" type="text" class="datepicker">
-            </div>
-
-            <table id="table" class="striped">
+            <table class="striped highlight">
                 <thead>
                     <tr>
                         <th>Amount</th>
+                        <th></th>
                         <th>Merchant</th>
                         <th>Date</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="t in transactions">
-                        <td>{{ t.amount }}</td>
+                    <tr v-for="t in transactions" :class="t.amount > 0 ? 'red-text lighten-2' : 'green-text lighten-2'">
+                        <td class="right">{{ getFormattedCurrency(t.amount) }}</td>
+                        <td></td>
                         <td>{{ t.merchant }}</td>
-                        <td>{{ t.date }}</td>
+                        <td>{{ getFormattedDate(t.date) }}</td>
                     </tr>
                 </tbody>
             </table>
+            <transaction-items-modal v-for="transaction in transactions" v-bind:key="transaction.id" v-bind:transaction="transaction" inline-template>
+                <div :id="'modal-' + transaction.id" class="modal">
+                    <div class="modal-content">
+                        
+                    </div>
+                    <div class="modal-footer">
+
+                    </div>
+                </div>
+            </transaction-items-modal>
         </div>
     </div>
 
-    <script>
+    <script src='scripts/transactions.ejs.js' defer></script>
+    <script defer>
         const URL = '<%= URL %>';
         const user = JSON.parse(`<%- JSON.stringify(user) %>`);
-        let transactions = new Array();
-        for (let i = 0; i < user.items.length; i++) {
-            transactions = transactions.concat(user.items[i].transactions);
-        }
-        var table = new Vue({
-            el: '#table',
-            data: {
-                transactions: transactions
-            },
-            mounted: function() {
-                M.AutoInit();
-            }
-        });
-
-        // var selector = new Vue({
-        //     el: '#accountSelector',
-        //     data: {
-        //         accounts: null
-        //     }
-        // });
     </script>
-
-    <script scr="scripts/transactions.ejs.js"></script>
-
-    <!-- <div class="container">
-        <div class="row">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-title">
-                            <div class="card-title">
-                                Transactions
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <table id="transactions" class="table table-striped table-hover table-bordered">
-                            <thead>
-                                <tr>
-                                    <th scope="col">Amount</th>
-                                    <th scope="col">Merchant</th>
-                                    <th scope="col">Date</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr v-for="t in transactions">
-                                    <td>{{ t.amount }}</td>
-                                    <td>{{ t.name }}</td>
-                                    <td>{{ t.date }}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-    </div>
-
-    <div class="modal" tab-index="-1" role="dialog">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">View transaction</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script src="../scripts/index.js"></script> -->
 </body>
 
 </html>

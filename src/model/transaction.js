@@ -6,7 +6,7 @@ module.exports = class Transaction {
         this.accountId = pAccountId;
         this.amount = pAmount;
         this.merchant = pMerchant;
-        this.date = pDate;
+        this.date = moment(pDate);
         this.transactionItems = pTransactionItems || new Array();
     }
 }
