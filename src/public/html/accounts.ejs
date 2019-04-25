@@ -18,7 +18,8 @@
                             <thead>
                                 <tr>
                                     <th>Name</th>
-                                    <th>Official name</th>
+                                    <th>Current balance</th>
+                                    <th>Available balance</th>
                                     <th># of notifications:</th>
                                 </tr>
                             </thead>
@@ -26,7 +27,9 @@
                                 <tr v-for="account in item.accounts">
                                     <td class="modal-trigger" :data-target="'modal-' + account.id">{{account.name}}</td>
                                     <td class="modal-trigger" :data-target="'modal-' + account.id">
-                                        {{account.officialName}}</td>
+                                        {{ formatCurrency(account.currentBalance) }}</td>
+                                    <td class="modal-trigger" :data-target="'modal-' + account.id">
+                                        {{ formatCurrency(account.availableBalance) }}</td>
                                     <td class="modal-trigger" :data-target="'modal-' + account.id">
                                         {{ account.notifications.length }}</td>
                                 </tr>
@@ -49,7 +52,8 @@
                                             <tr>
                                                 <td>
                                                     <div class="input-field">
-                                                        <input v-model="notificationToCreate.threshold" type="number" class="validate" placeholder="$0.00">
+                                                        <input v-model="notificationToCreate.threshold" type="number"
+                                                            class="validate" placeholder="$0.00">
                                                     </div>
                                                 </td>
                                                 <td>
@@ -60,7 +64,7 @@
                                     </table>
                                 </div>
                                 <div class="modal-footer">
-                                    <a class="btn-flat" v-on:click="saveNotifications">Save</a>
+                                    <a class="btn-flat modal-close" v-on:click="saveNotifications">Save</a>
                                 </div>
                             </div>
                         </account-notifications-modal>

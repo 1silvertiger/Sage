@@ -18,18 +18,15 @@ $(document).ready(function () {
                 return numeral(amount).format('$0,0.00');
             },
             saveNotifications: function() {
-                //this.showLoader = true;
+                const account = this.account;
                 $.ajax({
                     url: URL + '/saveAccountNotifications',
                     type: 'POST',
-                    data: JSON.stringify({ account: this.account }),
+                    data: JSON.stringify({ account: account }),
                     dataType: 'json',
                     contentType: 'application/json',
                     success: function (data) {
-                        refreshUser().then().catch();
-                        const modal = M.Modal.getInstance(document.querySelector('#modal-' + id));
-                        modal.close();
-                        // this.showLoader = false;
+                        refreshUser();
                     },
                     error: function (jqxhr, status, error) {
                         let i = 0;
@@ -75,7 +72,10 @@ $(document).ready(function () {
                         this.showLoader = false;
                     }
                 });
-            }
+            },
+            formatCurrency: function (amount) {
+                return numeral(amount).format('$0,0.00');
+            },
         }
     });
 });
