@@ -37,6 +37,8 @@ const Item = require('babel-loader!./src/model/item.js');
 const ItemDao = require('babel-loader!./src/model/itemDao.js');
 const Account = require('babel-loader!./src/model/account.js');
 const AccountDao = require('babel-loader!./src/model/accountDao.js');
+const AccountNotification = require('babel-loader!./src/model/accountNotification.js');
+const AccountNotificationDao = require('babel-loader!./src/model/accountNotificationDao.js');
 const Transaction = require('babel-loader!./src/model/transaction.js');
 const TransactionDao = require('babel-loader!./src/model/transactionDao.js');
 const Budget = require('babel-loader!./src/model/budget.js');
@@ -90,6 +92,7 @@ const pool = mariadb.createPool({
 const userDao = new UserDao(pool);
 const itemDao = new ItemDao(pool);
 const accountDao = new AccountDao(pool);
+const accountNotificationDao = new AccountNotificationDao(pool);
 const transactionDao = new TransactionDao(pool);
 const budgetDao = new BudgetDao(pool);
 const piggyBankDao = new PiggyBankDao(pool);
@@ -411,26 +414,34 @@ app.all('/deletePlaidItem', function (req, res) {
     });
 });
 
+app.all('/saveAccountNotifications', function(req, res) {
+    accountNotificationDao.createOrUpdateBatch(req.body.account.id, req.body.account.notifications).then(notifications => {
+        res.json(notifications);
+        sync(req.session.user).then(syncedUser => {
+            req.session.user = syncedUser;
+        });
+    }).catch(err => {
+        console.log(err);
+        res.sendStatus(500);
+    });
+});
+
 //Plaid
 app.all('/plaid-webhook', function (req, res, next) {
     console.log('PLAID WEBHOOK');
     console.log(JSON.stringify(req.body));
     const payload = JSON.parse(req.body);
-    switch (payload.webhook_type) {
-        case 'TRANSACTIONS':
-            switch (payload.webhook_code) {
-                case 'INITIAL_UPDATE':
-                case 'DEFAULT_UPDATE':
-                    console.log(payload);
-                    break;
-                case 'HISTORICAL_UPDATE':
-                    break;
-                case 'TRANSACTIONS_REMOVED':
-                    break;
-            }
-            break;
-        case 'ITEM':
-            break;
+    if (payload.webhook_type === 'TRANSACTIONS') {
+        switch (payload.webhook_code) {
+            case 'INITIAL_UPDATE':
+            case 'DEFAULT_UPDATE':
+                console.log(payload);
+                break;
+            case 'HISTORICAL_UPDATE':
+                break;
+            case 'TRANSACTIONS_REMOVED':
+                break;
+        }
     }
 })
 
@@ -438,11 +449,12 @@ function sync(user) {
     return new Promise(function (resolve, reject) {
         userDao.getById(user.id).then(userFromDb => {
             console.log(userFromDb);
-            syncWithPlaid(userFromDb).then(syncedUser => {
-                resolve(syncedUser);
-            }).catch(err => {
-                Dao.handleQueryError(err);
-            });
+            resolve(userFromDb);
+            // syncWithPlaid(userFromDb).then(syncedUser => {
+            //     resolve(syncedUser);
+            // }).catch(err => {
+            //     Dao.handleQueryError(err);
+            // });
         });
     });
 }

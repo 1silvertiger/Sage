@@ -19,19 +19,51 @@
                                 <tr>
                                     <th>Name</th>
                                     <th>Official name</th>
-                                    <th>Type</th>
-                                    <th>Subtype</th>
+                                    <th># of notifications:</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr v-for="account in item.accounts">
-                                    <td>{{account.name}}</td>
-                                    <td>{{account.officialName}}</td>
-                                    <td>{{account.type}}</td>
-                                    <td>{{account.subType}}</td>
+                                    <td class="modal-trigger" :data-target="'modal-' + account.id">{{account.name}}</td>
+                                    <td class="modal-trigger" :data-target="'modal-' + account.id">
+                                        {{account.officialName}}</td>
+                                    <td class="modal-trigger" :data-target="'modal-' + account.id">
+                                        {{ account.notifications.length }}</td>
                                 </tr>
                             </tbody>
                         </table>
+                        <account-notifications-modal v-for="account in item.accounts" v-bind:key="account.id"
+                            v-bind:account="account" inline-template>
+                            <div :id="'modal-' + account.id" class="modal">
+                                <div class="modal-content">
+                                    <h4>Notifications for {{ account.name }}</h4>
+                                    <table>
+                                        <thead>
+                                            <th>Notify me when the balance is below:</th>
+                                        </thead>
+                                        <tbody>
+                                            <tr v-for="(notification, index) in account.notifications">
+                                                <td>{{ formatCurrency(notification.threshold) }}</td>
+                                                <td><a class="btn-flat" v-on:click="remove(index)">Remove</a></td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <div class="input-field">
+                                                        <input v-model="notificationToCreate.threshold" type="number" class="validate" placeholder="$0.00">
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <a class="btn-flat" v-on:click="add">Add</a>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="modal-footer">
+                                    <a class="btn-flat" v-on:click="saveNotifications">Save</a>
+                                </div>
+                            </div>
+                        </account-notifications-modal>
                     </div>
                     <div class="card-action">
                         <a class="btn modal-trigger green lighten-2" :href="'#confirmDelete-' + item.id">Delete</a>

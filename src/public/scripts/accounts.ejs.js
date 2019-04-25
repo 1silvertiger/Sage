@@ -1,9 +1,44 @@
-const ALL = '0',
-    DEBIT = '1',
-    CREDIT = '2',
-    INVESTMENT = '3';
-
 $(document).ready(function () {
+    Vue.component('account-notifications-modal', {
+        props: ['account'],
+        data: function () {
+            return {
+                notificationToCreate: { accountId: this.account.id }
+            }
+        },
+        methods: {
+            add: function () {
+                this.account.notifications.push(this.notificationToCreate);
+                this.notificationToCreate = { accountId: this.account.id }
+            },
+            remove: function (index) {
+                this.account.notifications.splice(index, 1);
+            },
+            formatCurrency: function (amount) {
+                return numeral(amount).format('$0,0.00');
+            },
+            saveNotifications: function() {
+                //this.showLoader = true;
+                $.ajax({
+                    url: URL + '/saveAccountNotifications',
+                    type: 'POST',
+                    data: JSON.stringify({ account: this.account }),
+                    dataType: 'json',
+                    contentType: 'application/json',
+                    success: function (data) {
+                        refreshUser().then().catch();
+                        const modal = M.Modal.getInstance(document.querySelector('#modal-' + id));
+                        modal.close();
+                        // this.showLoader = false;
+                    },
+                    error: function (jqxhr, status, error) {
+                        let i = 0;
+                        this.showLoader = false;
+                    }
+                });
+            }
+        }
+    });
     const table = new Vue({
         el: '#app',
         data: {
