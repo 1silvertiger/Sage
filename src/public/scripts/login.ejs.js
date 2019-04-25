@@ -1,3 +1,7 @@
+$(document).ready(function() {
+    renderButton();
+});
+
 function onSignIn(googleUser) {
     $('.preloader-wrapper').addClass('active');
     $('#logging-in').removeClass('hide');
