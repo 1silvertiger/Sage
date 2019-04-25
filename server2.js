@@ -37,6 +37,8 @@ const Item = require('babel-loader!./src/model/item.js');
 const ItemDao = require('babel-loader!./src/model/itemDao.js');
 const Account = require('babel-loader!./src/model/account.js');
 const AccountDao = require('babel-loader!./src/model/accountDao.js');
+const AccountNotification = require('babel-loader!./src/model/accountNotification.js');
+const AccountNotificationDao = require('babel-loader!./src/model/accountNotificationDao.js');
 const Transaction = require('babel-loader!./src/model/transaction.js');
 const TransactionDao = require('babel-loader!./src/model/transactionDao.js');
 const Budget = require('babel-loader!./src/model/budget.js');
@@ -90,6 +92,7 @@ const pool = mariadb.createPool({
 const userDao = new UserDao(pool);
 const itemDao = new ItemDao(pool);
 const accountDao = new AccountDao(pool);
+const accountNotificationDao = new AccountNotificationDao(pool);
 const transactionDao = new TransactionDao(pool);
 const budgetDao = new BudgetDao(pool);
 const piggyBankDao = new PiggyBankDao(pool);
@@ -224,39 +227,10 @@ app.all("/accounts", function (req, res) {
         accounts = accounts.concat(req.session.user.items[i].accounts);
     res.render('accounts.ejs', {
         URL: config.URL,
-        accounts: accounts
-    });
-});
-
-app.all('/old-accounts', function (req, res) {
-    pool.getConnection().then(conn => {
-        conn.query('CALL getAllPlaidItemsByUserId(?)', [req.session.user.id])
-            .then(async rows => {
-                if (rows[0].length > 0) {
-                    let accounts = new Array();
-                    for (let i = 0; i < rows[0].length; i++) {
-                        await getAccounts(rows[0][i].accessToken).then(item => {
-                            accounts = accounts.concat(item.accounts);
-                        }).catch(err => {
-                            console.log(err);
-                        });
-                    }
-                    res.render('accounts.ejs', {
-                        URL: config.URL,
-                        accounts: accounts
-                    });
-                } else {
-                    console.log('no data');
-                    res.end();
-                }
-            })
-            .catch(err => {
-                console.log(err);
-                res.sendStatus('500');
-            });
-    }).catch(err => {
-        console.log(err);
-        res.sendStatus('500');
+        user: req.session.user,
+        PLAID_PUBLIC_KEY: PLAID_PUBLIC_KEY,
+        PLAID_ENV: PLAID_ENV,
+        PLAID_PRODUCTS: PLAID_PRODUCTS
     });
 });
 
@@ -270,11 +244,11 @@ app.all("/transactions", function (req, res) {
 app.all('/piggy', function (req, res) {
     res.render('piggyBanks.ejs', {
         URL: config.URL,
-        user : req.session.user
+        user: req.session.user
     });
 });
 
-app.all('/bills', function(req, res) {
+app.all('/bills', function (req, res) {
     res.render('bills.ejs', {
         URL: config.URL,
         user: req.session.user
@@ -294,12 +268,17 @@ app.post('/tokensignin', function (req, res) {
         if (payload['aud'] == GOOGLE_AUTH_CLIENT_ID) {
             userDao.getById(userId).then(user => {
                 if (user) {
-                    console.log(user);
                     syncWithPlaid(user).then(syncedUser => {
-                        req.session.user = syncedUser;
-                        res.sendStatus(200);
+                        userDao.getById(user.id).then(user2 => {
+                            req.session.user = user2;
+                            res.sendStatus(200);
+                        }).catch(err => {
+                            console.log(err);
+                            res.sendStatus(500);
+                        });
                     }).catch(err => {
                         console.log(err);
+                        res.sendStatus(500);
                     });
                 } else {
                     userDao.create(new User(userId, req.body.firstName, req.body.lastName, req.body.imageUrl, req.body.email)).then(user => {
@@ -322,12 +301,8 @@ app.post('/tokensignin', function (req, res) {
 app.all('/refreshUser', function (req, res) {
     userDao.getById(req.session.user.id).then(user => {
         console.log(user);
-        syncWithPlaid(user).then(syncedUser => {
-            req.session.user = syncedUser;
+            req.session.user = user;
             res.json(JSON.stringify(user));
-        }).catch(err => {
-            console.log(err);
-        });
     }).catch(err => {
         Dao.handleQueryError(err);
     });
@@ -358,11 +333,11 @@ app.all('/deleteBudgetItems', function (req, res) {
 });
 
 //Piggy banks
-app.all('/createOrUpdatePiggyBank', function(req, res) {
+app.all('/createOrUpdatePiggyBank', function (req, res) {
     piggyBankDao.createOrUpdate(req.body.piggyBank).then(piggyBank => {
         console.log('Piggy bank: ');
         console.log(piggyBank);
-        
+
         req.session.user.piggyBanks.push(piggyBank);
         res.json(JSON.stringify(piggyBank));
     }).catch(err => {
@@ -371,7 +346,7 @@ app.all('/createOrUpdatePiggyBank', function(req, res) {
     });
 });
 
-app.all('/deletePiggyBanks', function(req, res) {
+app.all('/deletePiggyBanks', function (req, res) {
     piggyBankDao.deleteBatch(req.body.piggyBankIds).then(() => {
         sync(req.session.user).then(syncedUser => {
             req.session.user = syncedUser;
@@ -387,7 +362,7 @@ app.all('/deletePiggyBanks', function(req, res) {
 });
 
 //Bills
-app.all('/createOrUpdateBill', function(req, res) {
+app.all('/createOrUpdateBill', function (req, res) {
     billDao.createOrUpdate(req.body.bill).then(bill => {
         console.log('Bill:');
         console.log(bill);
@@ -400,7 +375,7 @@ app.all('/createOrUpdateBill', function(req, res) {
     });
 });
 
-app.all('/deleteBills', function(req, res) {
+app.all('/deleteBills', function (req, res) {
     billDao.deleteBatch(req.body.ids).then(success => {
         if (success) {
             sync(req.session.user).then(syncedUser => {
@@ -420,26 +395,54 @@ app.all('/deleteBills', function(req, res) {
     });
 });
 
+app.all('/deletePlaidItem', function (req, res) {
+    itemDao.delete(req.body.id).then(success => {
+        if (success) {
+            sync(req.session.user).then(syncedUser => {
+                req.session.user = syncedUser;
+                res.json(syncedUser);
+            }).catch(err => {
+                console.log(err);
+                res.sendStatus(500);
+            });
+        } else {
+            console.log('Delete failed');
+            res.sendStatus(500);
+        }
+    }).catch(err => {
+        res.sendStatus(500);
+        Dao.handleQueryError(err);
+    });
+});
+
+app.all('/saveAccountNotifications', function(req, res) {
+    accountNotificationDao.createOrUpdateBatch(req.body.account.id, req.body.account.notifications).then(notifications => {
+        res.json(notifications);
+        sync(req.session.user).then(syncedUser => {
+            req.session.user = syncedUser;
+        });
+    }).catch(err => {
+        console.log(err);
+        res.sendStatus(500);
+    });
+});
+
 //Plaid
 app.all('/plaid-webhook', function (req, res, next) {
     console.log('PLAID WEBHOOK');
     console.log(JSON.stringify(req.body));
     const payload = JSON.parse(req.body);
-    switch (payload.webhook_type) {
-        case 'TRANSACTIONS':
-            switch (payload.webhook_code) {
-                case 'INITIAL_UPDATE':
-                case 'DEFAULT_UPDATE':
-                    console.log(payload);
-                    break;
-                case 'HISTORICAL_UPDATE':
-                    break;
-                case 'TRANSACTIONS_REMOVED':
-                    break;
-            }
-            break;
-        case 'ITEM':
-            break;
+    if (payload.webhook_type === 'TRANSACTIONS') {
+        switch (payload.webhook_code) {
+            case 'INITIAL_UPDATE':
+            case 'DEFAULT_UPDATE':
+                console.log(payload);
+                break;
+            case 'HISTORICAL_UPDATE':
+                break;
+            case 'TRANSACTIONS_REMOVED':
+                break;
+        }
     }
 })
 
@@ -447,11 +450,12 @@ function sync(user) {
     return new Promise(function (resolve, reject) {
         userDao.getById(user.id).then(userFromDb => {
             console.log(userFromDb);
-            syncWithPlaid(userFromDb).then(syncedUser => {
-                resolve(syncedUser);
-            }).catch(err => {
-                Dao.handleQueryError(err);
-            });
+            resolve(userFromDb);
+            // syncWithPlaid(userFromDb).then(syncedUser => {
+            //     resolve(syncedUser);
+            // }).catch(err => {
+            //     Dao.handleQueryError(err);
+            // });
         });
     });
 }
@@ -570,12 +574,16 @@ app.post('/get_access_token', function (req, res, next) {
                 error: error,
             });
         }
+
         //Save to DB
-        pool.getConnection().then(conn => {
-            conn.query('CALL createPlaidItem(?,?,?)', [req.session.user.id, tokenResponse.item_id, tokenResponse.access_token])
-                .catch(err => {
-                    console.log(err);
-                });
+        const params = [
+            req.session.user.id,
+            tokenResponse.item_id,
+            tokenResponse.access_token,
+            req.body.institutionName
+        ];
+        pool.query('CALL createPlaidItem(?,?,?,?)', params).catch(err => {
+            console.log(err);
         });
         prettyPrintResponse(tokenResponse);
         res.json({

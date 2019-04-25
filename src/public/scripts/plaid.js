@@ -1,9 +1,3 @@
-$(document).ready(function () {
-    $("").on('click', function (e) {
-        handler.open();
-    });
-});
-
 var handler = Plaid.create({
     apiVersion: 'v2',
     clientName: 'Plaid Quickstart',
@@ -14,7 +8,8 @@ var handler = Plaid.create({
     onSuccess: function (public_token, metadata) {
         $.post('/get_access_token', {
             public_token: public_token,
-            // institution: metadata.institution
+            institutionName: metadata.institution.name,
+            test: 'test'
         }, function (data) {
             $('#container').fadeOut('fast', function () {
                 $('#item_id').text(data.item_id);

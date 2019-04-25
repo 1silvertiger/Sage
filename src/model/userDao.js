@@ -76,18 +76,31 @@ module.exports = class UserDao extends Dao {
                             while (rows[ACCOUNTS_INDEX].length > accountIndex
                                 && rows[ACCOUNTS_INDEX][accountIndex].plaidItemId === rows[ITEMS_INDEX][i].itemId) {
                                 // Account notifications
+                                // const accountNotifications = new Array();
+                                // while (rows[ACCOUNT_NOTIFICATIONS_INDEX].length > accountNotificationIndex
+                                //     && rows[ACCOUNT_NOTIFICATIONS_INDEX][accountNotificationIndex].accountId === rows[ACCOUNTS_INDEX][accountIndex].id) {
+                                //     accountNotifications.push(new AccountNotification(
+                                //         rows[ACCOUNT_NOTIFICATIONS_INDEX][accountNotificationIndex].id,
+                                //         rows[ACCOUNT_NOTIFICATIONS_INDEX][accountNotificationIndex].accountId,
+                                //         rows[ACCOUNT_NOTIFICATIONS_INDEX][accountNotificationIndex].threshold,
+                                //         rows[ACCOUNT_NOTIFICATIONS_INDEX][accountNotificationIndex].spendable
+                                //     ));
+                                //     if (++accountNotificationIndex === rows[ACCOUNT_NOTIFICATIONS_INDEX].length)
+                                //         break;
+                                // }
                                 const accountNotifications = new Array();
-                                while (rows[ACCOUNT_NOTIFICATIONS_INDEX].length > accountNotificationIndex
-                                    && rows[ACCOUNT_NOTIFICATIONS_INDEX][accountNotificationIndex].accountId === rows[ACCOUNTS_INDEX][accountIndex].id) {
-                                    accountNotifications.push(new AccountNotification(
-                                        rows[ACCOUNT_NOTIFICATIONS_INDEX][accountNotificationIndex].id,
-                                        rows[ACCOUNT_NOTIFICATIONS_INDEX][accountNotificationIndex].accountId,
-                                        rows[ACCOUNT_NOTIFICATIONS_INDEX][accountNotificationIndex].threshold,
-                                        rows[ACCOUNT_NOTIFICATIONS_INDEX][accountNotificationIndex].spendable
-                                    ));
-                                    if (++accountNotificationIndex === rows[ACCOUNT_NOTIFICATIONS_INDEX].length)
-                                        break;
+                                for (let i = accountNotificationIndex; i < rows[ACCOUNT_NOTIFICATIONS_INDEX].length; i++) {
+                                    if (rows[ACCOUNT_NOTIFICATIONS_INDEX][i].accountId === rows[ACCOUNTS_INDEX][accountIndex].id) {
+                                        accountNotificationIndex++;
+                                        accountNotifications.push(new AccountNotification(
+                                            rows[ACCOUNT_NOTIFICATIONS_INDEX][i].id,
+                                            rows[ACCOUNT_NOTIFICATIONS_INDEX][i].accountId,
+                                            rows[ACCOUNT_NOTIFICATIONS_INDEX][i].threshold,
+                                            rows[ACCOUNT_NOTIFICATIONS_INDEX][i].spendable
+                                        ));
+                                    }
                                 }
+
 
                                 accounts.push(new Account(
                                     rows[ACCOUNTS_INDEX][accountIndex].id,
