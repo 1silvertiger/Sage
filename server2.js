@@ -301,12 +301,8 @@ app.post('/tokensignin', function (req, res) {
 app.all('/refreshUser', function (req, res) {
     userDao.getById(req.session.user.id).then(user => {
         console.log(user);
-        syncWithPlaid(user).then(syncedUser => {
-            req.session.user = syncedUser;
+            req.session.user = user;
             res.json(JSON.stringify(user));
-        }).catch(err => {
-            console.log(err);
-        });
     }).catch(err => {
         Dao.handleQueryError(err);
     });
