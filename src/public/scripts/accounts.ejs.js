@@ -30,7 +30,6 @@ $(document).ready(function () {
                     },
                     error: function (jqxhr, status, error) {
                         let i = 0;
-                        this.showLoader = false;
                     }
                 });
             }
