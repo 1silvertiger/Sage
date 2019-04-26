@@ -514,7 +514,9 @@ app.all('/plaid-webhook', function (req, res, next) {
                     });
                     break;
                 case 'TRANSACTIONS_REMOVED':
-
+                    transactionDao.deleteBatch(req.body.removed_transactions).catch(err => {
+                        console.log(err);
+                    });
                     break;
                 case 'DEFAULT_UPDATE':
                     getTransactions(
@@ -552,28 +554,28 @@ function sync(user) {
     });
 }
 
-function syncWithPlaid(user) {
-    return new Promise(function (resolve, reject) {
-        let promises = new Array();
-        for (let i = 0; i < user.items.length; i++) {
-            promises.push(getAccounts(user.items[i].accessToken));
-            promises.push(getTransactions(moment(user.items[i].lastSync).subtract(90, 'days').format('YYYY-MM-DD') || moment().format('YYYY-MM-DD'), moment().format('YYYY-MM-DD'), user.items[i].accessToken, 500, 0));
-        }
-        Promise.all(promises).then(values => {
-            for (let i = 0; i < values.length; i++) {
-                if (i % 2 === 0) {
-                    user.items[Math.floor(i / 2)].accounts = values[i];
-                } else {
-                    user.items[Math.floor(i / 2)].transactions = values[i];
-                    itemDao.updateLastSync(user.items[Math.floor(i / 2)]);
-                }
-            }
-            resolve(user);
-        }).catch(err => {
-            console.log(err);
-        });
-    });
-}
+// function syncWithPlaid(user) {
+//     return new Promise(function (resolve, reject) {
+//         let promises = new Array();
+//         for (let i = 0; i < user.items.length; i++) {
+//             promises.push(getAccounts(user.items[i].accessToken));
+//             promises.push(getTransactions(moment(user.items[i].lastSync).subtract(90, 'days').format('YYYY-MM-DD') || moment().format('YYYY-MM-DD'), moment().format('YYYY-MM-DD'), user.items[i].accessToken, 500, 0));
+//         }
+//         Promise.all(promises).then(values => {
+//             for (let i = 0; i < values.length; i++) {
+//                 if (i % 2 === 0) {
+//                     user.items[Math.floor(i / 2)].accounts = values[i];
+//                 } else {
+//                     user.items[Math.floor(i / 2)].transactions = values[i];
+//                     itemDao.updateLastSync(user.items[Math.floor(i / 2)]);
+//                 }
+//             }
+//             resolve(user);
+//         }).catch(err => {
+//             console.log(err);
+//         });
+//     });
+// }
 
 function getAccounts(accessToken) {
     return new Promise(function (resolve, reject) {
