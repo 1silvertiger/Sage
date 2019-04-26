@@ -1,7 +1,9 @@
 @import "../materialize/sass/materialize.scss";
 
+$backgroundColor: #f5f5f5;
+
 body {
-    background-color: #f5f5f5;
+    background-color: $backgroundColor;
 }
 
 .responsive-google-chart {
@@ -43,9 +45,14 @@ body {
         height: 100%;
         border-radius: 0;
         top:0!important;
+        background-color: $backgroundColor;
     }
     
     .modal-content {
         height: calc(100% - 56px);
+    }
+
+    .modal-footer {
+        background-color: $backgroundColor;
     }
 }
