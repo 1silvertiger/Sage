@@ -5,12 +5,12 @@ $(document).ready(function () {
         data: function () {
             return {
                 billNotificationToCreate: new Object(),
-                billToUpdate: Object.assign(new Object(), this.bill)
+                billToUpdate: Object.assign(new Object(), this.bill),
+                onceAround: false
             }
         },
         mounted: function () {
             const $vm = this;
-            // billToUpdate = Object.assign(new Object(), $vm.bill);
 
             //Datepicker
             M.Datepicker.init(document.querySelector('#editDueDate' + $vm.bill.id), {
@@ -19,13 +19,11 @@ $(document).ready(function () {
                 defaultDate: new Date($vm.bill.dueDate),
                 minDate: new Date($vm.bill.dueDate) < new Date() ? new Date($vm.bill.dueDate) : new Date(),
                 format: 'mmmm dd, yyyy',
+                container: document.querySelector('#app'),
                 onClose: function () {
                     $vm.bill.dueDate = appendTime(this.toString());
                 }
             });
-
-            const temp = M.Datepicker.getInstance(document.querySelector('#editDueDate' + $vm.bill.id));
-            // alert(temp.options.defaultDate);
 
             //Carousel
             M.Carousel.init(document.querySelector('#editBillCarousel' + $vm.bill.id), {
@@ -33,6 +31,8 @@ $(document).ready(function () {
                 indicators: false,
                 padding: 10
             });
+
+            $vm.onceAround = false;
         },
         methods: {
             prevCarouselItem: function() {
@@ -78,7 +78,7 @@ $(document).ready(function () {
                                 <label for="editDueDate">Due date</label>
                             </div>
                             <div class="card-action">
-                                <a class="waves-effect btn green lighten-2 hide" v-on:click="prevCarouselItem();">Back</a>
+                                <a v-show="onceAround" class="waves-effect btn green lighten-2" v-on:click="prevCarouselItem();">Back</a>
                                 <a class="waves-effect btn green lighten-2" v-on:click="nextCarouselItem();">More</a>
                             </div>
                         </div>
@@ -180,7 +180,7 @@ $(document).ready(function () {
                             </div>
                             <div class="card-action">
                                 <a class="waves-effect btn green lighten-2" v-on:click="prevCarouselItem();">Back</a>
-                                <a class="waves-effect btn green lighten-2" v-on:click="nextCarouselItem();">More</a>
+                                <a class="waves-effect btn green lighten-2" v-on:click="nextCarouselItem(); onceAround = true;">More</a>
                             </div>
                         </div>
                     </div>
@@ -200,7 +200,8 @@ $(document).ready(function () {
             billsToDelete: new Array(),
             billToCreate: { userId: user.id, autoPay: false, weekDay: false, notifications: new Array() },
             billToUpdate: new Object(),
-            billNotificationToCreate: {}
+            billNotificationToCreate: {},
+            onceAround: false
         },
         mounted: function () {
             const $vm = this;
@@ -212,10 +213,7 @@ $(document).ready(function () {
             M.Carousel.init(document.querySelector('#addBillCarousel'), {
                 fullWidth: true,
                 indicators: false,
-                padding: 10,
-                onCycleTo: function () {
-                    $('#autopayBtn').removeClass('hide');
-                }
+                padding: 10
             });
 
             //Datepickers
@@ -224,6 +222,7 @@ $(document).ready(function () {
                 defaultDate: new Date(),
                 minDate: new Date(),
                 format: 'mmmm dd, yyyy',
+                container: document.querySelector('#app'),
                 onClose: function () {
                     $vm.billToCreate.dueDate = appendTime(this.toString());
                 }
@@ -290,16 +289,16 @@ $(document).ready(function () {
                 return numeral(amount).format('$0,0.00');
             }
         },
-        computed: {
-            lateBills: function () {
-                // return user.bills.filter(bill => (bill.dueDate > new Date()) - (bill.dueDate < new Date()));
-                return user.bills.filter(bill => {
-                    const now = new Date();
-                    const temp = new Date(bill.dueDate) < now;
-                    return temp;
-                });
-            }
-        }
+        // computed: {
+        //     lateBills: function () {
+        //         // return user.bills.filter(bill => (bill.dueDate > new Date()) - (bill.dueDate < new Date()));
+        //         return user.bills.filter(bill => {
+        //             const now = new Date();
+        //             const temp = new Date(bill.dueDate) < now;
+        //             return temp;
+        //         });
+        //     }
+        // }
     });
 });
 
