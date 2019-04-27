@@ -167,7 +167,7 @@ app.use(favicon(path.join('./src/public/assets/icons', 'favicon.ico')));
 
 //Authenticate
 app.use(function (req, res, next) {
-    if (req.session.user || req.path === '/login' || req.path === '/tokensignin')
+    if (req.session.user || req.path === '/login' || req.path === '/tokensignin' || req.path === '/plaid-webhook')
         next();
     else {
         if (req.path) {
@@ -268,18 +268,20 @@ app.post('/tokensignin', function (req, res) {
         if (payload['aud'] == GOOGLE_AUTH_CLIENT_ID) {
             userDao.getById(userId).then(user => {
                 if (user) {
-                    syncWithPlaid(user).then(syncedUser => {
-                        userDao.getById(user.id).then(user2 => {
-                            req.session.user = user2;
-                            res.sendStatus(200);
-                        }).catch(err => {
-                            console.log(err);
-                            res.sendStatus(500);
-                        });
-                    }).catch(err => {
-                        console.log(err);
-                        res.sendStatus(500);
-                    });
+                    req.session.user = user;
+                    res.sendStatus(200);
+                    // syncWithPlaid(user).then(syncedUser => {
+                    //     userDao.getById(user.id).then(user2 => {
+                    //         req.session.user = user2;
+                    //         res.sendStatus(200);
+                    //     }).catch(err => {
+                    //         console.log(err);
+                    //         res.sendStatus(500);
+                    //     });
+                    // }).catch(err => {
+                    //     console.log(err);
+                    //     res.sendStatus(500);
+                    // });
                 } else {
                     userDao.create(new User(userId, req.body.firstName, req.body.lastName, req.body.imageUrl, req.body.email)).then(user => {
                         req.session.user = user;
@@ -301,8 +303,8 @@ app.post('/tokensignin', function (req, res) {
 app.all('/refreshUser', function (req, res) {
     userDao.getById(req.session.user.id).then(user => {
         console.log(user);
-            req.session.user = user;
-            res.json(JSON.stringify(user));
+        req.session.user = user;
+        res.json(JSON.stringify(user));
     }).catch(err => {
         Dao.handleQueryError(err);
     });
@@ -415,7 +417,7 @@ app.all('/deletePlaidItem', function (req, res) {
     });
 });
 
-app.all('/saveAccountNotifications', function(req, res) {
+app.all('/saveAccountNotifications', function (req, res) {
     accountNotificationDao.createOrUpdateBatch(req.body.account.id, req.body.account.notifications).then(notifications => {
         res.json(notifications);
         sync(req.session.user).then(syncedUser => {
@@ -428,21 +430,113 @@ app.all('/saveAccountNotifications', function(req, res) {
 });
 
 //Plaid
+app.post('/get_access_token', function (req, res, next) {
+    client.exchangePublicToken(req.body.public_token, function (error, tokenResponse) {
+        if (error != null) {
+            prettyPrintResponse(error);
+            return res.json({
+                error: error,
+            });
+        }
+
+        //Save to DB
+        // const params = [
+        //     req.session.user.id,
+        //     tokenResponse.item_id,
+        //     tokenResponse.access_token,
+        //     req.body.institutionName
+        // ];
+        // pool.query('CALL createPlaidItem(?,?,?,?)', params).then(item => {
+        //     getAccounts(item.accessToken).catch(err => {
+        //         console.log(err);
+        //     });
+        // }).catch(err => {
+        //     console.log(err);
+        // });
+
+        const item = new Item(
+            tokenResponse.item_id,
+            req.session.user.id,
+            tokenResponse.access_token,
+            req.body.institutionName,
+            null,
+            null,
+            null
+        );
+
+        itemDao.create(item).then(itemFromDb => {
+            const promises = [
+                getAccounts(tokenResponse.access_token),
+                getTransactions(moment().subtract(90, 'days').format('YYYY-MM-DD'), moment().format('YYYY-MM-DD'),tokenResponse.access_token)
+            ];
+            Promise.all(promises).then(values => {
+                itemFromDb.accounts = values[0];
+                itemFromDb.transactions = values[1];
+                req.session.user.items.push(itemFromDb);
+                res.json(itemFromDb);
+                itemDao.updateLastSync(itemFromDb);
+            }).catch(err => {
+                res.sendStatus(500);
+                console.log(err);
+            });
+        }).catch(err => {
+            res.sendStatus(500);
+            console.log(err);
+        });
+
+        // prettyPrintResponse(tokenResponse);
+        // res.json({
+        //     access_token: tokenResponse.access_token,
+        //     item_id: tokenResponse.item_id,
+        //     error: null,
+        // });
+    });
+});
+
 app.all('/plaid-webhook', function (req, res, next) {
     console.log('PLAID WEBHOOK');
-    console.log(JSON.stringify(req.body));
-    const payload = JSON.parse(req.body);
-    if (payload.webhook_type === 'TRANSACTIONS') {
-        switch (payload.webhook_code) {
-            case 'INITIAL_UPDATE':
-            case 'DEFAULT_UPDATE':
-                console.log(payload);
-                break;
-            case 'HISTORICAL_UPDATE':
-                break;
-            case 'TRANSACTIONS_REMOVED':
-                break;
-        }
+    console.log(req.body);
+    if (req.body.webhook_type === 'TRANSACTIONS') {
+        itemDao.getAccessTokenAndLastSyncById(req.body.item_id).then(item => {
+            switch (req.body.webhook_code) {
+                // case 'INITIAL_UPDATE':
+                case 'HISTORIC_UPDATE':
+                    getTransactions(
+                        moment().subtract(90, 'days').format('YYYY-MM-DD'),
+                        moment().format('YYYY-MM-DD'),
+                        item.accessToken,
+                        req.body.new_transactions,
+                        0
+                    ).then(transactions => {
+                        itemDao.updateLastSyncById(req.body.item_id);
+                    }).catch(err => {
+                        console.log(err);
+                    });
+                    break;
+                case 'TRANSACTIONS_REMOVED':
+                    transactionDao.deleteBatch(req.body.removed_transactions).catch(err => {
+                        console.log(err);
+                    });
+                    break;
+                case 'DEFAULT_UPDATE':
+                    getTransactions(
+                        moment(item.lastSync).format('YYYY-MM-DD'),
+                        moment().format('YYYY-MM-DD'),
+                        item.accessToken,
+                        500,
+                        0
+                    ).then(transactions => {
+                        itemDao.updateLastSync(item).catch(err => {
+                            console.log(err)
+                        });
+                    }).catch(err => {
+                        console.log(err);
+                    });
+                    break;
+            }
+        }).catch(err => {
+            console.log(err);
+        });
     }
 })
 
@@ -460,28 +554,28 @@ function sync(user) {
     });
 }
 
-function syncWithPlaid(user) {
-    return new Promise(function (resolve, reject) {
-        let promises = new Array();
-        for (let i = 0; i < user.items.length; i++) {
-            promises.push(getAccounts(user.items[i].accessToken));
-            promises.push(getTransactions(moment(user.items[i].lastSync).subtract(90, 'days').format('YYYY-MM-DD') || moment().format('YYYY-MM-DD'), moment().format('YYYY-MM-DD'), user.items[i].accessToken, 500, 0));
-        }
-        Promise.all(promises).then(values => {
-            for (let i = 0; i < values.length; i++) {
-                if (i % 2 === 0) {
-                    user.items[Math.floor(i / 2)].accounts = values[i];
-                } else {
-                    user.items[Math.floor(i / 2)].transactions = values[i];
-                    itemDao.updateLastSync(user.items[Math.floor(i / 2)]);
-                }
-            }
-            resolve(user);
-        }).catch(err => {
-            console.log(err);
-        });
-    });
-}
+// function syncWithPlaid(user) {
+//     return new Promise(function (resolve, reject) {
+//         let promises = new Array();
+//         for (let i = 0; i < user.items.length; i++) {
+//             promises.push(getAccounts(user.items[i].accessToken));
+//             promises.push(getTransactions(moment(user.items[i].lastSync).subtract(90, 'days').format('YYYY-MM-DD') || moment().format('YYYY-MM-DD'), moment().format('YYYY-MM-DD'), user.items[i].accessToken, 500, 0));
+//         }
+//         Promise.all(promises).then(values => {
+//             for (let i = 0; i < values.length; i++) {
+//                 if (i % 2 === 0) {
+//                     user.items[Math.floor(i / 2)].accounts = values[i];
+//                 } else {
+//                     user.items[Math.floor(i / 2)].transactions = values[i];
+//                     itemDao.updateLastSync(user.items[Math.floor(i / 2)]);
+//                 }
+//             }
+//             resolve(user);
+//         }).catch(err => {
+//             console.log(err);
+//         });
+//     });
+// }
 
 function getAccounts(accessToken) {
     return new Promise(function (resolve, reject) {
@@ -523,10 +617,7 @@ function getAccounts(accessToken) {
 
 function getTransactions(startDate, endDate, accessToken, count, offset) {
     return new Promise(function (resolve, reject) {
-        client.getTransactions(accessToken, startDate, endDate, {
-            count: count,
-            offset: offset,
-        },
+        client.getTransactions(accessToken, startDate, endDate,
             function (error, transactionsResponse) {
                 // console.log('Plaid transactions:');
                 // prettyPrintResponse(transactionsResponse);
@@ -562,37 +653,6 @@ function getTransactions(startDate, endDate, accessToken, count, offset) {
         );
     });
 }
-
-// Exchange token flow - exchange a Link public_token for
-// an API access_token
-// https://plaid.com/docs/#exchange-token-flow
-app.post('/get_access_token', function (req, res, next) {
-    client.exchangePublicToken(req.body.public_token, function (error, tokenResponse) {
-        if (error != null) {
-            prettyPrintResponse(error);
-            return res.json({
-                error: error,
-            });
-        }
-
-        //Save to DB
-        const params = [
-            req.session.user.id,
-            tokenResponse.item_id,
-            tokenResponse.access_token,
-            req.body.institutionName
-        ];
-        pool.query('CALL createPlaidItem(?,?,?,?)', params).catch(err => {
-            console.log(err);
-        });
-        prettyPrintResponse(tokenResponse);
-        res.json({
-            access_token: tokenResponse.access_token,
-            item_id: tokenResponse.item_id,
-            error: null,
-        });
-    });
-});
 
 
 // Retrieve Transactions for an Item

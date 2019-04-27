@@ -146,6 +146,8 @@ module.exports = class UserDao extends Dao {
                                         rows[TRANSACTION_ITEMS_INDEX][transactionItemIndex].transactionId,
                                         rows[TRANSACTION_ITEMS_INDEX][transactionItemIndex].amount,
                                         rows[TRANSACTION_ITEMS_INDEX][transactionItemIndex].note,
+                                        rows[TRANSACTION_ITEMS_INDEX][transactionItemIndex].appliedDate,
+                                        rows[TRANSACTION_ITEMS_INDEX][transactionItemIndex].default,
                                         tags
                                     ));
                                     if (++transactionItemIndex === rows[TRANSACTION_ITEMS_INDEX].length)
@@ -166,6 +168,7 @@ module.exports = class UserDao extends Dao {
 
                             const item = new Item(
                                 rows[ITEMS_INDEX][i].itemId,
+                                rows[ITEMS_INDEX][i].userId,
                                 rows[ITEMS_INDEX][i].accessToken,
                                 rows[ITEMS_INDEX][i].institutionName,
                                 rows[ITEMS_INDEX][i].lastSync,
@@ -279,7 +282,7 @@ module.exports = class UserDao extends Dao {
                     } else
                         resolve(null);
                     conn.end();
-                }).catch(err => {
+                 }).catch(err => {
                     Dao.handleQueryCatch(err);
                 });
             }).catch(err => {
