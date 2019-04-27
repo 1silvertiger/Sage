@@ -19,6 +19,7 @@ $(document).ready(function () {
                 defaultDate: new Date($vm.bill.dueDate),
                 minDate: new Date($vm.bill.dueDate) < new Date() ? new Date($vm.bill.dueDate) : new Date(),
                 format: 'mmmm dd, yyyy',
+                container: document.querySelector('#app'),
                 onClose: function () {
                     $vm.bill.dueDate = appendTime(this.toString());
                 }
@@ -224,6 +225,7 @@ $(document).ready(function () {
                 defaultDate: new Date(),
                 minDate: new Date(),
                 format: 'mmmm dd, yyyy',
+                container: document.querySelector('#app'),
                 onClose: function () {
                     $vm.billToCreate.dueDate = appendTime(this.toString());
                 }
