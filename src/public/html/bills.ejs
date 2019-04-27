@@ -100,10 +100,10 @@
                                         <label for="addDueDate">Due date</label>
                                     </div>
                                     <div class="card-action">
-                                        <a id="autopayBtn" class="waves-effect btn green lighten-2 hide"
-                                            onclick="prevAddCarouselItem();">Autopay</a>
+                                        <a v-show="onceAround" class="waves-effect btn green lighten-2"
+                                            onclick="prevAddCarouselItem();">Back</a>
                                         <a class="waves-effect btn green lighten-2"
-                                            onclick="nextAddCarouselItem();">Notifications</a>
+                                            onclick="nextAddCarouselItem();">More</a>
                                     </div>
                                 </div>
                             </div>
@@ -154,9 +154,9 @@
                                     </div>
                                     <div class="card-action">
                                         <a class="waves-effect btn green lighten-2"
-                                            onclick="prevAddCarouselItem();">Details</a>
+                                            onclick="prevAddCarouselItem();">Back</a>
                                         <a class="waves-effect btn green lighten-2"
-                                            onclick="nextAddCarouselItem();">Cycle</a>
+                                            onclick="nextAddCarouselItem();">More</a>
                                     </div>
                                 </div>
                             </div>
@@ -191,9 +191,9 @@
                                     </div>
                                     <div class="card-action">
                                         <a class="waves-effect btn green lighten-2"
-                                            onclick="prevAddCarouselItem();">Notifications</a>
+                                            onclick="prevAddCarouselItem();">Back</a>
                                         <a class="waves-effect btn green lighten-2"
-                                            onclick="nextAddCarouselItem();">Autopay</a>
+                                            onclick="nextAddCarouselItem();">More</a>
                                     </div>
                                 </div>
                             </div>
@@ -214,9 +214,9 @@
                                     </div>
                                     <div class="card-action">
                                         <a class="waves-effect btn green lighten-2"
-                                            onclick="prevAddCarouselItem();">Cycle</a>
+                                            onclick="prevAddCarouselItem();">Back</a>
                                         <a class="waves-effect btn green lighten-2"
-                                            onclick="nextAddCarouselItem();">Details</a>
+                                            onclick="nextAddCarouselItem();" v-on:click="onceAround = true;">More</a>
                                     </div>
                                 </div>
                             </div>
