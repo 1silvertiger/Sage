@@ -76,18 +76,31 @@ module.exports = class UserDao extends Dao {
                             while (rows[ACCOUNTS_INDEX].length > accountIndex
                                 && rows[ACCOUNTS_INDEX][accountIndex].plaidItemId === rows[ITEMS_INDEX][i].itemId) {
                                 // Account notifications
+                                // const accountNotifications = new Array();
+                                // while (rows[ACCOUNT_NOTIFICATIONS_INDEX].length > accountNotificationIndex
+                                //     && rows[ACCOUNT_NOTIFICATIONS_INDEX][accountNotificationIndex].accountId === rows[ACCOUNTS_INDEX][accountIndex].id) {
+                                //     accountNotifications.push(new AccountNotification(
+                                //         rows[ACCOUNT_NOTIFICATIONS_INDEX][accountNotificationIndex].id,
+                                //         rows[ACCOUNT_NOTIFICATIONS_INDEX][accountNotificationIndex].accountId,
+                                //         rows[ACCOUNT_NOTIFICATIONS_INDEX][accountNotificationIndex].threshold,
+                                //         rows[ACCOUNT_NOTIFICATIONS_INDEX][accountNotificationIndex].spendable
+                                //     ));
+                                //     if (++accountNotificationIndex === rows[ACCOUNT_NOTIFICATIONS_INDEX].length)
+                                //         break;
+                                // }
                                 const accountNotifications = new Array();
-                                while (rows[ACCOUNT_NOTIFICATIONS_INDEX].length > accountNotificationIndex
-                                    && rows[ACCOUNT_NOTIFICATIONS_INDEX][accountNotificationIndex].accountId === rows[ACCOUNTS_INDEX][accountIndex].id) {
-                                    accountNotifications.push(new AccountNotification(
-                                        rows[ACCOUNT_NOTIFICATIONS_INDEX][accountNotificationIndex].id,
-                                        rows[ACCOUNT_NOTIFICATIONS_INDEX][accountNotificationIndex].accountId,
-                                        rows[ACCOUNT_NOTIFICATIONS_INDEX][accountNotificationIndex].threshold,
-                                        rows[ACCOUNT_NOTIFICATIONS_INDEX][accountNotificationIndex].spendable
-                                    ));
-                                    if (++accountNotificationIndex === rows[ACCOUNT_NOTIFICATIONS_INDEX].length)
-                                        break;
+                                for (let i = accountNotificationIndex; i < rows[ACCOUNT_NOTIFICATIONS_INDEX].length; i++) {
+                                    if (rows[ACCOUNT_NOTIFICATIONS_INDEX][i].accountId === rows[ACCOUNTS_INDEX][accountIndex].id) {
+                                        accountNotificationIndex++;
+                                        accountNotifications.push(new AccountNotification(
+                                            rows[ACCOUNT_NOTIFICATIONS_INDEX][i].id,
+                                            rows[ACCOUNT_NOTIFICATIONS_INDEX][i].accountId,
+                                            rows[ACCOUNT_NOTIFICATIONS_INDEX][i].threshold,
+                                            rows[ACCOUNT_NOTIFICATIONS_INDEX][i].spendable
+                                        ));
+                                    }
                                 }
+
 
                                 accounts.push(new Account(
                                     rows[ACCOUNTS_INDEX][accountIndex].id,
@@ -133,6 +146,8 @@ module.exports = class UserDao extends Dao {
                                         rows[TRANSACTION_ITEMS_INDEX][transactionItemIndex].transactionId,
                                         rows[TRANSACTION_ITEMS_INDEX][transactionItemIndex].amount,
                                         rows[TRANSACTION_ITEMS_INDEX][transactionItemIndex].note,
+                                        rows[TRANSACTION_ITEMS_INDEX][transactionItemIndex].appliedDate,
+                                        rows[TRANSACTION_ITEMS_INDEX][transactionItemIndex].default,
                                         tags
                                     ));
                                     if (++transactionItemIndex === rows[TRANSACTION_ITEMS_INDEX].length)
@@ -153,6 +168,7 @@ module.exports = class UserDao extends Dao {
 
                             const item = new Item(
                                 rows[ITEMS_INDEX][i].itemId,
+                                rows[ITEMS_INDEX][i].userId,
                                 rows[ITEMS_INDEX][i].accessToken,
                                 rows[ITEMS_INDEX][i].institutionName,
                                 rows[ITEMS_INDEX][i].lastSync,
@@ -231,19 +247,19 @@ module.exports = class UserDao extends Dao {
 
                         // Bills
                         let billNotificationIndex = 0;
-                        let billTagIndex = 0;
                         for (let billIndex = 0; billIndex < rows[BILLS_INDEX].length; billIndex++) {
                             // Bill notifications
                             const billNotifications = new Array();
-                            for (billNotificationIndex; billNotificationIndex < rows[BILL_NOTIFICATIONS_INDEX].length; billNotificationIndex++) {
-                                if (rows[BILL_NOTIFICATIONS_INDEX][billNotificationIndex].billId === rows[BILLS_INDEX][billIndex].id) {
+                            for (let i = billNotificationIndex; i < rows[BILL_NOTIFICATIONS_INDEX].length; i++) {
+                                if (rows[BILL_NOTIFICATIONS_INDEX][i].billId === rows[BILLS_INDEX][billIndex].id) {
+                                    billNotificationIndex++;
                                     billNotifications.push(new BillNotification(
-                                        rows[BILL_NOTIFICATIONS_INDEX][billNotificationIndex].id,
-                                        rows[BILL_NOTIFICATIONS_INDEX][billNotificationIndex].billId,
-                                        rows[BILL_NOTIFICATIONS_INDEX][billNotificationIndex].periodId,
-                                        rows[BILL_NOTIFICATIONS_INDEX][billNotificationIndex].periodsBeforeBillIsDue
+                                        rows[BILL_NOTIFICATIONS_INDEX][i].id,
+                                        rows[BILL_NOTIFICATIONS_INDEX][i].billId,
+                                        rows[BILL_NOTIFICATIONS_INDEX][i].periodId,
+                                        rows[BILL_NOTIFICATIONS_INDEX][i].periodsBeforeBillIsDue
                                     ));
-                                }
+                                } 
                             }
 
                             const temp = new Bill(
@@ -266,7 +282,7 @@ module.exports = class UserDao extends Dao {
                     } else
                         resolve(null);
                     conn.end();
-                }).catch(err => {
+                 }).catch(err => {
                     Dao.handleQueryCatch(err);
                 });
             }).catch(err => {

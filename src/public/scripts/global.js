@@ -53,12 +53,23 @@ function refreshUser() {
 }
 
 function getSemanticPeriod(periodId) {
+    const temp = periodId === "1";
     switch (periodId) {
-        case 1: return 'day(s)'
-        case 2: return 'week(s)'
-        case 3: return 'month(s)'
-        case 4: return 'quarter(s)'
-        case 5: return 'year(s)'
+        case 1:
+        case "1":
+            return 'day(s)';
+        case 2:
+        case "2":
+            return 'week(s)';
+        case 3:
+        case "3":
+            return 'month(s)';
+        case 4:
+        case "4":
+            return 'quarter(s)';
+        case 5:
+        case "5":
+            return 'year(s)';
     }
 }
 

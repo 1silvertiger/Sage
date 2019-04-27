@@ -26,6 +26,24 @@ module.exports = class TransactionItemDao extends Dao {
         })
     }
 
+    createDefault(transaction) {
+        return new Promise(function (resolve, reject) {
+            createOrUpdate(new TransactionItem(
+                null,
+                transaction.id,
+                transaction.amount,
+                null,
+                transaction.date,
+                true
+            )).then(transactionItem => {
+                resolve(transactionItem);
+            }).catch(err => {
+                Dao.handleQueryCatch(err);
+                resolve(null);
+            });
+        });
+    }
+
     delete(id) {
         const pool = this.pool;
         return new Promise(function(resolve, reject) {
