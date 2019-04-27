@@ -21,20 +21,42 @@
                 </thead>
                 <tbody>
                     <tr v-for="t in transactions" :class="t.amount > 0 ? 'red-text lighten-2' : 'green-text lighten-2'">
-                        <td class="right">{{ getFormattedCurrency(t.amount) }}</td>
-                        <td></td>
-                        <td>{{ t.merchant }}</td>
-                        <td>{{ getFormattedDate(t.date) }}</td>
+                        <td class="right modal-trigger" :data-target="'modal-' + t.id">{{ getFormattedCurrency(t.amount) }}</td>
+                        <td class="modal-trigger" :data-target="'modal-' + t.id"></td>
+                        <td class="modal-trigger" :data-target="'modal-' + t.id">{{ t.merchant }}</td>
+                        <td class="modal-trigger" :data-target="'modal-' + t.id">{{ getFormattedDate(t.date) }}</td>
                     </tr>
                 </tbody>
             </table>
             <transaction-items-modal v-for="transaction in transactions" v-bind:key="transaction.id" v-bind:transaction="transaction" inline-template>
                 <div :id="'modal-' + transaction.id" class="modal">
                     <div class="modal-content">
-                        
+                        <h4>Edit Transaction</h4>
+                        <strong>Amount:</strong>&nbsp;{{ getFormattedCurrency(transaction.amount) }}
+                        <br>
+                        <strong>Merchant:</strong>&nbsp;{{ transaction.merchant }}
+                        <br>
+                        <strong>Date:</strong>&nbsp;{{ getFormattedDate(transaction.date) }}
+                        <br>
+                        <table class="striped highlight">
+                            <thead>
+                                <th>Amount</th>
+                                <th>Applied date</th>
+                                <th>Tags</th>
+                                <th>Notes</th>
+                            </thead>
+                            <tbody>
+                                <tr v-for="item in transaction.transactionItems">
+                                    <td>{{ getFormattedCurrency(item.amount) }}</td>
+                                    <td>{{ getFormattedDate(item.appliedDate) }}</td>
+                                    <td>Tags</td>
+                                    <td>Notes</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                     <div class="modal-footer">
-
+                        <a class="modal-close btn-flat">Close</a>
                     </div>
                 </div>
             </transaction-items-modal>

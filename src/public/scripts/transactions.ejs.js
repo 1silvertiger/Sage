@@ -2,13 +2,36 @@ $(document).ready(function () {
 
     Vue.component('transaction-items-modal', {
         props: ['transaction'],
-        data: function() {
+        data: function () {
             return {
 
             }
         },
-        mounted: function() {
-            
+        mounted: function () {
+            //Modals
+            M.Modal.init(document.querySelector('.modal'), {
+                preventScrolling: true,
+                dismissable: true,
+            });
+
+            //Datepicker
+            M.Datepicker.init(document.querySelector('#datepicker-' + this.transaction.id), {
+                autoClose: true,
+                defaultDate: new Date(this.transaction.date)
+            });
+        },
+        methods: {
+            getFormattedDate: function (date) {
+                return moment(date).format('MMM DD, YYYY');
+            },
+            getFormattedCurrency: function (amount) {
+                return numeral(amount).format('$0,0.00');
+            }
+        },
+        computed: {
+            transactionItems: function () {
+                return this.transaction.transactionItems.filter(transactionItem => !transactionItem.default);
+            }
         }
     });
 
@@ -19,7 +42,7 @@ $(document).ready(function () {
             transactionItemsToCreate: new Array()
         },
         mounted: function () {
-
+            
         },
         methods: {
             getFormattedDate: function (date) {
