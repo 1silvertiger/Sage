@@ -7,27 +7,28 @@ module.exports = class TransactionDao extends Dao {
     constructor(pPool) {
         super(pPool);
         this.Dao = new Dao();
+        this.transactionItemDao = new TransactionItemDao(pPool);
     }
 
     create(transaction) {
         const pool = this.pool;
         return new Promise(function (resolve, reject) {
             const params = [
-                transaction.id
-                , transaction.plaidItemId
-                , transaction.accountId
-                , transaction.amount
-                , transaction.merchant
-                , transaction.date
+                transaction.id,
+                transaction.plaidItemId,
+                transaction.accountId,
+                transaction.amount,
+                transaction.merchant,
+                transaction.date
             ];
             pool.query(Dao.composeQuery('createOrUpdateTransaction', params), params).then(rows => {
                 resolve(new Transaction(
-                    rows[0][0].id, 
-                    rows[0][0].plaidItemId, 
-                    rows[0][0].accountId, 
-                    rows[0][0].amount, 
-                    rows[0][0].merchant, 
-                    rows[0][0].date, 
+                    rows[0][0].id,
+                    rows[0][0].plaidItemId,
+                    rows[0][0].accountId,
+                    rows[0][0].amount,
+                    rows[0][0].merchant,
+                    rows[0][0].date,
                     rows[0][0].name
                 ));
             }).catch(err => {
@@ -53,22 +54,31 @@ module.exports = class TransactionDao extends Dao {
         return new Promise(function (resolve, reject) {
             pool.batch(Dao.composeQuery2('createOrUpdateTransaction', params[0].length), params).then(rows => {
                 const transactionsFromDb = new Array();
-                for (let i = 0; i < transactions.length * 2; i += 2) {
-                    const temp = new Transaction(
-                        rows[i][0].id
-                        , rows[i][0].plaidItemId
-                        , rows[i][0].accountId
-                        , rows[i][0].amount
-                        , rows[i][0].merchant
-                        , rows[i][0].date
-                    );
-                    // transactionItemDao.createDefault(temp).then(defaultTransactionItem => {
-                    //     temp.transactionItems = [defaultTransactionItem];
-                    transactionsFromDb.push(temp);
-                    // }).catch(err => {
-                    //     Dao.handleQueryCatch(err);
-                    //     resolve(null);
-                    // });
+                let transaction = new Transaction();
+                for (let i = 0; i < transactions.length * 2; i++) {
+                    if (i % 3 === 2) {
+                        continue;
+                    } else if (i % 3 === 0) {
+                        transaction = new Transaction(
+                            rows[i][0].id
+                            , rows[i][0].plaidItemId
+                            , rows[i][0].accountId
+                            , rows[i][0].amount
+                            , rows[i][0].merchant
+                            , rows[i][0].date
+                        );
+                    } else {
+                        transaction.transactionItems.push(new TransactionItem(
+                            rows[i][0].id,
+                            rows[i][0].transactionId,
+                            rows[i][0].amount,
+                            rows[i][0].note,
+                            rows[i][0].appliedDate,
+                            rows[i][0].default,
+                            new Array()
+                        ));
+                        transactionsFromDb.push(transaction);
+                    }
                 }
                 resolve(transactionsFromDb);
             }).catch(err => {
