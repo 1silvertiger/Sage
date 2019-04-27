@@ -19,7 +19,9 @@
                                 <th></th>
                                 <th>Name</th>
                                 <th>Balance</th>
+                                <th></th>
                                 <th class="hide-on-small-only">Goal</th>
+                                <th class="hide-on-small-only"></th>
                                 <th class="hide-on-small-only">Account</th>
                             </thead>
                             <tbody>
@@ -34,8 +36,10 @@
                                         </form>
                                     </td>
                                     <td class="modal-trigger" :data-target="pb.id">{{ pb.name }}</td>
-                                    <td class="modal-trigger" :data-target="pb.id">{{ pb.balance }}</td>
-                                    <td class="modal-trigger hide-on-small-only" :data-target="pb.id">{{ pb.goal }}</td>
+                                    <td class="modal-trigger right-align" :data-target="pb.id">{{ getFormattedCurrency(pb.balance) }}</td>
+                                    <td class="modal-trigger" :data-target="pb.id"></td>
+                                    <td class="modal-trigger right-align hide-on-small-only" :data-target="pb.id">{{ getFormattedCurrency(pb.goal) }}</td>
+                                    <td class="modal-trigger hide-on-small-only" :data-target="pb.id"></td>
                                     <td class="modal-trigger hide-on-small-only" :data-target="pb.id">
                                         {{ getAccountById(pb.accountId).name }}</td>
                                 </tr>

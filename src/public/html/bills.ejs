@@ -8,29 +8,6 @@
         <div class="row">
             <h1>Bills</h1>
         </div>
-        <div class="row" v-if="lateBills.length > 0">
-            <div class="col s12 l12">
-                <div class="card red lighten-4">
-                    <div class="card-content">
-                        <span class="card-title">Late bills</span>
-                        <table class="striped highlight">
-                            <thead>
-                                <th>Name</th>
-                                <th>Amount</th>
-                                <th>Due date</th>
-                            </thead>
-                            <tbody>
-                                <tr v-for="bill in lateBills">
-                                    <td>{{ bill.name }}</td>
-                                    <td>{{ getFormattedCurrency(bill.amount) }}</td>
-                                    <td>{{ getFormattedDate(bill.dueDate) }}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
         <div class="row">
             <div class="col s12 l12">
                 <div class="card">
@@ -41,6 +18,7 @@
                                 <th></th>
                                 <th>Name</th>
                                 <th>Amount</th>
+                                <th></th>
                                 <th class="hide-on-med-and-down">Repeats</th>
                                 <th>Due next</th>
                                 <th class="hide-on-med-and-down">Charged on weekday?</th>
@@ -61,9 +39,11 @@
                                         <td v-on:click="setBillToUpdate(b)">
                                             {{ b.name }}</td>
                                         <td v-on:click="setBillToUpdate(b)" data-target="updateModal"
-                                            class="modal-trigger">
+                                            class="modal-trigger right-align">
                                             {{ getFormattedCurrency(b.amount) }}
                                         </td>
+                                        <td v-on:click="setBillToUpdate(b)" data-target="updateModal"
+                                            class="modal-trigger"></td>
                                         <td v-on:click="setBillToUpdate(b)" data-target="updateModal"
                                             class="modal-trigger hide-on-med-and-down">
                                             {{ b.periodId ? 'Every '.concat(b.numOfPeriods, ' ', getSemanticPeriod(b.periodId)) : 'No' }}
@@ -78,7 +58,7 @@
                                             class="modal-trigger hide-on-med-and-down">
                                             {{ b.accountId ? 'Yes' : 'No' }}</td>
                                     </tr>
-                                    <tr >
+                                    <tr>
                                         <td colspan="7">
                                             <bill-carousel v-bind:user="user" v-bind:bill="b"
                                                 v-on:save="createOrUpdateBill"></bill-carousel>

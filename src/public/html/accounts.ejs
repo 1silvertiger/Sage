@@ -18,19 +18,19 @@
                             <thead>
                                 <tr>
                                     <th>Name</th>
-                                    <th>Current balance</th>
-                                    <th>Available balance</th>
-                                    <th># of notifications:</th>
+                                    <th class="right-align">Current balance</th>
+                                    <th class="right-align">Available balance</th>
+                                    <th class="right-align hide-on-med-and-down"># of notifications:</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr v-for="account in item.accounts">
                                     <td class="modal-trigger" :data-target="'modal-' + account.id">{{account.name}}</td>
-                                    <td class="modal-trigger" :data-target="'modal-' + account.id">
+                                    <td class="modal-trigger right-align" :data-target="'modal-' + account.id">
                                         {{ formatCurrency(account.currentBalance) }}</td>
-                                    <td class="modal-trigger" :data-target="'modal-' + account.id">
+                                    <td class="modal-trigger right-align" :data-target="'modal-' + account.id">
                                         {{ formatCurrency(account.availableBalance) }}</td>
-                                    <td class="modal-trigger" :data-target="'modal-' + account.id">
+                                    <td class="modal-trigger right-align hide-on-med-and-down" :data-target="'modal-' + account.id">
                                         {{ account.notifications.length }}</td>
                                 </tr>
                             </tbody>

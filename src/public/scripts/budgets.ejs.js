@@ -180,6 +180,9 @@ $(document).ready(function () {
                         return 'year';
 
                 }
+            },
+            getFormattedCurrency: function (amount) {
+                return numeral(amount).format('$0,0.00');
             }
         }
     });

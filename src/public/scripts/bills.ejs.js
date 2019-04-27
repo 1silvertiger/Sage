@@ -290,16 +290,16 @@ $(document).ready(function () {
                 return numeral(amount).format('$0,0.00');
             }
         },
-        computed: {
-            lateBills: function () {
-                // return user.bills.filter(bill => (bill.dueDate > new Date()) - (bill.dueDate < new Date()));
-                return user.bills.filter(bill => {
-                    const now = new Date();
-                    const temp = new Date(bill.dueDate) < now;
-                    return temp;
-                });
-            }
-        }
+        // computed: {
+        //     lateBills: function () {
+        //         // return user.bills.filter(bill => (bill.dueDate > new Date()) - (bill.dueDate < new Date()));
+        //         return user.bills.filter(bill => {
+        //             const now = new Date();
+        //             const temp = new Date(bill.dueDate) < now;
+        //             return temp;
+        //         });
+        //     }
+        // }
     });
 });
 
