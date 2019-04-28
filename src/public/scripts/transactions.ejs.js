@@ -51,12 +51,23 @@ $(document).ready(function () {
                 M.Chips.init(document.querySelector('#tags-' + i + '-' + this.transaction.id), {
                     placeholder: 'Add tags',
                     secondaryPlaceholder: 'Add more tags',
-                    data: chips
+                    data: chips,
+                    onChipAdd: function() {
+                        // alert(JSON.stringify(this.chipsData[this.chipsData.length - 1]));
+                        $vm.transactionItems[i].tags.push({
+                            id: getTagId(this.chipsData[this.chipsData.length - 1].tag),
+                            name: this.chipsData[this.chipsData.length - 1].tag,
+                            userId: user.id
+                        });
+                    }
                 });
             }
             M.Chips.init(document.querySelector('#addTags-' + this.transaction.id), {
                 placeholder: 'Add tags',
-                secondaryPlaceholder: 'Add more tags'
+                secondaryPlaceholder: 'Add more tags',
+                onChipAdd: function() {
+                    alert(this.chipsData[this.chipsData.length - 1]);
+                }
             });
         },
         methods: {
