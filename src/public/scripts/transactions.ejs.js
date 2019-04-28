@@ -30,7 +30,7 @@ $(document).ready(function () {
                     defaultDate: new Date(this.transactionItems[i].appliedDate),
                     container: document.querySelector('#app'),
                     onClose: function () {
-                        $vm.transactionItems[i].appliedDate = this.toString();
+                        $vm.transactionItems[i].appliedDate = new Date(this.toString());
                     }
                 });
             M.Datepicker.init(document.querySelector('#addAppliedDate-' + this.transaction.id), {
@@ -39,7 +39,7 @@ $(document).ready(function () {
                 defaultDate: new Date(this.transaction.date),
                 container: document.querySelector('#app'),
                 onClose: function () {
-                    $vm.transactionItemToCreate.appliedDate = this.toString();
+                    $vm.transactionItemToCreate.appliedDate = new Date(this.toString());
                 }
             });
 
