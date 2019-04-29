@@ -10,7 +10,7 @@
         <div class="row">
             <h1>Transactions</h1>
 
-            <table class="striped highlight">
+            <table class="table highlight">
                 <thead>
                     <tr>
                         <th>Amount</th>
@@ -21,14 +21,16 @@
                 </thead>
                 <tbody>
                     <tr v-for="t in transactions" :class="t.amount > 0 ? '' : 'green-text lighten-2'">
-                        <td class="right modal-trigger" :data-target="'modal-' + t.id">{{ getFormattedCurrency(t.amount) }}</td>
+                        <td class="align-right modal-trigger" :data-target="'modal-' + t.id">
+                            {{ getFormattedCurrency(t.amount) }}</td>
                         <td class="modal-trigger" :data-target="'modal-' + t.id"></td>
                         <td class="modal-trigger" :data-target="'modal-' + t.id">{{ t.merchant }}</td>
                         <td class="modal-trigger" :data-target="'modal-' + t.id">{{ getFormattedDate(t.date) }}</td>
                     </tr>
                 </tbody>
             </table>
-            <transaction-items-modal v-for="transaction in transactions" v-bind:key="transaction.id" v-bind:transaction="transaction" inline-template>
+            <transaction-items-modal v-for="transaction in transactions" v-bind:key="transaction.id"
+                v-bind:transaction="transaction" inline-template>
                 <div :id="'modal-' + transaction.id" class="modal">
                     <div class="modal-content">
                         <h4>Edit Transaction</h4>
@@ -38,27 +40,55 @@
                         <br>
                         <strong>Date:</strong>&nbsp;{{ getFormattedDate(transaction.date) }}
                         <br>
-                        <table class="striped highlight">
+                        <table class="table highlight">
                             <thead>
                                 <th>Amount</th>
-                                <th></th>
+                                <!-- <th></th> -->
                                 <th>Applied date</th>
                                 <th>Tags</th>
-                                <th>Notes</th>
+                                <th></th>
                             </thead>
                             <tbody>
-                                <tr v-for="item in transaction.transactionItems">
-                                    <td class="right">{{ getFormattedCurrency(item.amount) }}</td>
-                                    <td></td>
-                                    <td>{{ getFormattedDate(item.appliedDate) }}</td>
-                                    <td>Tags</td>
-                                    <td>Notes</td>
+                                <tr v-for="(item, index) in transaction.transactionItems">
+                                    <td class="align-right">
+                                        <span v-if="item.default">{{ getFormattedCurrency(remainder) }}</span>
+                                        <div v-else class="input-field inline short-input-field">
+                                            $&nbsp;<input :id="'amount-' + index" type="number" class="validate"
+                                                v-model="item.amount">
+                                            <label :for="'amount-' + index" :class="'active'">Amount</label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <input type="text" :id="'appliedDate-' + index + '-' + transaction.id" class="datepicker med-input-field">
+                                    </td>
+                                    <td>
+                                        <div :id="'tags-' + index + '-' + transaction.id" class="chips chips-initial"></div>
+                                    </td>
+                                    <td>
+                                        <a v-show="!item.default" class="btn-flat" v-on:click="transactionItems.splice(index, 1)">Remove</a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="align-right">
+                                        <div class="input-field short-input-field">
+                                            <input :id="'addAmount-' + transaction.id" type="number" class="validate" v-model="transactionItemToCreate.amount">
+                                            <label :for="'addAmount-' + transaction.id">Amount</label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <input :id="'addAppliedDate-' + transaction.id" type="text" class="datepicker med-input-field">
+                                    </td>
+                                    <td>
+                                        <div :id="'addTags-' + transaction.id" class="chips"></div>
+                                    </td>
+                                    <td><a class="btn-flat" v-on:click="addTransactionItem">Add</a></td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
                     <div class="modal-footer">
-                        <a class="modal-close btn-flat">Close</a>
+                        <a class="modal-close btn-flat" v-on:click="save">Save</a>
+                        <a class="modal-close btn-flat">Cancel</a>
                     </div>
                 </div>
             </transaction-items-modal>

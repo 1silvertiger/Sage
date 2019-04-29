@@ -41,6 +41,8 @@ const AccountNotification = require('babel-loader!./src/model/accountNotificatio
 const AccountNotificationDao = require('babel-loader!./src/model/accountNotificationDao.js');
 const Transaction = require('babel-loader!./src/model/transaction.js');
 const TransactionDao = require('babel-loader!./src/model/transactionDao.js');
+const TransactionItem = require('babel-loader!./src/model/transactionItem.js');
+const TransactionItemDao = require('babel-loader!./src/model/transactionItemDao.js');
 const Budget = require('babel-loader!./src/model/budget.js');
 const BudgetDao = require('babel-loader!./src/model/budgetDao.js');
 const PiggyBank = require('babel-loader!./src/model/piggyBank.js');
@@ -94,6 +96,7 @@ const itemDao = new ItemDao(pool);
 const accountDao = new AccountDao(pool);
 const accountNotificationDao = new AccountNotificationDao(pool);
 const transactionDao = new TransactionDao(pool);
+const transactionItemDao = new TransactionItemDao(pool);
 const budgetDao = new BudgetDao(pool);
 const piggyBankDao = new PiggyBankDao(pool);
 const billDao = new BillDao(pool);
@@ -302,7 +305,7 @@ app.post('/tokensignin', function (req, res) {
 
 app.all('/refreshUser', function (req, res) {
     userDao.getById(req.session.user.id).then(user => {
-        console.log(user);
+        // console.log(user);
         req.session.user = user;
         res.json(JSON.stringify(user));
     }).catch(err => {
@@ -429,6 +432,15 @@ app.all('/saveAccountNotifications', function (req, res) {
     });
 });
 
+app.all('/saveTransactionItems', function (req, res) {
+    transactionItemDao.save(req.body.transactionId, req.body.transactionItems).then(transactionItems => {
+        res.json(transactionItems);
+    }).catch(err => {
+        res.sendStatus(500);
+        console.log(err);
+    }); 
+});
+
 //Plaid
 app.post('/get_access_token', function (req, res, next) {
     client.exchangePublicToken(req.body.public_token, function (error, tokenResponse) {
@@ -467,7 +479,7 @@ app.post('/get_access_token', function (req, res, next) {
         itemDao.create(item).then(itemFromDb => {
             const promises = [
                 getAccounts(tokenResponse.access_token),
-                getTransactions(moment().subtract(90, 'days').format('YYYY-MM-DD'), moment().format('YYYY-MM-DD'),tokenResponse.access_token)
+                getTransactions(moment().subtract(90, 'days').format('YYYY-MM-DD'), moment().format('YYYY-MM-DD'), tokenResponse.access_token)
             ];
             Promise.all(promises).then(values => {
                 itemFromDb.accounts = values[0];
@@ -543,7 +555,7 @@ app.all('/plaid-webhook', function (req, res, next) {
 function sync(user) {
     return new Promise(function (resolve, reject) {
         userDao.getById(user.id).then(userFromDb => {
-            console.log(userFromDb);
+            // console.log(userFromDb);
             resolve(userFromDb);
             // syncWithPlaid(userFromDb).then(syncedUser => {
             //     resolve(syncedUser);
