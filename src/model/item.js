@@ -1,9 +1,7 @@
-const Account = require('./account.js');
-const AccountDao = require('./accountDao');
-
 module.exports = class Item {
-    constructor(pId, pAccessToken, pInstitutionName, pLastSync, pAccounts, pTransactions) {
+    constructor(pId, pUserId, pAccessToken, pInstitutionName, pLastSync, pAccounts, pTransactions) {
         this.id = pId;
+        this.userId = pUserId;
         this.accessToken = pAccessToken;
         this.institutionName = pInstitutionName;
         this.lastSync = pLastSync;

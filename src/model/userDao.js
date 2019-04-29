@@ -77,16 +77,16 @@ module.exports = class UserDao extends Dao {
                                 && rows[ACCOUNTS_INDEX][accountIndex].plaidItemId === rows[ITEMS_INDEX][i].itemId) {
                                 // Account notifications
                                 const accountNotifications = new Array();
-                                while (rows[ACCOUNT_NOTIFICATIONS_INDEX].length > accountNotificationIndex
-                                    && rows[ACCOUNT_NOTIFICATIONS_INDEX][accountNotificationIndex].accountId === rows[ACCOUNTS_INDEX][accountIndex].id) {
-                                    accountNotifications.push(new AccountNotification(
-                                        rows[ACCOUNT_NOTIFICATIONS_INDEX][accountNotificationIndex].id,
-                                        rows[ACCOUNT_NOTIFICATIONS_INDEX][accountNotificationIndex].accountId,
-                                        rows[ACCOUNT_NOTIFICATIONS_INDEX][accountNotificationIndex].threshold,
-                                        rows[ACCOUNT_NOTIFICATIONS_INDEX][accountNotificationIndex].spendable
-                                    ));
-                                    if (++accountNotificationIndex === rows[ACCOUNT_NOTIFICATIONS_INDEX].length)
-                                        break;
+                                for (let i = accountNotificationIndex; i < rows[ACCOUNT_NOTIFICATIONS_INDEX].length; i++) {
+                                    if (rows[ACCOUNT_NOTIFICATIONS_INDEX][i].accountId === rows[ACCOUNTS_INDEX][accountIndex].id) {
+                                        accountNotificationIndex++;
+                                        accountNotifications.push(new AccountNotification(
+                                            rows[ACCOUNT_NOTIFICATIONS_INDEX][i].id,
+                                            rows[ACCOUNT_NOTIFICATIONS_INDEX][i].accountId,
+                                            rows[ACCOUNT_NOTIFICATIONS_INDEX][i].threshold,
+                                            rows[ACCOUNT_NOTIFICATIONS_INDEX][i].spendable
+                                        ));
+                                    }
                                 }
 
                                 accounts.push(new Account(
@@ -108,36 +108,36 @@ module.exports = class UserDao extends Dao {
                             // Transactions
                             const transactions = new Array();
                             while (rows[TRANSACTIONS_INDEX].length > transactionIndex
-                                // && rows[TRANSACTIONS_INDEX][transactionIndex].plaidItemId 
                                 && rows[TRANSACTIONS_INDEX][transactionIndex].plaidItemId === rows[ITEMS_INDEX][i].itemId) {
                                 // Transaction items
                                 const transactionItems = new Array();
-                                while (rows[TRANSACTION_ITEMS_INDEX].length > transactionItemIndex
-                                    && rows[TRANSACTION_ITEMS_INDEX][transactionItemIndex].transactionId
-                                    === rows[TRANSACTIONS_INDEX][transactionIndex].id) {
-                                    // Transaction item tags
-                                    const tags = new Array();
-                                    while (rows[TRANSACTION_ITEM_TAGS_INDEX].length > transactionItemTagIndex
-                                        && rows[TRANSACTION_ITEM_TAGS_INDEX][transactionItemTagIndex].transactionId
-                                        === rows[TRANSACTION_ITEMS_INDEX][transactionItemIndex].id) {
-                                        tags.push(new Tag(
-                                            rows[TRANSACTION_ITEM_TAGS_INDEX][transactionItemTagIndex].id,
-                                            rows[TRANSACTION_ITEM_TAGS_INDEX][transactionItemTagIndex].userId,
-                                            rows[TRANSACTION_ITEM_TAGS_INDEX][transactionItemTagIndex].name
+                                for (let i = transactionItemIndex; i < rows[TRANSACTION_ITEMS_INDEX].length; i++) {
+                                    if (rows[TRANSACTION_ITEMS_INDEX][i].transactionId === rows[TRANSACTIONS_INDEX][transactionIndex].id) {
+                                        // Get tags
+                                        const tags = new Array();
+                                        for (let j = transactionItemTagIndex; j < rows[TRANSACTION_ITEM_TAGS_INDEX].length; j++) {
+                                            if (rows[TRANSACTION_ITEM_TAGS_INDEX][j].transactionItemId === rows[TRANSACTION_ITEMS_INDEX][transactionItemIndex].id) {
+                                                transactionItemTagIndex++;
+                                                tags.push(new Tag(
+                                                    rows[TRANSACTION_ITEM_TAGS_INDEX][j].id,
+                                                    rows[TRANSACTION_ITEM_TAGS_INDEX][j].userId,
+                                                    rows[TRANSACTION_ITEM_TAGS_INDEX][j].name
+                                                ));
+                                            }
+                                        }
+                                        transactionItemIndex++;
+                                        transactionItems.push(new TransactionItem(
+                                            rows[TRANSACTION_ITEMS_INDEX][i].id,
+                                            rows[TRANSACTION_ITEMS_INDEX][i].transactionId,
+                                            rows[TRANSACTION_ITEMS_INDEX][i].amount,
+                                            rows[TRANSACTION_ITEMS_INDEX][i].note,
+                                            rows[TRANSACTION_ITEMS_INDEX][i].appliedDate,
+                                            rows[TRANSACTION_ITEMS_INDEX][i].default,
+                                            tags
                                         ));
-                                        if (++transactionItemTagIndex === rows[TRANSACTION_ITEM_TAGS_INDEX].length)
-                                            break;
                                     }
-                                    transactionItems.push(new TransactionItem(
-                                        rows[TRANSACTION_ITEMS_INDEX][transactionItemIndex].id,
-                                        rows[TRANSACTION_ITEMS_INDEX][transactionItemIndex].transactionId,
-                                        rows[TRANSACTION_ITEMS_INDEX][transactionItemIndex].amount,
-                                        rows[TRANSACTION_ITEMS_INDEX][transactionItemIndex].note,
-                                        tags
-                                    ));
-                                    if (++transactionItemIndex === rows[TRANSACTION_ITEMS_INDEX].length)
-                                        break;
                                 }
+
                                 transactions.push(new Transaction(
                                     rows[TRANSACTIONS_INDEX][transactionIndex].id,
                                     rows[TRANSACTIONS_INDEX][transactionIndex].plaidItemId,
@@ -147,12 +147,14 @@ module.exports = class UserDao extends Dao {
                                     rows[TRANSACTIONS_INDEX][transactionIndex].date,
                                     transactionItems
                                 ));
+
                                 if (++transactionIndex === rows[TRANSACTIONS_INDEX].length)
                                     break;
                             }
 
                             const item = new Item(
                                 rows[ITEMS_INDEX][i].itemId,
+                                rows[ITEMS_INDEX][i].userId,
                                 rows[ITEMS_INDEX][i].accessToken,
                                 rows[ITEMS_INDEX][i].institutionName,
                                 rows[ITEMS_INDEX][i].lastSync,
@@ -243,7 +245,7 @@ module.exports = class UserDao extends Dao {
                                         rows[BILL_NOTIFICATIONS_INDEX][i].periodId,
                                         rows[BILL_NOTIFICATIONS_INDEX][i].periodsBeforeBillIsDue
                                     ));
-                                } 
+                                }
                             }
 
                             const temp = new Bill(

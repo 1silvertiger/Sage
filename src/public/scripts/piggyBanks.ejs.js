@@ -85,6 +85,9 @@ $(document).ready(function () {
                         let i = 0;
                     }
                 });
+            },
+            getFormattedCurrency: function (amount) {
+                return numeral(amount).format('$0,0.00');
             }
         }
     });
