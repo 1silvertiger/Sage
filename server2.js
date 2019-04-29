@@ -273,18 +273,6 @@ app.post('/tokensignin', function (req, res) {
                 if (user) {
                     req.session.user = user;
                     res.sendStatus(200);
-                    // syncWithPlaid(user).then(syncedUser => {
-                    //     userDao.getById(user.id).then(user2 => {
-                    //         req.session.user = user2;
-                    //         res.sendStatus(200);
-                    //     }).catch(err => {
-                    //         console.log(err);
-                    //         res.sendStatus(500);
-                    //     });
-                    // }).catch(err => {
-                    //     console.log(err);
-                    //     res.sendStatus(500);
-                    // });
                 } else {
                     userDao.create(new User(userId, req.body.firstName, req.body.lastName, req.body.imageUrl, req.body.email)).then(user => {
                         req.session.user = user;
@@ -451,21 +439,6 @@ app.post('/get_access_token', function (req, res, next) {
             });
         }
 
-        //Save to DB
-        // const params = [
-        //     req.session.user.id,
-        //     tokenResponse.item_id,
-        //     tokenResponse.access_token,
-        //     req.body.institutionName
-        // ];
-        // pool.query('CALL createPlaidItem(?,?,?,?)', params).then(item => {
-        //     getAccounts(item.accessToken).catch(err => {
-        //         console.log(err);
-        //     });
-        // }).catch(err => {
-        //     console.log(err);
-        // });
-
         const item = new Item(
             tokenResponse.item_id,
             req.session.user.id,
@@ -495,13 +468,6 @@ app.post('/get_access_token', function (req, res, next) {
             res.sendStatus(500);
             console.log(err);
         });
-
-        // prettyPrintResponse(tokenResponse);
-        // res.json({
-        //     access_token: tokenResponse.access_token,
-        //     item_id: tokenResponse.item_id,
-        //     error: null,
-        // });
     });
 });
 
@@ -555,13 +521,7 @@ app.all('/plaid-webhook', function (req, res, next) {
 function sync(user) {
     return new Promise(function (resolve, reject) {
         userDao.getById(user.id).then(userFromDb => {
-            // console.log(userFromDb);
             resolve(userFromDb);
-            // syncWithPlaid(userFromDb).then(syncedUser => {
-            //     resolve(syncedUser);
-            // }).catch(err => {
-            //     Dao.handleQueryError(err);
-            // });
         });
     });
 }
