@@ -62,7 +62,7 @@
                                         <input type="text" :id="'appliedDate-' + index + '-' + transaction.id" class="datepicker med-input-field">
                                     </td>
                                     <td>
-                                        <div :id="'tags-' + index + '-' + transaction.id" class="chips"></div>
+                                        <div :id="'tags-' + index + '-' + transaction.id" class="chips chips-initial"></div>
                                     </td>
                                     <td>
                                         <a v-show="!item.default" class="btn-flat" v-on:click="transactionItems.splice(index, 1)">Remove</a>

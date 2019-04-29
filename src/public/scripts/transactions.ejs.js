@@ -44,16 +44,21 @@ $(document).ready(function () {
             });
 
             //Chips
+            const autocompleteOptions = { data: new Object() };
+            for (let i = 0; i < user.tags.length; i++)
+                autocompleteOptions.data[user.tags[i].name] = null;
             for (let i = 0; i < this.transactionItems.length; i++) {
-                const chips = new Object();
+                const chips = new Array();
                 for (let j = 0; j < this.transactionItems[i].tags.length; j++)
-                    chips[this.transactionItems[i].tags[j].name] = null;
+                    chips.push({
+                        tag: this.transactionItems[i].tags[j].name
+                    });
                 M.Chips.init(document.querySelector('#tags-' + i + '-' + this.transaction.id), {
                     placeholder: 'Add tags',
                     secondaryPlaceholder: 'Add more tags',
                     data: chips,
-                    onChipAdd: function() {
-                        // alert(JSON.stringify(this.chipsData[this.chipsData.length - 1]));
+                    autocompleteOptions: autocompleteOptions,
+                    onChipAdd: function () {
                         $vm.transactionItems[i].tags.push({
                             id: getTagId(this.chipsData[this.chipsData.length - 1].tag),
                             name: this.chipsData[this.chipsData.length - 1].tag,
@@ -65,8 +70,13 @@ $(document).ready(function () {
             M.Chips.init(document.querySelector('#addTags-' + this.transaction.id), {
                 placeholder: 'Add tags',
                 secondaryPlaceholder: 'Add more tags',
-                onChipAdd: function() {
-                    alert(this.chipsData[this.chipsData.length - 1]);
+                autocompleteOptions: autocompleteOptions,
+                onChipAdd: function () {
+                    $vm.transactionItemToCreate.tags.push({
+                        id: getTagId(this.chipsData[this.chipsData.length - 1].tag),
+                        name: this.chipsData[this.chipsData.length - 1].tag,
+                        userId: user.id
+                    });
                 }
             });
         },
@@ -115,16 +125,16 @@ $(document).ready(function () {
                 $.ajax({
                     url: URL + '/saveTransactionItems',
                     type: 'POST',
-                    data: JSON.stringify({ 
-                        transactionId: $vm.transaction.id, 
-                        transactionItems: $vm.transactionItems 
+                    data: JSON.stringify({
+                        transactionId: $vm.transaction.id,
+                        transactionItems: $vm.transactionItems
                     }),
                     dataType: 'json',
                     contentType: 'application/json',
-                    success: function() {
+                    success: function () {
                         $vm.transaction.transactionItems = $vm.transactionItems;
                     },
-                    error: function() {
+                    error: function () {
 
                     }
                 });
