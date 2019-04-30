@@ -12,6 +12,8 @@ $(document).ready(function () {
         mounted: function () {
             const $vm = this;
 
+            this.billToUpdate.notifications = this.bill.notifications.slice(0, this.bill.notifications.length);
+
             //Datepicker
             M.Datepicker.init(document.querySelector('#editDueDate' + $vm.bill.id), {
                 autoClose: true,
@@ -48,6 +50,8 @@ $(document).ready(function () {
             cancel: function() {
                 $vm = this;
                 $vm.billToUpdate = Object.assign(new Object(), $vm.bill);
+                this.billToUpdate.notifications = this.bill.notifications.slice(0, this.bill.notifications.length);
+                this.billNotificationToCreate = new Object();
                 const carousel = M.Carousel.getInstance(document.querySelector('#editBillCarousel' + $vm.bill.id));
                 carousel.set(0);
             },

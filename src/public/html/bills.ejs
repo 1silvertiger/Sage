@@ -38,24 +38,18 @@
                                         </td>
                                         <td v-on:click="setBillToUpdate(b)">
                                             {{ b.name }}</td>
-                                        <td v-on:click="setBillToUpdate(b)" data-target="updateModal"
-                                            class="modal-trigger right-align">
+                                        <td v-on:click="setBillToUpdate(b)" class="modal-trigger right-align">
                                             {{ getFormattedCurrency(b.amount) }}
                                         </td>
-                                        <td v-on:click="setBillToUpdate(b)" data-target="updateModal"
-                                            class="modal-trigger"></td>
-                                        <td v-on:click="setBillToUpdate(b)" data-target="updateModal"
-                                            class="modal-trigger hide-on-med-and-down">
+                                        <td v-on:click="setBillToUpdate(b)" class="modal-trigger"></td>
+                                        <td v-on:click="setBillToUpdate(b)" class="modal-trigger hide-on-med-and-down">
                                             {{ b.periodId ? 'Every '.concat(b.numOfPeriods, ' ', getSemanticPeriod(b.periodId)) : 'No' }}
                                         </td>
-                                        <td v-on:click="setBillToUpdate(b)" data-target="updateModal"
-                                            class="modal-trigger">
+                                        <td v-on:click="setBillToUpdate(b)" class="modal-trigger">
                                             {{ getFormattedDate(b.dueDate) }}</td>
-                                        <td v-on:click="setBillToUpdate(b)" data-target="updateModal"
-                                            class="modal-trigger hide-on-med-and-down">
+                                        <td v-on:click="setBillToUpdate(b)" class="modal-trigger hide-on-med-and-down">
                                             {{ b.weekDay ? 'Yes' : 'No' }}</td>
-                                        <td v-on:click="setBillToUpdate(b)" data-target="updateModal"
-                                            class="modal-trigger hide-on-med-and-down">
+                                        <td v-on:click="setBillToUpdate(b)" class="modal-trigger hide-on-med-and-down">
                                             {{ b.accountId ? 'Yes' : 'No' }}</td>
                                     </tr>
                                     <tr>
@@ -215,8 +209,8 @@
                                     <div class="card-action">
                                         <a class="waves-effect btn green lighten-2"
                                             onclick="prevAddCarouselItem();">Back</a>
-                                        <a class="waves-effect btn green lighten-2"
-                                            onclick="nextAddCarouselItem();" v-on:click="onceAround = true;">More</a>
+                                        <a class="waves-effect btn green lighten-2" onclick="nextAddCarouselItem();"
+                                            v-on:click="onceAround = true;">More</a>
                                     </div>
                                 </div>
                             </div>
