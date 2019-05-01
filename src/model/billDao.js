@@ -75,4 +75,30 @@ module.exports = class BillDao extends Dao {
             });
         });
     }
+
+    updateDueDate(bill) {
+        dueDate = moment(bill.dueDate).add(bill.numOfPeriods, getPeriod(bill.periodId));
+        if (bill.weekDay)
+            if (dueDate.day() % 7 === 0 || dueDate.day() % 7 === 6)
+                dueDate.day("Monday");
+        bill.dueDate = dueDate.toDate();
+        pool.query('CALL updateBillDueDate(?,?)', [bill.id, bill.dueDate]).catch(err => {
+            Dao.handleQueryCatch(err);
+        });
+    }
+
+    getPeriod(id) {
+        switch (id) {
+            case 1:
+                return 'days';
+            case 2:
+                return 'weeks';
+            case 3:
+                return 'months';
+            case 4:
+                return 'quarters';
+            case 5:
+                return 'years';
+        }
+    }
 }

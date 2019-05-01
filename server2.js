@@ -1,6 +1,8 @@
 'use strict';
 
 process.env.NODE_CONFIG_DIR = './config';
+process.env.PUBLIC_VAPID_KEY = 'BD4yCfeJYnR6UmsHergYGB2m3NGPoeJzqS4I-oBeg9Fq7zzo9UgqsqnejmHulxDX_FkWrFpzPovOLiYHBPtnJSM';
+process.env.PRIVATE_VAPID_KEY = 'btcvI7A_4KQRYhgHJE4I3iZGLWyHxLDrdXGu6KNJQOk';
 
 //node modules
 const config = require('config'),
@@ -28,7 +30,12 @@ const config = require('config'),
 
     session = require('express-session'),
 
-    exec = require('child_process').exec;
+    exec = require('child_process').exec,
+    CronJob = require('cron').CronJob,
+    CronTime = require('cron').CronTime,
+    webpush = require('web-push');
+
+webpush.setVapidDetails('mailto:1silvertiger@gmail.com', process.env.PUBLIC_VAPID_KEY, process.env.PRIVATE_VAPID_KEY);
 
 // model
 const User = require('babel-loader!./src/model/user.js');
@@ -122,6 +129,8 @@ app.use(session({
     saveUninitialized: true,
     cookie: { secure: true }
 }));
+
+const cronJobs = new Object();
 
 var server;
 
@@ -291,6 +300,18 @@ app.post('/tokensignin', function (req, res) {
     verify().catch(console.error);
 });
 
+//Subscribe to notifications
+app.all('/subscribe', function (req, res) {
+    console.log('Subscription: ' + req.body.subscription);
+
+    userDao.updateVapidSubscription(req.session.user.id, req.body.subscription);
+    req.session.user.vapidSubscription = JSON.parse(req.body.subscription);
+
+    // webpush.sendNotification(JSON.parse(req.body.subscription), JSON.stringify({ title: 'test' })).catch(err => {
+    //     console.log(err.stack);
+    // });
+});
+
 app.all('/refreshUser', function (req, res) {
     userDao.getById(req.session.user.id).then(user => {
         // console.log(user);
@@ -357,15 +378,23 @@ app.all('/deletePiggyBanks', function (req, res) {
 //Bills
 app.all('/createOrUpdateBill', function (req, res) {
     billDao.createOrUpdate(req.body.bill).then(bill => {
-        console.log('Bill:');
-        console.log(bill);
-
         req.session.user.bills.push(bill);
         res.json(JSON.stringify(bill));
+
+        console.log('Bill:');
+        console.log(bill);
     }).catch(err => {
         console.log(err);
         res.sendStatus(500);
     });
+
+    if (cronJobs['bill-' + req.body.bill.id])
+        for (const job of cronJobs[req.body.bill].values())
+            job.stop();
+    const billUpdateJob = generateBillCronJob(req.body.bill);
+    generateBillNotificationCronJobs(req.body.bill);
+    billUpdateJob.start();
+    console.log('Fires next: ' + new Date(billUpdateJob.nextDates()));
 });
 
 app.all('/deleteBills', function (req, res) {
@@ -426,7 +455,7 @@ app.all('/saveTransactionItems', function (req, res) {
     }).catch(err => {
         res.sendStatus(500);
         console.log(err);
-    }); 
+    });
 });
 
 //Plaid
@@ -526,28 +555,53 @@ function sync(user) {
     });
 }
 
-// function syncWithPlaid(user) {
-//     return new Promise(function (resolve, reject) {
-//         let promises = new Array();
-//         for (let i = 0; i < user.items.length; i++) {
-//             promises.push(getAccounts(user.items[i].accessToken));
-//             promises.push(getTransactions(moment(user.items[i].lastSync).subtract(90, 'days').format('YYYY-MM-DD') || moment().format('YYYY-MM-DD'), moment().format('YYYY-MM-DD'), user.items[i].accessToken, 500, 0));
-//         }
-//         Promise.all(promises).then(values => {
-//             for (let i = 0; i < values.length; i++) {
-//                 if (i % 2 === 0) {
-//                     user.items[Math.floor(i / 2)].accounts = values[i];
-//                 } else {
-//                     user.items[Math.floor(i / 2)].transactions = values[i];
-//                     itemDao.updateLastSync(user.items[Math.floor(i / 2)]);
-//                 }
-//             }
-//             resolve(user);
-//         }).catch(err => {
-//             console.log(err);
-//         });
-//     });
-// }
+function getPeriod(id) {
+    switch (id) {
+        case 1:
+            return 'days';
+        case 2:
+            return 'weeks';
+        case 3:
+            return 'months';
+        case 4:
+            return 'quarters';
+        case 5:
+            return 'years';
+    }
+}
+
+function generateBillCronJob(bill) {
+    const time = moment(bill.dueDate).hour(8);
+    return new CronJob(time.toDate(), function () {
+        billDao.updateDueDate(bill);
+
+        cronJobs['bill-' + bill.id] = generateBillNotificationCronJobs(bill);
+
+        const job = generateBillCronJob(bill);
+        job.start();
+        console.log(job.nextDates());
+    });
+}
+
+function generateBillNotificationCronJobs(bill) {
+    const jobs = new Array();
+    for (const notification of bill.notifications.values()) {
+        const time = moment(bill.dueDate).hour(8).add(notification.periodsBeforeBillIsDue, getPeriod(notification.periodId)).toDate()
+        const job = new CronJob(
+            time,
+            function () {
+                console.log(bill.name.concat(' is due in ', notification.periodsBeforeBillIsDue, ' ', getPeriod(notification.periodId)));
+                webpush.sendNotification(req.session.user.vapidSubscription, JSON.stringify({
+                    title: 'Bill due',
+                    body: bill.name.concat(' is due in ', notification.periodsBeforeBillIsDue, ' ', getPeriod(notification.periodId))
+                }));
+            });
+        jobs.push(job);
+        job.start();
+        console.log('Notification at: ' + new Date(job.nextDates()));
+    }
+    return jobs;
+}
 
 function getAccounts(accessToken) {
     return new Promise(function (resolve, reject) {

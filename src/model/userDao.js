@@ -57,7 +57,14 @@ module.exports = class UserDao extends Dao {
                     // console.log(rows);
                     if (rows[0].length > 0) {
                         // Create user object
-                        const user = new User(rows[USER_INDEX][0].googleId, rows[USER_INDEX][0].firstName, rows[USER_INDEX][0].lastName, rows[USER_INDEX][0].imageUrl, rows[USER_INDEX][0].email);
+                        const user = new User(
+                            rows[USER_INDEX][0].googleId,
+                            rows[USER_INDEX][0].firstName,
+                            rows[USER_INDEX][0].lastName,
+                            rows[USER_INDEX][0].imageUrl,
+                            rows[USER_INDEX][0].email,
+                            JSON.parse(rows[USER_INDEX][0].vapidSubscription)
+                        );
 
                         // Tags
                         for (let i = 0; i < rows[TAGS_INDEX].length; i++) {
@@ -273,6 +280,16 @@ module.exports = class UserDao extends Dao {
                 });
             }).catch(err => {
                 Dao.handleGetConnectionCatch(err);
+            });
+        });
+    }
+
+    updateVapidSubscription(userId, subscription) {
+        const pool = this.pool;
+        return new Promise(function (resolve, reject) {
+            pool.query('CALL updateVapidSubscriptionByUserId(?,?)', [userId, subscription]).catch(err => {
+                Dao.handleQueryCatch(err);
+                resolve(false);
             });
         });
     }

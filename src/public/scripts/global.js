@@ -1,16 +1,37 @@
+const publicVapidKey = 'BD4yCfeJYnR6UmsHergYGB2m3NGPoeJzqS4I-oBeg9Fq7zzo9UgqsqnejmHulxDX_FkWrFpzPovOLiYHBPtnJSM';
+
 const tagMap = new Object();
 
 //Register service worker
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/serviceWorker.js')
-        .then(function (reg) {
-            // registration worked
-            console.log('Registration succeeded. Scope is ' + reg.scope);
-        }).catch(function (error) {
-            // registration failed
-            console.log('Registration failed with ' + error);
-        });
-}
+// if ('serviceWorker' in navigator) {
+//     navigator.serviceWorker.register('/serviceWorker.js')
+//         .then(function (reg) {
+//             // registration worked
+//             console.log('Registration succeeded. Scope is ' + reg.scope);
+//             console.log('Registering push...');
+//             reg.pushManager.subscribe({
+//                 userVisibleOnly: true,
+//                 applicationServerKey: urlBase64ToUint8Array(publicVapidKey)
+//             }).then(subscription => {
+//                 console.log('Sending request...');
+//                 fetch('/subscribe', {
+//                     method: 'POST',
+//                     body: JSON.stringify({ subscription: JSON.stringify(subscription) }),
+//                     headers: {
+//                         'content-type': 'application/json'
+//                     }
+//                 }).then(response => {
+//                     console.log('Sent request.');
+//                     console.log('Reponse:');
+//                     console.log(response);
+//                 });
+//             });
+//             console.log('Registered push.');
+//         }).catch(function (error) {
+//             // registration failed
+//             console.log('Registration failed with ' + error);
+//         });
+// }
 
 $(document).ready(function () {
     loadGapi();
@@ -97,4 +118,19 @@ function getTagsFromNames(tagNames) {
 async function refreshTagMap() {
     for (let i = 0; i < user.tags.length; i++)
         tagMap[user.tags[i].name] = user.tags[i].id;
+}
+
+function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding)
+        .replace(/\-/g, '+')
+        .replace(/_/g, '/');
+
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+
+    for (let i = 0; i < rawData.length; ++i) {
+        outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
 }
