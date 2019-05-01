@@ -519,6 +519,24 @@ app.all('/plaid-webhook', function (req, res, next) {
                     }).catch(err => {
                         console.log(err);
                     });
+                    getAccounts(item.accessToken).then(accounts => {
+                        for (const account of accounts.values()) {
+                            userDao.getById(account.userId).then(user => {
+                                for (const notification of account.notifications.values()) {
+                                    if (notification.threshold > account.availableBalance) {
+                                        webpush.sendNotification(user.vapidSubscription, JSON.stringify({
+                                            title: 'Account balance low',
+                                            body: account.name.concat(' is below ', numeral(notification.threshold).format('$0,0.00'))
+                                        }));
+                                    }
+                                }
+                            }).catch(err => {
+                                console.error(err);
+                            });
+                        }
+                    }).catch(err => {
+                        console.error(err);
+                    });
                     break;
                 case 'TRANSACTIONS_REMOVED':
                     transactionDao.deleteBatch(req.body.removed_transactions).catch(err => {
@@ -586,7 +604,7 @@ function generateBillCronJob(bill) {
 function generateBillNotificationCronJobs(bill) {
     const jobs = new Array();
     for (const notification of bill.notifications.values()) {
-        const time = moment(bill.dueDate).hour(8).add(notification.periodsBeforeBillIsDue, getPeriod(notification.periodId)).toDate()
+        const time = moment(bill.dueDate).hour(8).subtract(notification.periodsBeforeBillIsDue, getPeriod(notification.periodId)).toDate()
         const job = new CronJob(
             time,
             function () {
