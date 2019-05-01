@@ -1,6 +1,8 @@
 'use strict';
 
 process.env.NODE_CONFIG_DIR = './config';
+process.env.PUBLIC_VAPID_KEY = 'BD4yCfeJYnR6UmsHergYGB2m3NGPoeJzqS4I-oBeg9Fq7zzo9UgqsqnejmHulxDX_FkWrFpzPovOLiYHBPtnJSM';
+process.env.PRIVATE_VAPID_KEY = 'btcvI7A_4KQRYhgHJE4I3iZGLWyHxLDrdXGu6KNJQOk';
 
 //node modules
 const config = require('config'),
@@ -28,7 +30,12 @@ const config = require('config'),
 
     session = require('express-session'),
 
-    exec = require('child_process').exec;
+    exec = require('child_process').exec,
+    CronJob = require('cron').CronJob,
+    CronTime = require('cron').CronTime,
+    webpush = require('web-push');
+
+webpush.setVapidDetails('mailto:1silvertiger@gmail.com', process.env.PUBLIC_VAPID_KEY, process.env.PRIVATE_VAPID_KEY);
 
 // model
 const User = require('babel-loader!./src/model/user.js');
@@ -37,8 +44,12 @@ const Item = require('babel-loader!./src/model/item.js');
 const ItemDao = require('babel-loader!./src/model/itemDao.js');
 const Account = require('babel-loader!./src/model/account.js');
 const AccountDao = require('babel-loader!./src/model/accountDao.js');
+const AccountNotification = require('babel-loader!./src/model/accountNotification.js');
+const AccountNotificationDao = require('babel-loader!./src/model/accountNotificationDao.js');
 const Transaction = require('babel-loader!./src/model/transaction.js');
 const TransactionDao = require('babel-loader!./src/model/transactionDao.js');
+const TransactionItem = require('babel-loader!./src/model/transactionItem.js');
+const TransactionItemDao = require('babel-loader!./src/model/transactionItemDao.js');
 const Budget = require('babel-loader!./src/model/budget.js');
 const BudgetDao = require('babel-loader!./src/model/budgetDao.js');
 const PiggyBank = require('babel-loader!./src/model/piggyBank.js');
@@ -90,7 +101,9 @@ const pool = mariadb.createPool({
 const userDao = new UserDao(pool);
 const itemDao = new ItemDao(pool);
 const accountDao = new AccountDao(pool);
+const accountNotificationDao = new AccountNotificationDao(pool);
 const transactionDao = new TransactionDao(pool);
+const transactionItemDao = new TransactionItemDao(pool);
 const budgetDao = new BudgetDao(pool);
 const piggyBankDao = new PiggyBankDao(pool);
 const billDao = new BillDao(pool);
@@ -116,6 +129,8 @@ app.use(session({
     saveUninitialized: true,
     cookie: { secure: true }
 }));
+
+const cronJobs = new Object();
 
 var server;
 
@@ -164,7 +179,7 @@ app.use(favicon(path.join('./src/public/assets/icons', 'favicon.ico')));
 
 //Authenticate
 app.use(function (req, res, next) {
-    if (req.session.user || req.path === '/login' || req.path === '/tokensignin')
+    if (req.session.user || req.path === '/login' || req.path === '/tokensignin' || req.path === '/plaid-webhook')
         next();
     else {
         if (req.path) {
@@ -224,39 +239,10 @@ app.all("/accounts", function (req, res) {
         accounts = accounts.concat(req.session.user.items[i].accounts);
     res.render('accounts.ejs', {
         URL: config.URL,
-        accounts: accounts
-    });
-});
-
-app.all('/old-accounts', function (req, res) {
-    pool.getConnection().then(conn => {
-        conn.query('CALL getAllPlaidItemsByUserId(?)', [req.session.user.id])
-            .then(async rows => {
-                if (rows[0].length > 0) {
-                    let accounts = new Array();
-                    for (let i = 0; i < rows[0].length; i++) {
-                        await getAccounts(rows[0][i].accessToken).then(item => {
-                            accounts = accounts.concat(item.accounts);
-                        }).catch(err => {
-                            console.log(err);
-                        });
-                    }
-                    res.render('accounts.ejs', {
-                        URL: config.URL,
-                        accounts: accounts
-                    });
-                } else {
-                    console.log('no data');
-                    res.end();
-                }
-            })
-            .catch(err => {
-                console.log(err);
-                res.sendStatus('500');
-            });
-    }).catch(err => {
-        console.log(err);
-        res.sendStatus('500');
+        user: req.session.user,
+        PLAID_PUBLIC_KEY: PLAID_PUBLIC_KEY,
+        PLAID_ENV: PLAID_ENV,
+        PLAID_PRODUCTS: PLAID_PRODUCTS
     });
 });
 
@@ -270,11 +256,11 @@ app.all("/transactions", function (req, res) {
 app.all('/piggy', function (req, res) {
     res.render('piggyBanks.ejs', {
         URL: config.URL,
-        user : req.session.user
+        user: req.session.user
     });
 });
 
-app.all('/bills', function(req, res) {
+app.all('/bills', function (req, res) {
     res.render('bills.ejs', {
         URL: config.URL,
         user: req.session.user
@@ -294,13 +280,8 @@ app.post('/tokensignin', function (req, res) {
         if (payload['aud'] == GOOGLE_AUTH_CLIENT_ID) {
             userDao.getById(userId).then(user => {
                 if (user) {
-                    console.log(user);
-                    syncWithPlaid(user).then(syncedUser => {
-                        req.session.user = syncedUser;
-                        res.sendStatus(200);
-                    }).catch(err => {
-                        console.log(err);
-                    });
+                    req.session.user = user;
+                    res.sendStatus(200);
                 } else {
                     userDao.create(new User(userId, req.body.firstName, req.body.lastName, req.body.imageUrl, req.body.email)).then(user => {
                         req.session.user = user;
@@ -319,15 +300,23 @@ app.post('/tokensignin', function (req, res) {
     verify().catch(console.error);
 });
 
+//Subscribe to notifications
+app.all('/subscribe', function (req, res) {
+    console.log('Subscription: ' + req.body.subscription);
+
+    userDao.updateVapidSubscription(req.session.user.id, req.body.subscription);
+    req.session.user.vapidSubscription = JSON.parse(req.body.subscription);
+
+    // webpush.sendNotification(JSON.parse(req.body.subscription), JSON.stringify({ title: 'test' })).catch(err => {
+    //     console.log(err.stack);
+    // });
+});
+
 app.all('/refreshUser', function (req, res) {
     userDao.getById(req.session.user.id).then(user => {
-        console.log(user);
-        syncWithPlaid(user).then(syncedUser => {
-            req.session.user = syncedUser;
-            res.json(JSON.stringify(user));
-        }).catch(err => {
-            console.log(err);
-        });
+        // console.log(user);
+        req.session.user = user;
+        res.json(JSON.stringify(user));
     }).catch(err => {
         Dao.handleQueryError(err);
     });
@@ -358,11 +347,11 @@ app.all('/deleteBudgetItems', function (req, res) {
 });
 
 //Piggy banks
-app.all('/createOrUpdatePiggyBank', function(req, res) {
+app.all('/createOrUpdatePiggyBank', function (req, res) {
     piggyBankDao.createOrUpdate(req.body.piggyBank).then(piggyBank => {
         console.log('Piggy bank: ');
         console.log(piggyBank);
-        
+
         req.session.user.piggyBanks.push(piggyBank);
         res.json(JSON.stringify(piggyBank));
     }).catch(err => {
@@ -371,7 +360,7 @@ app.all('/createOrUpdatePiggyBank', function(req, res) {
     });
 });
 
-app.all('/deletePiggyBanks', function(req, res) {
+app.all('/deletePiggyBanks', function (req, res) {
     piggyBankDao.deleteBatch(req.body.piggyBankIds).then(() => {
         sync(req.session.user).then(syncedUser => {
             req.session.user = syncedUser;
@@ -387,20 +376,28 @@ app.all('/deletePiggyBanks', function(req, res) {
 });
 
 //Bills
-app.all('/createOrUpdateBill', function(req, res) {
+app.all('/createOrUpdateBill', function (req, res) {
     billDao.createOrUpdate(req.body.bill).then(bill => {
-        console.log('Bill:');
-        console.log(bill);
-
         req.session.user.bills.push(bill);
         res.json(JSON.stringify(bill));
+
+        console.log('Bill:');
+        console.log(bill);
     }).catch(err => {
         console.log(err);
         res.sendStatus(500);
     });
+
+    if (cronJobs['bill-' + req.body.bill.id])
+        for (const job of cronJobs[req.body.bill].values())
+            job.stop();
+    const billUpdateJob = generateBillCronJob(req.body.bill);
+    generateBillNotificationCronJobs(req.body.bill);
+    billUpdateJob.start();
+    console.log('Fires next: ' + new Date(billUpdateJob.nextDates()));
 });
 
-app.all('/deleteBills', function(req, res) {
+app.all('/deleteBills', function (req, res) {
     billDao.deleteBatch(req.body.ids).then(success => {
         if (success) {
             sync(req.session.user).then(syncedUser => {
@@ -420,63 +417,208 @@ app.all('/deleteBills', function(req, res) {
     });
 });
 
+app.all('/deletePlaidItem', function (req, res) {
+    itemDao.delete(req.body.id).then(success => {
+        if (success) {
+            sync(req.session.user).then(syncedUser => {
+                req.session.user = syncedUser;
+                res.json(syncedUser);
+            }).catch(err => {
+                console.log(err);
+                res.sendStatus(500);
+            });
+        } else {
+            console.log('Delete failed');
+            res.sendStatus(500);
+        }
+    }).catch(err => {
+        res.sendStatus(500);
+        Dao.handleQueryError(err);
+    });
+});
+
+app.all('/saveAccountNotifications', function (req, res) {
+    accountNotificationDao.createOrUpdateBatch(req.body.account.id, req.body.account.notifications).then(notifications => {
+        res.json(notifications);
+        sync(req.session.user).then(syncedUser => {
+            req.session.user = syncedUser;
+        });
+    }).catch(err => {
+        console.log(err);
+        res.sendStatus(500);
+    });
+});
+
+app.all('/saveTransactionItems', function (req, res) {
+    transactionItemDao.save(req.body.transactionId, req.body.transactionItems).then(transactionItems => {
+        res.json(transactionItems);
+    }).catch(err => {
+        res.sendStatus(500);
+        console.log(err);
+    });
+});
+
 //Plaid
+app.post('/get_access_token', function (req, res, next) {
+    client.exchangePublicToken(req.body.public_token, function (error, tokenResponse) {
+        if (error != null) {
+            prettyPrintResponse(error);
+            return res.json({
+                error: error,
+            });
+        }
+
+        const item = new Item(
+            tokenResponse.item_id,
+            req.session.user.id,
+            tokenResponse.access_token,
+            req.body.institutionName,
+            null,
+            null,
+            null
+        );
+
+        itemDao.create(item).then(itemFromDb => {
+            const promises = [
+                getAccounts(tokenResponse.access_token),
+                getTransactions(moment().subtract(90, 'days').format('YYYY-MM-DD'), moment().format('YYYY-MM-DD'), tokenResponse.access_token)
+            ];
+            Promise.all(promises).then(values => {
+                itemFromDb.accounts = values[0];
+                itemFromDb.transactions = values[1];
+                req.session.user.items.push(itemFromDb);
+                res.json(itemFromDb);
+                itemDao.updateLastSync(itemFromDb);
+            }).catch(err => {
+                res.sendStatus(500);
+                console.log(err);
+            });
+        }).catch(err => {
+            res.sendStatus(500);
+            console.log(err);
+        });
+    });
+});
+
 app.all('/plaid-webhook', function (req, res, next) {
     console.log('PLAID WEBHOOK');
-    console.log(JSON.stringify(req.body));
-    const payload = JSON.parse(req.body);
-    switch (payload.webhook_type) {
-        case 'TRANSACTIONS':
-            switch (payload.webhook_code) {
-                case 'INITIAL_UPDATE':
-                case 'DEFAULT_UPDATE':
-                    console.log(payload);
-                    break;
-                case 'HISTORICAL_UPDATE':
+    console.log(req.body);
+    if (req.body.webhook_type === 'TRANSACTIONS') {
+        itemDao.getAccessTokenAndLastSyncById(req.body.item_id).then(item => {
+            switch (req.body.webhook_code) {
+                // case 'INITIAL_UPDATE':
+                case 'HISTORIC_UPDATE':
+                    getTransactions(
+                        moment().subtract(90, 'days').format('YYYY-MM-DD'),
+                        moment().format('YYYY-MM-DD'),
+                        item.accessToken,
+                        req.body.new_transactions,
+                        0
+                    ).then(transactions => {
+                        itemDao.updateLastSyncById(req.body.item_id);
+                    }).catch(err => {
+                        console.log(err);
+                    });
+                    getAccounts(item.accessToken).then(accounts => {
+                        for (const account of accounts.values()) {
+                            userDao.getById(account.userId).then(user => {
+                                for (const notification of account.notifications.values()) {
+                                    if (notification.threshold > account.availableBalance) {
+                                        webpush.sendNotification(user.vapidSubscription, JSON.stringify({
+                                            title: 'Account balance low',
+                                            body: account.name.concat(' is below ', numeral(notification.threshold).format('$0,0.00'))
+                                        }));
+                                    }
+                                }
+                            }).catch(err => {
+                                console.error(err);
+                            });
+                        }
+                    }).catch(err => {
+                        console.error(err);
+                    });
                     break;
                 case 'TRANSACTIONS_REMOVED':
+                    transactionDao.deleteBatch(req.body.removed_transactions).catch(err => {
+                        console.log(err);
+                    });
+                    break;
+                case 'DEFAULT_UPDATE':
+                    getTransactions(
+                        moment(item.lastSync).format('YYYY-MM-DD'),
+                        moment().format('YYYY-MM-DD'),
+                        item.accessToken,
+                        500,
+                        0
+                    ).then(transactions => {
+                        itemDao.updateLastSync(item).catch(err => {
+                            console.log(err)
+                        });
+                    }).catch(err => {
+                        console.log(err);
+                    });
                     break;
             }
-            break;
-        case 'ITEM':
-            break;
+        }).catch(err => {
+            console.log(err);
+        });
     }
 })
 
 function sync(user) {
     return new Promise(function (resolve, reject) {
         userDao.getById(user.id).then(userFromDb => {
-            console.log(userFromDb);
-            syncWithPlaid(userFromDb).then(syncedUser => {
-                resolve(syncedUser);
-            }).catch(err => {
-                Dao.handleQueryError(err);
-            });
+            resolve(userFromDb);
         });
     });
 }
 
-function syncWithPlaid(user) {
-    return new Promise(function (resolve, reject) {
-        let promises = new Array();
-        for (let i = 0; i < user.items.length; i++) {
-            promises.push(getAccounts(user.items[i].accessToken));
-            promises.push(getTransactions(moment(user.items[i].lastSync).subtract(90, 'days').format('YYYY-MM-DD') || moment().format('YYYY-MM-DD'), moment().format('YYYY-MM-DD'), user.items[i].accessToken, 500, 0));
-        }
-        Promise.all(promises).then(values => {
-            for (let i = 0; i < values.length; i++) {
-                if (i % 2 === 0) {
-                    user.items[Math.floor(i / 2)].accounts = values[i];
-                } else {
-                    user.items[Math.floor(i / 2)].transactions = values[i];
-                    itemDao.updateLastSync(user.items[Math.floor(i / 2)]);
-                }
-            }
-            resolve(user);
-        }).catch(err => {
-            console.log(err);
-        });
+function getPeriod(id) {
+    switch (id) {
+        case 1:
+            return 'days';
+        case 2:
+            return 'weeks';
+        case 3:
+            return 'months';
+        case 4:
+            return 'quarters';
+        case 5:
+            return 'years';
+    }
+}
+
+function generateBillCronJob(bill) {
+    const time = moment(bill.dueDate).hour(8);
+    return new CronJob(time.toDate(), function () {
+        billDao.updateDueDate(bill);
+
+        cronJobs['bill-' + bill.id] = generateBillNotificationCronJobs(bill);
+
+        const job = generateBillCronJob(bill);
+        job.start();
+        console.log(job.nextDates());
     });
+}
+
+function generateBillNotificationCronJobs(bill) {
+    const jobs = new Array();
+    for (const notification of bill.notifications.values()) {
+        const time = moment(bill.dueDate).hour(8).subtract(notification.periodsBeforeBillIsDue, getPeriod(notification.periodId)).toDate()
+        const job = new CronJob(
+            time,
+            function () {
+                console.log(bill.name.concat(' is due in ', notification.periodsBeforeBillIsDue, ' ', getPeriod(notification.periodId)));
+                webpush.sendNotification(req.session.user.vapidSubscription, JSON.stringify({
+                    title: 'Bill due',
+                    body: bill.name.concat(' is due in ', notification.periodsBeforeBillIsDue, ' ', getPeriod(notification.periodId))
+                }));
+            });
+        jobs.push(job);
+        job.start();
+        console.log('Notification at: ' + new Date(job.nextDates()));
+    }
+    return jobs;
 }
 
 function getAccounts(accessToken) {
@@ -519,10 +661,7 @@ function getAccounts(accessToken) {
 
 function getTransactions(startDate, endDate, accessToken, count, offset) {
     return new Promise(function (resolve, reject) {
-        client.getTransactions(accessToken, startDate, endDate, {
-            count: count,
-            offset: offset,
-        },
+        client.getTransactions(accessToken, startDate, endDate,
             function (error, transactionsResponse) {
                 // console.log('Plaid transactions:');
                 // prettyPrintResponse(transactionsResponse);
@@ -558,33 +697,6 @@ function getTransactions(startDate, endDate, accessToken, count, offset) {
         );
     });
 }
-
-// Exchange token flow - exchange a Link public_token for
-// an API access_token
-// https://plaid.com/docs/#exchange-token-flow
-app.post('/get_access_token', function (req, res, next) {
-    client.exchangePublicToken(req.body.public_token, function (error, tokenResponse) {
-        if (error != null) {
-            prettyPrintResponse(error);
-            return res.json({
-                error: error,
-            });
-        }
-        //Save to DB
-        pool.getConnection().then(conn => {
-            conn.query('CALL createPlaidItem(?,?,?)', [req.session.user.id, tokenResponse.item_id, tokenResponse.access_token])
-                .catch(err => {
-                    console.log(err);
-                });
-        });
-        prettyPrintResponse(tokenResponse);
-        res.json({
-            access_token: tokenResponse.access_token,
-            item_id: tokenResponse.item_id,
-            error: null,
-        });
-    });
-});
 
 
 // Retrieve Transactions for an Item

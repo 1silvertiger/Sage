@@ -5,46 +5,106 @@
 <body>
     <%- include ./navbar.html %>
 
-    <div class="container">
-        <div id="table" class="row">
-            <div class="input-field col s12 l3">
-                <select id="showSelector" v-model="typesToShow" multiple>
-                    <option value="0" selected>All</option>
-                    <option value="1">Debit</option>
-                    <option value="2">Credit</option>
-                    <option value="3">Investment</option>
-                </select>
-                <label>Show:</label>
+    <div id="app" class="container">
+        <div class="row">
+            <h1>Accounts</h1>
+        </div>
+        <div class="row">
+            <div class="col s12 m12 l12">
+                <div class="card" v-for="item in user.items">
+                    <div class="card-content">
+                        <span class="card-title">{{ item.institutionName }} accounts:</span>
+                        <table class="table highlight">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th class="right-align">Current balance</th>
+                                    <th class="right-align">Available balance</th>
+                                    <th class="right-align hide-on-med-and-down"># of notifications:</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="account in item.accounts">
+                                    <td class="modal-trigger" :data-target="'modal-' + account.id">{{account.name}}</td>
+                                    <td class="modal-trigger right-align" :data-target="'modal-' + account.id">
+                                        {{ formatCurrency(account.currentBalance) }}</td>
+                                    <td class="modal-trigger right-align" :data-target="'modal-' + account.id">
+                                        {{ formatCurrency(account.availableBalance) }}</td>
+                                    <td class="modal-trigger right-align hide-on-med-and-down" :data-target="'modal-' + account.id">
+                                        {{ account.notifications.length }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <account-notifications-modal v-for="account in item.accounts" v-bind:key="account.id"
+                            v-bind:account="account" inline-template>
+                            <div :id="'modal-' + account.id" class="modal">
+                                <div class="modal-content">
+                                    <h4>Notifications for {{ account.name }}</h4>
+                                    <table>
+                                        <thead>
+                                            <th>Notify me when the balance is below:</th>
+                                        </thead>
+                                        <tbody>
+                                            <tr v-for="(notification, index) in account.notifications">
+                                                <td>{{ formatCurrency(notification.threshold) }}</td>
+                                                <td><a class="btn-flat" v-on:click="remove(index)">Remove</a></td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <div class="input-field">
+                                                        <input v-model="notificationToCreate.threshold" type="number"
+                                                            class="validate" placeholder="$0.00">
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <a class="btn-flat" v-on:click="add">Add</a>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="modal-footer">
+                                    <a class="btn-flat modal-close" v-on:click="saveNotifications">Save</a>
+                                    <a class="btn-flat modal-close">Cancel</a>
+                                </div>
+                            </div>
+                        </account-notifications-modal>
+                    </div>
+                    <div class="card-action">
+                        <a class="btn modal-trigger green lighten-2" :href="'#confirmDelete-' + item.id">Delete</a>
+                    </div>
+                    <div :id="'confirmDelete-' + item.id" class="modal">
+                        <div class="modal-content">
+                            <h4>Confirm delete</h4>
+                            <p>Are you sure you want to delete {{ item.institutionName }}? Deletion will permanently
+                                remove all associated accounts, transactions, and piggy banks.</p>
+                            <div class="progress" v-show="showLoader">
+                                <div class="indeterminate"></div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <a class="btn red lighten-2" v-on:click="deleteItem(item.id)">Confirm</a>
+                            <a class="btn modal-close green lighten-2">Cancel</a>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="col s12">
-                <table class="striped">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Official name</th>
-                            <th>Type</th>
-                            <th>Subtype</th>
-                            <th>Mask</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="account in filteredAccounts">
-                            <td>{{account.name}}</td>
-                            <td>{{account.official_name}}</td>
-                            <td>{{account.type}}</td>
-                            <td>{{account.subtype}}</td>
-                            <td>{{account.mask}}</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+        </div>
+        <div class="row">
+            <button id="plaid" class="btn green lighten-2" onclick="handler.open()">Add new</button>
         </div>
     </div>
 </body>
 
-<script>
-    const accounts = JSON.parse('<%- JSON.stringify(accounts) %>');
-</script>
+<script src="scripts/plaid.js" type="text/javascript" defer></script>
 <script src="scripts/accounts.ejs.js" defer></script>
+
+<script defer>
+    const URL = '<%= URL %>';
+    const user = JSON.parse(`<%- JSON.stringify(user) %>`);
+    const PLAID_ENV = '<%= PLAID_ENV %>';
+    const PLAID_PUBLIC_KEY = '<%= PLAID_PUBLIC_KEY %>';
+    const PLAID_PRODUCTS = '<%= PLAID_PRODUCTS %>';
+</script>
 
 </html>

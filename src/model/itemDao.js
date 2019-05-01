@@ -1,46 +1,71 @@
 const Dao = require('./dao');
 const Item = require('./item');
-const Account = require('./account');
-const AccountDao = require('./accountDao');
 
 module.exports = class ItemDao extends Dao {
     constructor(pPool) {
         super(pPool);
-        this.AccountDao = new AccountDao(this.pool);
         this.Dao = new Dao(pPool);
     }
 
-    create() {
-
-    }
-
-    getAllByUserId(userId) {
+    create(item) {
+        const pool = this.pool;
         return new Promise(function (resolve, reject) {
-            this.conn.query('CALL getAllPlaidItemsByUserId(?)', [userId]).then(itemRows => {
-                let items = new Array();
-                for (let i = 0; i < itemRows.length; i++) {
-                    items.push(new Item(rows[i].itemId, rows[i].accessToken, rows[i].lastSync, new Array()));
-                }
-            }).catch(err => { });
+            const params = [
+                item.userId,
+                item.id,
+                item.accessToken,
+                item.institutionName
+            ];
+            pool.query('CALL createPlaidItem(?,?,?,?)', params).then(rows => {
+                const temp = new Item(
+                    rows[0][0].itemId,
+                    rows[0][0].userId,
+                    rows[0][0].accessToken,
+                    rows[0][0].institutionName,
+                    rows[0][0].lastSync,
+                    null,
+                    null
+                );
+                resolve(temp);
+            }).catch(err => {
+                resolve(null);
+                console.log(err);
+            });
         });
     }
 
-    getById(id) {
-        const AccountDao = this.AccountDao;
+    getAccessTokenAndLastSyncById(id) {
+        const pool = this.pool;
         return new Promise(function (resolve, reject) {
-            this.pool.getConnection().then(conn => {
-                conn.query('CALL getPlaidItemById(?)', [id]).then(rows => {
-                    const accounts = new Array();
-                    for (let i = 0; i < rows[0][0].accountIds.length; i++) {
-                        AccountDao.getByIds(rows[0][0].accountIds[i]).then().catch();
-                    }
-                    resolve(new Item(id, rows[0][0].accessToken, 'temp', rows[0][0].lastSync, accounts));
-                    conn.end();
-                }).catch(err => {
-                    Dao.handleQueryCatch(err);
-                });
+            pool.query('CALL getAccessTokenAndLastSyncByItemId(?)', [id]).then(rows => {
+                resolve([rows[0][0].accessToken, rows[0][0].lastSync]);
             }).catch(err => {
-                Dao.handleGetConnectionCatch(err);
+                console.log(err);
+                resolve(null);
+            });
+        });
+    }
+
+    delete(id) {
+        const pool = this.pool;
+        return new Promise(function (resolve, reject) {
+            pool.query('CALL deletePlaidItem(?)', [id]).then(rows => {
+                resolve(true);
+            }).catch(err => {
+                Dao.handleQueryCatch(err);
+                resolve(false);
+            });
+        });
+    }
+
+    deleteBatch(ids) {
+        const pool = this.pool;
+        return new Promise(function (resolve, reject) {
+            pool.batch('CALL deletePlaidItem(?)', [ids]).then(rows => {
+                resolve(true);
+            }).catch(err => {
+                Dao.handleQueryCatch(err);
+                resolve(false);
             });
         });
     }
@@ -49,12 +74,15 @@ module.exports = class ItemDao extends Dao {
         const pool = this.pool;
         return new Promise(function (resolve, reject) {
             pool.query('CALL updateItemLastSync(?,?)', [item.id, new Date()]).then(rows => {
-                    let i = 0;
+                let i = 0;
             }).catch(err => { Dao.handleQueryCatch(err) });
         });
     }
 
-    deleteByItemId(id) {
-
+    updateLastSyncById(id) {
+        const pool = this.pool;
+        return new Promise(function (resolve, reject) {
+            pool.query('CALL updateItemLastSync(?,?)', [id, new Date()]).catch(err => { Dao.handleQueryCatch(err) });
+        });
     }
 }

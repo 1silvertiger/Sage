@@ -19,20 +19,24 @@ module.exports = class TagDao extends Dao {
         }
 
         return new Promise(function (resolve, reject) {
-            pool.batch('CALL createOrUpdateTag(?,?,?)', params).then(rows => {
-                const tags = new Array();
-                for (let i = 0; i < rows.length; i += 2) {
-                    tags.push(new Tag(
-                        rows[i][0].id,
-                        rows[i][0].userId,
-                        rows[i][0].name
-                    ));
-                }
-                resolve(tags);
-            }).catch(err => {
-                Dao.handleQueryCatch(err);
-                resolve(null);
-            });
+            if (tags.length) {
+                pool.batch('CALL createOrUpdateTag(?,?,?)', params).then(rows => {
+                    const tags = new Array();
+                    for (let i = 0; i < rows.length; i += 2) {
+                        tags.push(new Tag(
+                            rows[i][0].id,
+                            rows[i][0].userId,
+                            rows[i][0].name
+                        ));
+                    }
+                    resolve(tags);
+                }).catch(err => {
+                    Dao.handleQueryCatch(err);
+                    resolve(null);
+                });
+            } else {
+                resolve(new Array());
+            }
         });
     }
 
@@ -43,6 +47,26 @@ module.exports = class TagDao extends Dao {
                 pool.batch('CALL tagBudgetItem(?,?)', ids).then(rows => {
                     resolve(true);
                 }).catch(err => {
+                    Dao.handleQueryCatch(err);
+                });
+            }).catch(err => {
+                resolve(false);
+                Dao.handleQueryCatch(err);
+            });
+        });
+    }
+
+    tagTransactionItemsBatch(ids) {
+        const pool = this.pool;
+        return new Promise(function (resolve, reject) {
+            const transactionItemIds = new Array();
+            for (let i = 0; i < ids.length; i++)
+                transactionItemIds.push(ids[i][0]);
+            pool.batch('CALL untagTransactionItem(?)', transactionItemIds).then(rows => {
+                pool.batch('CALL tagTransactionItem(?,?)', ids).then(rows => {
+                    resolve(true);
+                }).catch(err => {
+                    resolve(false);
                     Dao.handleQueryCatch(err);
                 });
             }).catch(err => {
