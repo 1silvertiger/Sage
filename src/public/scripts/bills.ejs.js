@@ -23,7 +23,7 @@ $(document).ready(function () {
                 format: 'mmmm dd, yyyy',
                 container: document.querySelector('#app'),
                 onClose: function () {
-                    $vm.bill.dueDate = appendTime(this.toString());
+                    $vm.billToUpdate.dueDate = appendTime(this.toString());
                 }
             });
 
@@ -37,7 +37,7 @@ $(document).ready(function () {
             $vm.onceAround = false;
         },
         methods: {
-            prevCarouselItem: function() {
+            prevCarouselItem: function () {
                 $vm = this;
                 const carousel = M.Carousel.getInstance(document.querySelector('#editBillCarousel' + $vm.bill.id));
                 carousel.prev();
@@ -47,13 +47,31 @@ $(document).ready(function () {
                 const carousel = M.Carousel.getInstance(document.querySelector('#editBillCarousel' + $vm.bill.id));
                 carousel.next();
             },
-            cancel: function() {
+            cancel: function () {
                 $vm = this;
                 $vm.billToUpdate = Object.assign(new Object(), $vm.bill);
                 this.billToUpdate.notifications = this.bill.notifications.slice(0, this.bill.notifications.length);
                 this.billNotificationToCreate = new Object();
                 const carousel = M.Carousel.getInstance(document.querySelector('#editBillCarousel' + $vm.bill.id));
                 carousel.set(0);
+            },
+            save: function () {
+                $vm = this;
+                $.ajax({
+                    url: URL + '/createOrUpdateBill',
+                    type: 'POST',
+                    data: JSON.stringify({ bill: $vm.billToUpdate }),
+                    dataType: 'json',
+                    contentType: 'application/json',
+                    success: function (newBill) {
+                        refreshUser().catch(err => {
+                            user.bills.push(JSON.parse(newBill));
+                        });
+                    },
+                    error: function (jqxhr, status, error) {
+                        let i = 0;
+                    }
+                });
             },
             getSemanticPeriod: function (periodId) {
                 const temp = getSemanticPeriod(periodId);
@@ -191,7 +209,7 @@ $(document).ready(function () {
                 </div>
         </div>
         <div class="card-action">
-            <a class="btn green lighten-2" v-on:click="$emit('save', billToUpdate)">Save</a>
+            <a class="btn green lighten-2" v-on:click="save()">Save</a>
             <a class="btn green lighten-2" v-on:click="cancel()">Cancel</a>
         </div>
     </div>
