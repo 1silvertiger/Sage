@@ -8097,6 +8097,9 @@ body {
 
 .responsive-google-chart {
   width: 100%;
+}
+
+.donut-chart {
   min-height: 450px;
 }
 
@@ -8110,8 +8113,15 @@ body {
   min-width: 80px;
 }
 
-.responsive-img {
-  width: 3vw;
+.brand-logo {
+  position: absolute;
+  top: 0;
+  display: inline-block;
+}
+.brand-logo img.responsive-img {
+  height: 65px;
+  object-fit: scale-down;
+  padding: 2%;
 }
 
 .carousel .indicators .indicator-item {
@@ -8138,6 +8148,20 @@ body {
 
   .modal-footer {
     background-color: #f5f5f5;
+  }
+
+  .nav-wrapper.container {
+    width: 100%;
+  }
+  .nav-wrapper.container .brand-logo {
+    position: absolute;
+    top: 0;
+    display: inline-block;
+  }
+  .nav-wrapper.container .brand-logo img.responsive-img {
+    height: 30px;
+    object-fit: scale-down;
+    padding: 2%;
   }
 }
 
