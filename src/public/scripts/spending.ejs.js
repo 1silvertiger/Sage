@@ -85,11 +85,20 @@ $(document).ready(function () {
 });
 
 function getEntryArray(budgetItem, total) {
-    return [
-        budgetItem.name,
-        total,
-        total < budgetItem.amount ? 'color: #81c784' : 'color: #e57373',
-        budgetItem.amount - total > 0 ? budgetItem.amount - total : 0,
-        'opacity: 0.5; color: #81c784'
-    ];
+    if (total < budgetItem.amount)
+        return [
+            budgetItem.name,
+            total,
+            'color: #81c784',
+            budgetItem.amount - total,
+            'opacity: 0.5; color: #81c784'
+        ];
+    else
+        return [
+            budgetItem.name,
+            budgetItem.amount,
+            'color: #81c784',
+            total - budgetItem.amount,
+            'color: #e57373'
+        ];
 }
