@@ -39,7 +39,7 @@ module.exports = class SpendingDao extends Dao {
             pool.batch('CALL getTotalSpendingByBudgetId(?,?)', params).then(rows => {
                 const data = new Array();
                 for (let i = 0; i < rows.length; i += 2) {
-                    data.push(rows[i].total);
+                    data.push(rows[i][0].total || 0);
                 }
                 resolve(data);
             }).catch(err => {

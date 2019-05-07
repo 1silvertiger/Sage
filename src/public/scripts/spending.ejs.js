@@ -19,25 +19,29 @@ $(document).ready(function () {
 
                 function drawStacked() {
                     const tempData = [
-                        ['Budget', 'Spending', { role: "style" }, 'Budget', { role: "style" }]
+                        ['Budget item', 'Spent', { role: "style" }, 'Remaining', { role: "style" }]
                     ];
 
                     switch ($vm.budgetToShow) {
                         case 'week':
-                            for (const entry of budgetItemsToTransactionItems[0].values())
-                                tempData.push(getEntryArray(entry));
+                            for (let i = 0; i < budgetItemsToTransactionItems.length; i++)
+                                if (user.budgetItems[i].periodId === 2)
+                                    tempData.push(getEntryArray(user.budgetItems[i], budgetItemsToTransactionItems[i]));
                             break;
                         case 'month':
-                        for (const entry of budgetItemsToTransactionItems[1].values())
-                        tempData.push(getEntryArray(entry));
+                            for (let i = 0; i < budgetItemsToTransactionItems.length; i++)
+                                if (user.budgetItems[i].periodId === 3)
+                                    tempData.push(getEntryArray(user.budgetItems[i], budgetItemsToTransactionItems[i]));
                             break;
                         case 'quarter':
-                        for (const entry of budgetItemsToTransactionItems[2].values())
-                                tempData.push(getEntryArray(entry));
+                            for (let i = 0; i < budgetItemsToTransactionItems.length; i++)
+                                if (user.budgetItems[i].periodId === 4)
+                                    tempData.push(getEntryArray(user.budgetItems[i], budgetItemsToTransactionItems[i]));
                             break;
                         case 'year':
-                        for (const entry of budgetItemsToTransactionItems[3].values())
-                                tempData.push(getEntryArray(entry));
+                            for (let i = 0; i < budgetItemsToTransactionItems.length; i++)
+                                if (user.budgetItems[i].periodId === 5)
+                                    tempData.push(getEntryArray(user.budgetItems[i], budgetItemsToTransactionItems[i]));
                             break;
                     }
 
@@ -70,7 +74,7 @@ $(document).ready(function () {
             }
         },
         watch: {
-            budgetToShow: function() {
+            budgetToShow: function () {
                 this.drawSpendingVsBudgetChart();
             }
         },
@@ -80,12 +84,12 @@ $(document).ready(function () {
     });
 });
 
-function getEntryArray(entry) {
+function getEntryArray(budgetItem, total) {
     return [
-        entry.name,
-        entry.total,
-        entry.total < entry.amount ? 'color: #81c784' : 'color: #e57373',
-        entry.amount - entry.total > 0 ? entry.amount - entry.total : 0,
+        budgetItem.name,
+        total,
+        total < budgetItem.amount ? 'color: #81c784' : 'color: #e57373',
+        budgetItem.amount - total > 0 ? budgetItem.amount - total : 0,
         'opacity: 0.5; color: #81c784'
     ];
 }

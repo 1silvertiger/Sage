@@ -279,11 +279,12 @@ app.all('/bills', function (req, res) {
 app.all('/spending', function (req, res) {
     const budgetIds = new Array();
     for(let i = 0; i < req.session.user.budgetItems.length; i++) {
+        const date = moment()
+            .startOf(periodMap[req.session.user.budgetItems[i].periodId])
+            .format('YYYY-MM-DD');
         budgetIds.push([
             req.session.user.budgetItems[i].id, 
-            moment()
-                .startOf(periodMap[req.session.user.budgetItems[i].periodId])
-                .toDate()
+            date
         ]);
     }
     const promises = [

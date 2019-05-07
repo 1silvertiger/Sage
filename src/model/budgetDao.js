@@ -30,7 +30,7 @@ module.exports = class BudgetDao extends Dao {
             }
 
             Promise.all(promises).then(values => {
-                if (values[1].length) {
+                if (values[1] && values[1].length) {
                     const ids = new Array();
                     for (let i = 0; i < values[1].length; i++)
                         ids.push([values[0][0][0].id, values[1][i].id]);
