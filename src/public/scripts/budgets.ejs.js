@@ -17,12 +17,12 @@ $(document).ready(function () {
                     </div>
                     &nbsp;
                     <div class="input-field inline short-input-field">
-                        <select :id="'period' + bi.id">
-                            <option value="1" :selected="bi.periodId === 1">days</option>
-                            <option value="2" :selected="bi.periodId === 2">week(s)</option>
-                            <option value="3" :selected="bi.periodId === 3">month(s)</option>
-                            <option value="4" :selected="bi.periodId === 4">quarter(s)</option>
-                            <option value="5" :selected="bi.periodId === 5">year</option>
+                        <select :id="'period' + bi.id" v-model="bi.periodId">
+                            <option value="1">days</option>
+                            <option value="2">week(s)</option>
+                            <option value="3">month(s)</option>
+                            <option value="4">quarter(s)</option>
+                            <option value="5">year</option>
                         </select>
                     </div>
                     &nbsp;for&nbsp;
@@ -38,7 +38,12 @@ $(document).ready(function () {
                     <a class="modal-close waves-effect waves-green btn-flat">Cancel</a>
                 </div>
             </div>
-        `
+        `,
+        watch: {
+            bi: function() {
+
+            }
+        }
     });
 
     const app = new Vue({

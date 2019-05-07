@@ -1,6 +1,7 @@
 const Dao = require('./dao');
 const TagDao = require('./tagDao');
 const TransactionItem = require('./transactionItem');
+const BudgetItem = require('./budget');
 
 module.exports = class TransactionItemDao extends Dao {
     constructor(pPool) {
@@ -150,6 +151,81 @@ module.exports = class TransactionItemDao extends Dao {
             }).catch(err => {
                 Dao.handleQueryCatch(err);
                 resolve(null);
+            });
+        });
+    }
+
+    getRecentSortedByTag(date) {
+        const pool = this.pool;
+        return new Promise(function (resolve, reject) {
+            pool.query('CALL getRecentTransactionItemsSortedByTag(?)', [date]).then(rows => {
+                const map = new Array();
+                const tempTransactionItems = new Array();
+                let currentTagId = -1;
+                for (let i = 0; i < rows[0].length; i++) {
+                    if (rows[0][i].tagId != currentTagId) {
+                        map.push([currentTagId, tempTransactionItems]);
+                        currentTagId = rows[0][i].tagId;
+                        tempTransactionItems.length = 0;
+                    } else {
+                        tempTransactionItems.push(new TransactionItem(
+                            rows[0][i].id,
+                            rows[0][i].transactionId,
+                            rows[0][i].amount,
+                            rows[0][i].note,
+                            new Date(rows[0][i]),
+                            rows[0][i].defaut === 1,
+                            null
+                        ));
+                    }
+                }
+                resolve(map);
+            }).catch(err => {
+                Dao.handleQueryCatch(err);
+            });
+        });
+    }
+
+    getRecentSortedByBudgetItem(date) {
+        const pool = this.pool;
+        return new Promise(function (resolve, reject) {
+            pool.query('CALL getRecentTransactionItemsSortedByBudgetItem(?)', [date]).then(rows => {
+                const map = new Array();
+                const tempTransactionItems = new Array();
+                let currentBudgetItemId = rows[0][0].budgetItemId;
+                console.log(rows[0].length);
+                for (let i = 0; i < rows[0].length; i++) {
+                    if (rows[0][i].budgetItemId !== currentBudgetItemId) {
+                        map.push([
+                            new BudgetItem(
+                                rows[0][i].budgetItemId,
+                                rows[0][i].userId,
+                                rows[0][i].periodId,
+                                rows[0][i].budgetItemName,
+                                rows[0][i].budgetItemAmount,
+                                rows[0][i].numOfPeriods,
+                                null
+                            ),
+                            tempTransactionItems
+                        ]);
+                        currentBudgetItemId = rows[0][i].budgetItemId;
+                        tempTransactionItems.length = 0;
+                    } else {
+                        tempTransactionItems.push(new TransactionItem(
+                            rows[0][i].transactionItemId,
+                            rows[0][i].transactionId,
+                            rows[0][i].transactionItemAmount,
+                            rows[0][i].note,
+                            new Date(rows[0][i].appliedDate),
+                            rows[0][i].default === 1,
+                            null
+                        ));
+                    }
+                }
+                resolve(map);
+            }).catch(err => {
+                resolve(null);
+                Dao.handleQueryCatch(err);
             });
         });
     }

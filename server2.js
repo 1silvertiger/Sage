@@ -57,6 +57,7 @@ const PiggyBankDao = require('babel-loader!./src/model/piggyBankDao.js');
 const Bill = require('babel-loader!./src/model/bill.js');
 const BillDao = require('babel-loader!./src/model/billDao.js');
 const Tag = require('babel-loader!./src/model/tag.js');
+const SpendingDao = require('babel-loader!./src/model/spendingDao.js');
 
 const GOOGLE_AUTH_CLIENT_ID = '426835960192-m5m68us80b86qg3ilpanmf91gm3ufqk4.apps.googleusercontent.com';
 
@@ -107,6 +108,7 @@ const transactionItemDao = new TransactionItemDao(pool);
 const budgetDao = new BudgetDao(pool);
 const piggyBankDao = new PiggyBankDao(pool);
 const billDao = new BillDao(pool);
+const spendingDao = new SpendingDao(pool);
 
 const app = express();
 const webpackConfig = require('./webpack.config.js');
@@ -131,6 +133,13 @@ app.use(session({
 }));
 
 const cronJobs = new Object();
+const periodMap = {
+    1: 'day',
+    2: 'week',
+    3: 'month',
+    4: 'quarter',
+    5: 'year'
+};
 
 var server;
 
@@ -264,6 +273,31 @@ app.all('/bills', function (req, res) {
     res.render('bills.ejs', {
         URL: config.URL,
         user: req.session.user
+    });
+});
+
+app.all('/spending', function (req, res) {
+    const budgetIds = new Array();
+    for(let i = 0; i < req.session.user.budgetItems.length; i++) {
+        budgetIds.push([
+            req.session.user.budgetItems[i].id, 
+            moment()
+                .startOf(periodMap[req.session.user.budgetItems[i].periodId])
+                .toDate()
+        ]);
+    }
+    const promises = [
+        spendingDao.getTotalByBudgetIdBatch(budgetIds),
+    ];
+    Promise.all(promises).then(values => {
+        res.render('spending.ejs', {
+            URL: config.URL,
+            user: req.session.user,
+            budgetItemsToTransactionItems: values[0],
+            //tagsToTransactionItems: values[1]
+        });
+    }).catch(err => {
+        console.error(err);
     });
 });
 
@@ -674,7 +708,7 @@ function getTransactions(startDate, endDate, accessToken, count, offset) {
                             , transactionsResponse.transactions[i].account_id
                             , transactionsResponse.transactions[i].amount
                             , transactionsResponse.transactions[i].name
-                            , transactionsResponse.transactions[i].date);
+                            , new Date(transactionsResponse.transactions[i].date));
                         // console.log(tempTransaction);
                         newTransactions.push(tempTransaction);
                     }
