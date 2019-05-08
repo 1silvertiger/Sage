@@ -9,7 +9,7 @@ module.exports = class SpendingDao extends Dao {
 
     getRecentTotalsByBudgetId(pDate, pUserId) {
         const pool = this.pool;
-        return new Promise(function(resolve, reject) {
+        return new Promise(function (resolve, reject) {
             pool.query('CALL getRecentTotalsByBudgetItemId(?,?)', [pDate, pUserId]).then(rows => {
                 const budgets = new Array();
                 for (let i = 0; i < rows.length - 1; i++) {
@@ -35,7 +35,7 @@ module.exports = class SpendingDao extends Dao {
 
     getTotalByBudgetIdBatch(params) {
         const pool = this.pool;
-        return new Promise(function(resolve, reject) {
+        return new Promise(function (resolve, reject) {
             pool.batch('CALL getTotalSpendingByBudgetId(?,?)', params).then(rows => {
                 const data = new Array();
                 for (let i = 0; i < rows.length; i += 2) {
@@ -48,4 +48,20 @@ module.exports = class SpendingDao extends Dao {
             });
         });
     }
+
+    getTotalUnbudgetedBatch(params) {
+        const pool = this.pool;
+        return new Promise(function (resolve, reject) {
+            pool.batch('CALL getUnbudgetedSpending(?,?)', params).then(rows => {
+                const data = new Array();
+                for (let i = 0; i < rows.length; i += 2)
+                    data.push(rows[i][0].total || 0);
+                resolve(data);
+            }).catch(err => {
+                resolve(null);
+                Dao.handleQueryCatch(err);
+            });
+        });
+    }
+
 }

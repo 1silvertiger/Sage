@@ -24,24 +24,52 @@ $(document).ready(function () {
 
                     switch ($vm.budgetToShow) {
                         case 'week':
-                            for (let i = 0; i < budgetItemsToTransactionItems.length; i++)
+                            for (let i = 0; i < user.budgetItems.length; i++)
                                 if (user.budgetItems[i].periodId === 2)
-                                    tempData.push(getEntryArray(user.budgetItems[i], budgetItemsToTransactionItems[i]));
+                                    tempData.push(getEntryArray(user.budgetItems[i], budgetItemsTotals[i]));
+                            tempData.push([
+                                'Unbudgeted',
+                                unbudgetedTotals[0],
+                                'color: gray',
+                                0,
+                                'opacity: 1'
+                            ]);
                             break;
                         case 'month':
-                            for (let i = 0; i < budgetItemsToTransactionItems.length; i++)
+                            for (let i = 0; i < user.budgetItems.length; i++)
                                 if (user.budgetItems[i].periodId === 3)
-                                    tempData.push(getEntryArray(user.budgetItems[i], budgetItemsToTransactionItems[i]));
+                                    tempData.push(getEntryArray(user.budgetItems[i], budgetItemsTotals[i]));
+                            tempData.push([
+                                'Unbudgeted',
+                                unbudgetedTotals[1],
+                                'color: gray',
+                                0,
+                                'opacity: 1'
+                            ]);
                             break;
                         case 'quarter':
-                            for (let i = 0; i < budgetItemsToTransactionItems.length; i++)
+                            for (let i = 0; i < user.budgetItems.length; i++)
                                 if (user.budgetItems[i].periodId === 4)
-                                    tempData.push(getEntryArray(user.budgetItems[i], budgetItemsToTransactionItems[i]));
+                                    tempData.push(getEntryArray(user.budgetItems[i], budgetItemsTotals[i]));
+                            tempData.push([
+                                'Unbudgeted',
+                                unbudgetedTotals[2],
+                                'color: gray',
+                                0,
+                                'opacity: 1'
+                            ]);
                             break;
                         case 'year':
-                            for (let i = 0; i < budgetItemsToTransactionItems.length; i++)
+                            for (let i = 0; i < user.budgetItems.length; i++)
                                 if (user.budgetItems[i].periodId === 5)
-                                    tempData.push(getEntryArray(user.budgetItems[i], budgetItemsToTransactionItems[i]));
+                                    tempData.push(getEntryArray(user.budgetItems[i], budgetItemsTotals[i]));
+                            tempData.push([
+                                'Unbudgeted',
+                                unbudgetedTotals[3],
+                                'color: gray',
+                                0,
+                                'opacity: 1'
+                            ]);
                             break;
                     }
 

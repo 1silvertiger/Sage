@@ -278,23 +278,30 @@ app.all('/bills', function (req, res) {
 
 app.all('/spending', function (req, res) {
     const budgetIds = new Array();
-    for(let i = 0; i < req.session.user.budgetItems.length; i++) {
+    for (let i = 0; i < req.session.user.budgetItems.length; i++) {
         const date = moment()
             .startOf(periodMap[req.session.user.budgetItems[i].periodId])
             .format('YYYY-MM-DD');
         budgetIds.push([
-            req.session.user.budgetItems[i].id, 
+            req.session.user.budgetItems[i].id,
             date
         ]);
     }
     const promises = [
         spendingDao.getTotalByBudgetIdBatch(budgetIds),
+        spendingDao.getTotalUnbudgetedBatch([
+            [req.session.user.id, moment().startOf('week').format('YYYY-MM-DD')],
+            [req.session.user.id, moment().startOf('month').format('YYYY-MM-DD')],
+            [req.session.user.id, moment().startOf('quarter').format('YYYY-MM-DD')],
+            [req.session.user.id, moment().startOf('year').format('YYYY-MM-DD')]
+        ])
     ];
     Promise.all(promises).then(values => {
         res.render('spending.ejs', {
             URL: config.URL,
             user: req.session.user,
-            budgetItemsToTransactionItems: values[0],
+            budgetItemsTotals: values[0],
+            unbudgetedTotals: values[1],
             //tagsToTransactionItems: values[1]
         });
     }).catch(err => {
