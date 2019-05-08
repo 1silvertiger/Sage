@@ -287,6 +287,13 @@ app.all('/spending', function (req, res) {
             date
         ]);
     }
+    const tagIds = new Array();
+    for (let i = 0; i < req.session.user.tags.length; i++)
+        tagIds.push([
+            req.session.user.tags[i].id,
+            moment().startOf('week').format('YYYY-MM-DD'),
+            moment().format('YYYY-MM-DD')
+        ]);
     const promises = [
         spendingDao.getTotalByBudgetIdBatch(budgetIds),
         spendingDao.getTotalUnbudgetedBatch([
@@ -294,7 +301,8 @@ app.all('/spending', function (req, res) {
             [req.session.user.id, moment().startOf('month').format('YYYY-MM-DD')],
             [req.session.user.id, moment().startOf('quarter').format('YYYY-MM-DD')],
             [req.session.user.id, moment().startOf('year').format('YYYY-MM-DD')]
-        ])
+        ]),
+        spendingDao.getTotalByTagIdBatch(tagIds)
     ];
     Promise.all(promises).then(values => {
         res.render('spending.ejs', {
@@ -302,7 +310,7 @@ app.all('/spending', function (req, res) {
             user: req.session.user,
             budgetItemsTotals: values[0],
             unbudgetedTotals: values[1],
-            //tagsToTransactionItems: values[1]
+            tagsTotals: values[2]
         });
     }).catch(err => {
         console.error(err);
@@ -348,10 +356,6 @@ app.all('/subscribe', function (req, res) {
 
     userDao.updateVapidSubscription(req.session.user.id, req.body.subscription);
     req.session.user.vapidSubscription = JSON.parse(req.body.subscription);
-
-    // webpush.sendNotification(JSON.parse(req.body.subscription), JSON.stringify({ title: 'test' })).catch(err => {
-    //     console.log(err.stack);
-    // });
 });
 
 app.all('/refreshUser', function (req, res) {
@@ -497,6 +501,22 @@ app.all('/saveTransactionItems', function (req, res) {
     }).catch(err => {
         res.sendStatus(500);
         console.log(err);
+    });
+});
+
+app.all('/getTagsTotals', function (req, res) {
+    const tagIds = new Array();
+    for (let i = 0; i < req.session.user.tags.length; i++)
+        tagIds.push([
+            req.session.user.tags[i].id,
+            moment(req.body.fromDate).format('YYYY-MM-DD'),
+            moment(req.body.toDate).format('YYYY-MM-DD')
+        ]);
+    spendingDao.getTotalByTagIdBatch(tagIds).then(totals => {
+        res.json(totals);
+    }).catch(err => {
+        res.sendStatus(500);
+        console.error(err);
     });
 });
 

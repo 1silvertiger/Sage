@@ -3,15 +3,100 @@ $(document).ready(function () {
         el: '#app',
         data: {
             user: user,
-            budgetToShow: 'week'
+            budgetToShow: 'week',
+            fromDate: moment().startOf('week').toDate(),
+            toDate: moment().toDate(),
+            tagsTotals: tagsTotals
         },
         mounted: function () {
+            $vm = this;
             //Selects
             M.FormSelect.init(document.querySelector('#budgetSelect', new Object()));
 
+            //Date pickers
+            M.Datepicker.init(document.querySelector('#from'), {
+                autoClose: true,
+                defaultDate: moment().startOf('week').toDate(),
+                setDefaultDate: true,
+                minDate: moment().startOf('year').toDate(),
+                container: document.querySelector('#app'),
+                onSelect: function (newDate) {
+                    $vm.fromDate = newDate;
+                    $vm.getTagsTotals();
+                }
+            });
+            M.Datepicker.init(document.querySelector('#to'), {
+                autoClose: true,
+                defaultDate: moment().toDate(),
+                setDefaultDate: true,
+                minDate: moment().startOf('year').add(1, 'weeks').toDate(),
+                container: document.querySelector('#app'),
+                onSelect: function (newDate) {
+                    $vm.toDate = newDate;
+                    $vm.getTagsTotals();
+                }
+            });
+
             this.drawSpendingVsBudgetChart();
+            this.drawSpendingByTagsChart();
         },
         methods: {
+            getTagsTotals: function () {
+                const $vm = this;
+                return new Promise(function(resolve, reject) {
+                    $.ajax({
+                        url: URL + '/getTagsTotals',
+                        type: 'POST',
+                        data: JSON.stringify({ 
+                            fromDate: $vm.fromDate, 
+                            toDate: $vm.toDate 
+                        }),
+                        dataType: 'json',
+                        contentType: 'application/json',
+                        success: function(totals) {
+                            $vm.tagsTotals = totals;
+                            $vm.drawSpendingByTagsChart();
+                        }
+                    });
+                });
+            },
+            drawSpendingByTagsChart: function () {
+                const $vm = this;
+
+                google.charts.load('current', { packages: ['corechart', 'bar'] });
+                google.charts.setOnLoadCallback(drawStacked);
+
+                function drawStacked() {
+                    const tempData = [
+                        ['Tag', 'Spending', { role: 'style' }]
+                    ];
+
+                    for (let i = 0; i < $vm.tagsTotals.length; i++) {
+                        if ($vm.tagsTotals[i] > 0)
+                            tempData.push([
+                                user.tags[i].name,
+                                $vm.tagsTotals[i],
+                                'color: #81c784'
+                            ]);
+                    }
+
+                    const data = google.visualization.arrayToDataTable(tempData);
+
+                    var options = {
+                        title: '',
+                        chartArea: { width: '50%' },
+                        hAxis: {
+                            title: 'Spending',
+                            minValue: 0,
+                        },
+                        vAxis: {
+                            title: 'Tags'
+                        }
+                    };
+                    var chart = new google.visualization.BarChart(document.getElementById('spendingByTagsChart'));
+                    chart.draw(data, options);
+                }
+            },
             drawSpendingVsBudgetChart: function () {
                 const $vm = this;
                 google.charts.load('current', { packages: ['corechart', 'bar'] });
@@ -72,15 +157,6 @@ $(document).ready(function () {
                             ]);
                             break;
                     }
-
-                    // var data = google.visualization.arrayToDataTable([
-                    //     ['Budget', 'Spending', 'Budget'],
-                    //     ['New York City, NY', 8175000, 8008000],
-                    //     ['Los Angeles, CA', 3792000, 3694000],
-                    //     ['Chicago, IL', 2695000, 2896000],
-                    //     ['Houston, TX', 2099000, 1953000],
-                    //     ['Philadelphia, PA', 1526000, 1517000]
-                    // ]);
 
                     const data = google.visualization.arrayToDataTable(tempData);
 

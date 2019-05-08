@@ -64,4 +64,18 @@ module.exports = class SpendingDao extends Dao {
         });
     }
 
+    getTotalByTagIdBatch(params) {
+        const pool = this.pool;
+        return new Promise(function (resolve, reject) {
+            pool.batch('CALL getTotalSpendingByTagId(?,?,?)', params).then(rows => {
+                const data = new Array();
+                for (let i = 0; i < rows.length; i += 2)
+                    data.push(rows[i][0].total);
+                resolve(data);
+            }).catch(err => {
+                resolve(null);
+                Dao.handleQueryCatch(err);
+            });
+        });
+    }
 }
