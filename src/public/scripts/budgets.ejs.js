@@ -27,7 +27,7 @@ $(document).ready(function () {
                     </div>
                     &nbsp;for&nbsp;
                     <div class="input-field inline">
-                        <input type="text" class="validate short-input-field" placeholder="expense"
+                        <input type="text" class="validate" placeholder="expense"
                             v-model="bi.name">
                     </div>
                     <div id="updateTags" class="chips chips-initial"></div>
@@ -38,12 +38,7 @@ $(document).ready(function () {
                     <a class="modal-close waves-effect waves-green btn-flat">Cancel</a>
                 </div>
             </div>
-        `,
-        watch: {
-            bi: function() {
-
-            }
-        }
+        `
     });
 
     const app = new Vue({
@@ -68,12 +63,16 @@ $(document).ready(function () {
 
             //Add new tags
             M.Chips.init(document.querySelector('#addNewTags'), {
-                autocompleteOptions: autocompleteOptions
+                autocompleteOptions: autocompleteOptions,
+                placeholder: 'Add tags',
+                secondaryPlaceholder: 'Add more tags'
             });
 
             //Update tags
             M.Chips.init(document.querySelector('#updateTags'), {
-                autocompleteOptions: autocompleteOptions
+                autocompleteOptions: autocompleteOptions,
+                placeholder: 'Add tags',
+                secondaryPlaceholder: 'Add more tags'
             });
 
             //Select

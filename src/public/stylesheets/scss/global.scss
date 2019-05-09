@@ -10,7 +10,8 @@ body {
     width: 100%;
 }
 
-.donut-chart, .bar-chart {
+.donut-chart,
+.bar-chart {
     min-height: 450px;
 }
 
@@ -32,9 +33,11 @@ body {
         padding: 2%;
     }
 
-    position: absolute;
-    top:0;
-    display: inline-block;
+    span {
+        position: absolute;
+        top: 0;
+        display: inline-block;
+    }
 }
 
 .carousel {
@@ -69,19 +72,14 @@ body {
     }
 
     .nav-wrapper.container {
-        width: 100%;
-
         .brand-logo {
+            left: 20%;
             img.responsive-img {
                 // width: 116px;
                 height: 30px;
                 object-fit: scale-down;
                 padding: 2%;
             }
-
-            position: absolute;
-            top:0;
-            display: inline-block;
         }
     }
 }

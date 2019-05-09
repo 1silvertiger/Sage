@@ -4,7 +4,7 @@ $(document).ready(function () {
         props: ['bill', 'user'],
         data: function () {
             return {
-                billNotificationToCreate: new Object(),
+                billNotificationToCreate: { periodId: 1 },
                 billToUpdate: Object.assign(new Object(), this.bill),
                 onceAround: false
             }
@@ -51,7 +51,7 @@ $(document).ready(function () {
                 $vm = this;
                 $vm.billToUpdate = Object.assign(new Object(), $vm.bill);
                 this.billToUpdate.notifications = this.bill.notifications.slice(0, this.bill.notifications.length);
-                this.billNotificationToCreate = new Object();
+                this.billNotificationToCreate = { periodId: 1 };
                 const carousel = M.Carousel.getInstance(document.querySelector('#editBillCarousel' + $vm.bill.id));
                 carousel.set(0);
             },
@@ -141,7 +141,7 @@ $(document).ready(function () {
                                             </td>
                                             <td>
                                                 <a class="waves-effect btn-flat"
-                                                    v-on:click="billToUpdate.notifications.push(billNotificationToCreate); billNotificationToCreate = new Object();">Add</a>
+                                                    v-on:click="billToUpdate.notifications.push(billNotificationToCreate); billNotificationToCreate = { periodId: 1 };">Add</a>
                                             </td>
                                         </tr>
                                     </tbody>
