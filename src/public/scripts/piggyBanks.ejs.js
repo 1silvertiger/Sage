@@ -6,7 +6,12 @@ $(document).ready(function () {
         data: {
             user: user,
             piggyBanksToDelete: new Array(),
-            piggyBankToCreate: { userId: user.id, tags: new Array(), balance: 0 }
+            piggyBankToCreate: {
+                userId: user.id,
+                tags: new Array(),
+                balance: 0,
+                accountId: user.items[0].accounts[0].id
+            }
         },
         mounted: function () {
             const $vm = this;
