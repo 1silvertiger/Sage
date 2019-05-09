@@ -222,14 +222,11 @@ $(document).ready(function () {
             billsToDelete: new Array(),
             billToCreate: { userId: user.id, autoPay: false, weekDay: false, notifications: new Array() },
             billToUpdate: new Object(),
-            billNotificationToCreate: {},
+            billNotificationToCreate: { periodId: 1 },
             onceAround: false
         },
         mounted: function () {
             const $vm = this;
-
-            //Modals
-            // M.Modal.init(document.querySelectorAll('.modal'), { preventScrolling: true });
 
             //Carousel
             M.Carousel.init(document.querySelector('#addBillCarousel'), {
@@ -295,8 +292,8 @@ $(document).ready(function () {
                 });
             },
             addNotificationToCreate: function () {
-                billToCreate.notifications.push(billNotificationToCreate);
-                billNotificationToCreate = new Object();
+                this.billToCreate.notifications.push(Object.assign(new Object(), this.billNotificationToCreate));
+                this.billNotificationToCreate = { periodId: 1 };
             },
             setBillToUpdate: function (bill) {
                 if (bill.id === this.billToUpdate.id)
@@ -310,17 +307,7 @@ $(document).ready(function () {
             getFormattedCurrency: function (amount) {
                 return numeral(amount).format('$0,0.00');
             }
-        },
-        // computed: {
-        //     lateBills: function () {
-        //         // return user.bills.filter(bill => (bill.dueDate > new Date()) - (bill.dueDate < new Date()));
-        //         return user.bills.filter(bill => {
-        //             const now = new Date();
-        //             const temp = new Date(bill.dueDate) < now;
-        //             return temp;
-        //         });
-        //     }
-        // }
+        }
     });
 });
 
