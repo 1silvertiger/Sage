@@ -27,23 +27,28 @@ $(document).ready(function () {
             M.Collapsible.init(document.querySelectorAll('.collapsible'), {});
 
             //Chips
-            const tags = {};
-            for (let i = 0; i < user.tags.length; i++) {
-                tags[user.tags[i].name] = user.tags[i].id
-            }
-            M.Chips.init(document.querySelectorAll('.chips'), {
-                autocompleteOptions: tags,
-                onChipAdd: function () {
-                    const temp = M.Chips.getInstance(document.querySelector('#addTags')).chipsData;
-                    const temp2 = {
-                        userId: user.id,
-                        name: M.Chips.getInstance(document.querySelector('#addTags')).chipsData[$vm.piggyBankToCreate.tags.length].tag
-                    };
-                    const temp3 = $vm.piggyBankToCreate;
-                    newPiggyBankTags.push(temp2);
-                    $vm.piggyBankToCreate.tags.push(temp2);
-                }
+            //Autocomplete options
+            const autocompleteOptions = { data: new Object() };
+            for (let i = 0; i < user.tags.length; i++)
+                autocompleteOptions.data[user.tags[i].name] = null;
+
+            M.Chips.init(document.querySelector('#addTags'), {
+                autocompleteOptions: autocompleteOptions,
+                placeholder: 'Add tags',
+                secondaryPlaceholder: 'Add more tags'
             });
+
+            for (let i = 0; i < user.piggyBanks.length; i++) {
+                const tempTags = new Array();
+                for (let j = 0; j < user.piggyBanks[i].tags.length; j++)
+                    tempTags.push({ tag: user.piggyBanks[i].tags[j].name });
+                M.Chips.init(document.querySelector('#updateTags-' + user.piggyBanks[i].id), {
+                    data: tempTags,
+                    autocompleteOptions: autocompleteOptions,
+                    placeholder: 'Add tags',
+                    secondaryPlaceholder: 'Add more tags'
+                });
+            }
 
             //Modals
             M.Modal.init(document.querySelectorAll('.modal'), { preventScrolling: true });
@@ -57,6 +62,13 @@ $(document).ready(function () {
                 return {};
             },
             createOrUpdatePiggyBank: function (piggyBank) {
+                const tagNames = new Array();
+                const chips = M.Chips.getInstance(
+                    document.querySelector(piggyBank.id ? '#updateTags-'.concat(piggyBank.id) : '#addTags')
+                );
+                for (let i = 0; i < chips.chipsData.length; i++)
+                    tagNames.push(chips.chipsData[i].tag);
+                piggyBank.tags = getTagsFromNames(tagNames);
                 $.ajax({
                     url: URL + '/createOrUpdatePiggyBank',
                     type: 'POST',

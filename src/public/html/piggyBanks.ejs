@@ -81,7 +81,7 @@
                                             :max="getAccountById(piggyBankToCreate.accountId).currentBalance || 100"
                                             value="0" v-model="piggyBankToCreate.balance"></p>
                                     <label for="#addBalance">Balance to add:
-                                        $&nbsp;{{ piggyBankToCreate.balance }}/</label>
+                                        $&nbsp;{{ piggyBankToCreate.balance }}</label>
                                     <br>
                                     $<input type="number" id="addGoal" class="input-field inline short-input-field"
                                         placeholder="0" v-model="piggyBankToCreate.goal">
@@ -138,7 +138,7 @@
                     <li>
                         <div class="collapsible-header">Tags</div>
                         <div class="collapsible-body">
-                            <div id="addTags" class="chips chips-autocomplete"></div>
+                            <div :id="'updateTags-' + pb.id" class="chips chips-autocomplete"></div>
                         </div>
                     </li>
                 </ul>
