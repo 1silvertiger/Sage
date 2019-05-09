@@ -28,14 +28,16 @@ module.exports = class PiggyBankDao extends Dao {
                 promises.push(tagDao.createOrUpdateBatch(piggyBank.tags));
 
             Promise.all(promises).then(values => {
+                const ids = new Array();
                 if (values[1] && values[1].length) {
-                    const ids = new Array();
                     for (let i = 0; i < values[1].length; i++)
                         ids.push([values[0][0][0].id, values[1][i].id]);
-                    tagDao.tagPiggyBank(ids).catch(err => {
-                        Dao.handleQueryCatch(err);
-                    });
+                } else {
+                    ids.push([values[0][0][0].id])
                 }
+                tagDao.tagPiggyBank(ids).catch(err => {
+                    Dao.handleQueryCatch(err);
+                });
 
                 const temp = new PiggyBank(
                     values[0][0][0].id,
