@@ -91,7 +91,8 @@ $(document).ready(function () {
                         },
                         vAxis: {
                             title: 'Tags'
-                        }
+                        },
+                        legend: 'none'
                     };
                     var chart = new google.visualization.BarChart(document.getElementById('spendingByTagsChart'));
                     chart.draw(data, options);
@@ -115,7 +116,7 @@ $(document).ready(function () {
                             tempData.push([
                                 'Unbudgeted',
                                 unbudgetedTotals[0],
-                                'color: gray',
+                                'color: #e57373',
                                 0,
                                 'opacity: 1'
                             ]);
@@ -127,7 +128,7 @@ $(document).ready(function () {
                             tempData.push([
                                 'Unbudgeted',
                                 unbudgetedTotals[1],
-                                'color: gray',
+                                'color: #e57373',
                                 0,
                                 'opacity: 1'
                             ]);
@@ -139,7 +140,7 @@ $(document).ready(function () {
                             tempData.push([
                                 'Unbudgeted',
                                 unbudgetedTotals[2],
-                                'color: gray',
+                                'color: #e57373',
                                 0,
                                 'opacity: 1'
                             ]);
@@ -151,7 +152,7 @@ $(document).ready(function () {
                             tempData.push([
                                 'Unbudgeted',
                                 unbudgetedTotals[3],
-                                'color: gray',
+                                'color: #e57373',
                                 0,
                                 'opacity: 1'
                             ]);
@@ -170,7 +171,8 @@ $(document).ready(function () {
                         },
                         vAxis: {
                             title: 'Budget item'
-                        }
+                        },
+                        legend: 'none'
                     };
                     var chart = new google.visualization.BarChart(document.getElementById('spendingVsBudgetChart'));
                     chart.draw(data, options);
