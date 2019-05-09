@@ -62,6 +62,7 @@ $(document).ready(function () {
                 return {};
             },
             createOrUpdatePiggyBank: function (piggyBank) {
+                const $vm = this;
                 const tagNames = new Array();
                 const chips = M.Chips.getInstance(
                     document.querySelector(piggyBank.id ? '#updateTags-'.concat(piggyBank.id) : '#addTags')
@@ -76,7 +77,14 @@ $(document).ready(function () {
                     dataType: 'json',
                     contentType: 'application/json',
                     success: function (newPiggyBank) {
-                        refreshUser().catch(err => {
+                        refreshUser().then(refreshedUser => {
+                            $vm.piggyBankToCreate = {
+                                userId: user.id,
+                                tags: new Array(),
+                                balance: 0,
+                                accountId: user.items[0].accounts[0].id
+                            };
+                        }).catch(err => {
                             user.piggyBanks.push(JSON.parse(newPiggyBank));
                         }).finally(() => {
                             // Initialize new Materialize elements

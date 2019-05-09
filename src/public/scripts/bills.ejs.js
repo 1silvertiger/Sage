@@ -257,6 +257,7 @@ $(document).ready(function () {
                 return temp;
             },
             createOrUpdateBill: function (bill) {
+                const $vm = this;
                 $.ajax({
                     url: URL + '/createOrUpdateBill',
                     type: 'POST',
@@ -264,7 +265,14 @@ $(document).ready(function () {
                     dataType: 'json',
                     contentType: 'application/json',
                     success: function (newBill) {
-                        refreshUser().catch(err => {
+                        refreshUser().then(refreshedUser => {
+                            $vm.billToCreate = {
+                                userId: user.id,
+                                autoPay: false,
+                                weekDay: false,
+                                notifications: new Array()
+                            };
+                        }).catch(err => {
                             user.bills.push(JSON.parse(newBill));
                         });
                     },
