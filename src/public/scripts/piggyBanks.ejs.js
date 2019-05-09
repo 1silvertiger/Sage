@@ -78,6 +78,27 @@ $(document).ready(function () {
                     success: function (newPiggyBank) {
                         refreshUser().catch(err => {
                             user.piggyBanks.push(JSON.parse(newPiggyBank));
+                        }).finally(() => {
+                            // Initialize new Materialize elements
+                            const autocompleteOptions = { data: new Object() };
+                            for (let i = 0; i < user.tags.length; i++)
+                                autocompleteOptions.data[user.tags[i].name] = null;
+                            const temp = JSON.parse(newPiggyBank);
+                            const tempTags = new Array();
+                            for (let j = 0; j < temp.tags.length; j++)
+                                tempTags.push({ tag: temp.name });
+                            M.Chips.init(document.querySelector('#updateTags-' + temp.id), {
+                                data: tempTags,
+                                autocompleteOptions: autocompleteOptions,
+                                placeholder: 'Add tags',
+                                secondaryPlaceholder: 'Add more tags'
+                            });
+
+                            M.FormSelect.init(document.querySelectorAll('select'), {});
+                            M.Collapsible.init(document.querySelectorAll('.collapsible'), {});
+                            M.Modal.init(document.querySelectorAll('.modal'), {
+                                preventScrolling: true
+                            });
                         });
                     },
                     error: function (jqxhr, status, error) {
