@@ -57,6 +57,7 @@ const PiggyBankDao = require('babel-loader!./src/model/piggyBankDao.js');
 const Bill = require('babel-loader!./src/model/bill.js');
 const BillDao = require('babel-loader!./src/model/billDao.js');
 const Tag = require('babel-loader!./src/model/tag.js');
+const SpendingDao = require('babel-loader!./src/model/spendingDao.js');
 
 const GOOGLE_AUTH_CLIENT_ID = '426835960192-m5m68us80b86qg3ilpanmf91gm3ufqk4.apps.googleusercontent.com';
 
@@ -107,6 +108,7 @@ const transactionItemDao = new TransactionItemDao(pool);
 const budgetDao = new BudgetDao(pool);
 const piggyBankDao = new PiggyBankDao(pool);
 const billDao = new BillDao(pool);
+const spendingDao = new SpendingDao(pool);
 
 const app = express();
 const webpackConfig = require('./webpack.config.js');
@@ -131,6 +133,13 @@ app.use(session({
 }));
 
 const cronJobs = new Object();
+const periodMap = {
+    1: 'day',
+    2: 'week',
+    3: 'month',
+    4: 'quarter',
+    5: 'year'
+};
 
 var server;
 
@@ -267,6 +276,47 @@ app.all('/bills', function (req, res) {
     });
 });
 
+app.all('/spending', function (req, res) {
+    const budgetIds = new Array();
+    for (let i = 0; i < req.session.user.budgetItems.length; i++) {
+        const date = moment()
+            .startOf(periodMap[req.session.user.budgetItems[i].periodId])
+            .format('YYYY-MM-DD');
+        budgetIds.push([
+            req.session.user.budgetItems[i].id,
+            date
+        ]);
+    }
+    const tagIds = new Array();
+    for (let i = 0; i < req.session.user.tags.length; i++)
+        tagIds.push([
+            req.session.user.tags[i].id,
+            moment().startOf('week').format('YYYY-MM-DD'),
+            moment().format('YYYY-MM-DD')
+        ]);
+    const promises = [
+        spendingDao.getTotalByBudgetIdBatch(budgetIds),
+        spendingDao.getTotalUnbudgetedBatch([
+            [req.session.user.id, moment().startOf('week').format('YYYY-MM-DD')],
+            [req.session.user.id, moment().startOf('month').format('YYYY-MM-DD')],
+            [req.session.user.id, moment().startOf('quarter').format('YYYY-MM-DD')],
+            [req.session.user.id, moment().startOf('year').format('YYYY-MM-DD')]
+        ]),
+        spendingDao.getTotalByTagIdBatch(tagIds)
+    ];
+    Promise.all(promises).then(values => {
+        res.render('spending.ejs', {
+            URL: config.URL,
+            user: req.session.user,
+            budgetItemsTotals: values[0],
+            unbudgetedTotals: values[1],
+            tagsTotals: values[2]
+        });
+    }).catch(err => {
+        console.error(err);
+    });
+});
+
 //\\//\\//\\//\\API//\\//\\//\\//\\
 // Sign in
 app.post('/tokensignin', function (req, res) {
@@ -306,10 +356,6 @@ app.all('/subscribe', function (req, res) {
 
     userDao.updateVapidSubscription(req.session.user.id, req.body.subscription);
     req.session.user.vapidSubscription = JSON.parse(req.body.subscription);
-
-    // webpush.sendNotification(JSON.parse(req.body.subscription), JSON.stringify({ title: 'test' })).catch(err => {
-    //     console.log(err.stack);
-    // });
 });
 
 app.all('/refreshUser', function (req, res) {
@@ -455,6 +501,22 @@ app.all('/saveTransactionItems', function (req, res) {
     }).catch(err => {
         res.sendStatus(500);
         console.log(err);
+    });
+});
+
+app.all('/getTagsTotals', function (req, res) {
+    const tagIds = new Array();
+    for (let i = 0; i < req.session.user.tags.length; i++)
+        tagIds.push([
+            req.session.user.tags[i].id,
+            moment(req.body.fromDate).format('YYYY-MM-DD'),
+            moment(req.body.toDate).format('YYYY-MM-DD')
+        ]);
+    spendingDao.getTotalByTagIdBatch(tagIds).then(totals => {
+        res.json(totals);
+    }).catch(err => {
+        res.sendStatus(500);
+        console.error(err);
     });
 });
 
@@ -674,7 +736,7 @@ function getTransactions(startDate, endDate, accessToken, count, offset) {
                             , transactionsResponse.transactions[i].account_id
                             , transactionsResponse.transactions[i].amount
                             , transactionsResponse.transactions[i].name
-                            , transactionsResponse.transactions[i].date);
+                            , new Date(transactionsResponse.transactions[i].date));
                         // console.log(tempTransaction);
                         newTransactions.push(tempTransaction);
                     }

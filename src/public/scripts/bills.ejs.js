@@ -4,7 +4,7 @@ $(document).ready(function () {
         props: ['bill', 'user'],
         data: function () {
             return {
-                billNotificationToCreate: new Object(),
+                billNotificationToCreate: { periodId: 1 },
                 billToUpdate: Object.assign(new Object(), this.bill),
                 onceAround: false
             }
@@ -51,7 +51,7 @@ $(document).ready(function () {
                 $vm = this;
                 $vm.billToUpdate = Object.assign(new Object(), $vm.bill);
                 this.billToUpdate.notifications = this.bill.notifications.slice(0, this.bill.notifications.length);
-                this.billNotificationToCreate = new Object();
+                this.billNotificationToCreate = { periodId: 1 };
                 const carousel = M.Carousel.getInstance(document.querySelector('#editBillCarousel' + $vm.bill.id));
                 carousel.set(0);
             },
@@ -141,7 +141,7 @@ $(document).ready(function () {
                                             </td>
                                             <td>
                                                 <a class="waves-effect btn-flat"
-                                                    v-on:click="billToUpdate.notifications.push(billNotificationToCreate); billNotificationToCreate = new Object();">Add</a>
+                                                    v-on:click="billToUpdate.notifications.push(billNotificationToCreate); billNotificationToCreate = { periodId: 1 };">Add</a>
                                             </td>
                                         </tr>
                                     </tbody>
@@ -222,14 +222,11 @@ $(document).ready(function () {
             billsToDelete: new Array(),
             billToCreate: { userId: user.id, autoPay: false, weekDay: false, notifications: new Array() },
             billToUpdate: new Object(),
-            billNotificationToCreate: {},
+            billNotificationToCreate: { periodId: 1 },
             onceAround: false
         },
         mounted: function () {
             const $vm = this;
-
-            //Modals
-            // M.Modal.init(document.querySelectorAll('.modal'), { preventScrolling: true });
 
             //Carousel
             M.Carousel.init(document.querySelector('#addBillCarousel'), {
@@ -260,6 +257,7 @@ $(document).ready(function () {
                 return temp;
             },
             createOrUpdateBill: function (bill) {
+                const $vm = this;
                 $.ajax({
                     url: URL + '/createOrUpdateBill',
                     type: 'POST',
@@ -267,7 +265,14 @@ $(document).ready(function () {
                     dataType: 'json',
                     contentType: 'application/json',
                     success: function (newBill) {
-                        refreshUser().catch(err => {
+                        refreshUser().then(refreshedUser => {
+                            $vm.billToCreate = {
+                                userId: user.id,
+                                autoPay: false,
+                                weekDay: false,
+                                notifications: new Array()
+                            };
+                        }).catch(err => {
                             user.bills.push(JSON.parse(newBill));
                         });
                     },
@@ -295,8 +300,8 @@ $(document).ready(function () {
                 });
             },
             addNotificationToCreate: function () {
-                billToCreate.notifications.push(billNotificationToCreate);
-                billNotificationToCreate = new Object();
+                this.billToCreate.notifications.push(Object.assign(new Object(), this.billNotificationToCreate));
+                this.billNotificationToCreate = { periodId: 1 };
             },
             setBillToUpdate: function (bill) {
                 if (bill.id === this.billToUpdate.id)
@@ -310,17 +315,7 @@ $(document).ready(function () {
             getFormattedCurrency: function (amount) {
                 return numeral(amount).format('$0,0.00');
             }
-        },
-        // computed: {
-        //     lateBills: function () {
-        //         // return user.bills.filter(bill => (bill.dueDate > new Date()) - (bill.dueDate < new Date()));
-        //         return user.bills.filter(bill => {
-        //             const now = new Date();
-        //             const temp = new Date(bill.dueDate) < now;
-        //             return temp;
-        //         });
-        //     }
-        // }
+        }
     });
 });
 

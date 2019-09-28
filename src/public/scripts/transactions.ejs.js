@@ -17,7 +17,7 @@ $(document).ready(function () {
             const $vm = this;
 
             //Modals
-            M.Modal.init(document.querySelector('.modal'), {
+            M.Modal.init(document.querySelector('#modal-' + this.transaction.id), {
                 preventScrolling: true,
                 dismissable: true,
             });
@@ -122,6 +122,13 @@ $(document).ready(function () {
             },
             save: function () {
                 const $vm = this;
+                for (let i = 0; i < this.transactionItems.length; i++) {
+                    const chips = M.Chips.getInstance(document.querySelector('#tags-'.concat(i, '-', this.transaction.id)));
+                    const tagNames = new Array();
+                    for (let j = 0; j < chips.chipsData.length; j++)
+                        tagNames.push(chips.chipsData[j].tag);
+                    this.transaction.transactionItems[i].tags = getTagsFromNames(tagNames);
+                }
                 $.ajax({
                     url: URL + '/saveTransactionItems',
                     type: 'POST',
@@ -164,7 +171,10 @@ $(document).ready(function () {
             transactionItemsToCreate: new Array()
         },
         mounted: function () {
-
+            // M.Modal.init(document.querySelector('.modal'), {
+            //     preventScrolling: true,
+            //     dismissable: true,
+            // });
         },
         methods: {
             getFormattedDate: function (date) {

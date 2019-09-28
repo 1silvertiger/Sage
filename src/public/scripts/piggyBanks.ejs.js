@@ -6,7 +6,12 @@ $(document).ready(function () {
         data: {
             user: user,
             piggyBanksToDelete: new Array(),
-            piggyBankToCreate: { userId: user.id, tags: new Array(), balance: 0 }
+            piggyBankToCreate: {
+                userId: user.id,
+                tags: new Array(),
+                balance: 0,
+                accountId: user.items[0].accounts[0].id
+            }
         },
         mounted: function () {
             const $vm = this;
@@ -22,23 +27,28 @@ $(document).ready(function () {
             M.Collapsible.init(document.querySelectorAll('.collapsible'), {});
 
             //Chips
-            const tags = {};
-            for (let i = 0; i < user.tags.length; i++) {
-                tags[user.tags[i].name] = user.tags[i].id
-            }
-            M.Chips.init(document.querySelectorAll('.chips'), {
-                autocompleteOptions: tags,
-                onChipAdd: function () {
-                    const temp = M.Chips.getInstance(document.querySelector('#addTags')).chipsData;
-                    const temp2 = {
-                        userId: user.id,
-                        name: M.Chips.getInstance(document.querySelector('#addTags')).chipsData[$vm.piggyBankToCreate.tags.length].tag
-                    };
-                    const temp3 = $vm.piggyBankToCreate;
-                    newPiggyBankTags.push(temp2);
-                    $vm.piggyBankToCreate.tags.push(temp2);
-                }
+            //Autocomplete options
+            const autocompleteOptions = { data: new Object() };
+            for (let i = 0; i < user.tags.length; i++)
+                autocompleteOptions.data[user.tags[i].name] = null;
+
+            M.Chips.init(document.querySelector('#addTags'), {
+                autocompleteOptions: autocompleteOptions,
+                placeholder: 'Add tags',
+                secondaryPlaceholder: 'Add more tags'
             });
+
+            for (let i = 0; i < user.piggyBanks.length; i++) {
+                const tempTags = new Array();
+                for (let j = 0; j < user.piggyBanks[i].tags.length; j++)
+                    tempTags.push({ tag: user.piggyBanks[i].tags[j].name });
+                M.Chips.init(document.querySelector('#updateTags-' + user.piggyBanks[i].id), {
+                    data: tempTags,
+                    autocompleteOptions: autocompleteOptions,
+                    placeholder: 'Add tags',
+                    secondaryPlaceholder: 'Add more tags'
+                });
+            }
 
             //Modals
             M.Modal.init(document.querySelectorAll('.modal'), { preventScrolling: true });
@@ -52,6 +62,14 @@ $(document).ready(function () {
                 return {};
             },
             createOrUpdatePiggyBank: function (piggyBank) {
+                const $vm = this;
+                const tagNames = new Array();
+                const chips = M.Chips.getInstance(
+                    document.querySelector(piggyBank.id ? '#updateTags-'.concat(piggyBank.id) : '#addTags')
+                );
+                for (let i = 0; i < chips.chipsData.length; i++)
+                    tagNames.push(chips.chipsData[i].tag);
+                piggyBank.tags = getTagsFromNames(tagNames);
                 $.ajax({
                     url: URL + '/createOrUpdatePiggyBank',
                     type: 'POST',
@@ -59,8 +77,36 @@ $(document).ready(function () {
                     dataType: 'json',
                     contentType: 'application/json',
                     success: function (newPiggyBank) {
-                        refreshUser().catch(err => {
+                        refreshUser().then(refreshedUser => {
+                            $vm.piggyBankToCreate = {
+                                userId: user.id,
+                                tags: new Array(),
+                                balance: 0,
+                                accountId: user.items[0].accounts[0].id
+                            };
+                        }).catch(err => {
                             user.piggyBanks.push(JSON.parse(newPiggyBank));
+                        }).finally(() => {
+                            // Initialize new Materialize elements
+                            const autocompleteOptions = { data: new Object() };
+                            for (let i = 0; i < user.tags.length; i++)
+                                autocompleteOptions.data[user.tags[i].name] = null;
+                            const temp = JSON.parse(newPiggyBank);
+                            const tempTags = new Array();
+                            for (let j = 0; j < temp.tags.length; j++)
+                                tempTags.push({ tag: temp.name });
+                            M.Chips.init(document.querySelector('#updateTags-' + temp.id), {
+                                data: tempTags,
+                                autocompleteOptions: autocompleteOptions,
+                                placeholder: 'Add tags',
+                                secondaryPlaceholder: 'Add more tags'
+                            });
+
+                            M.FormSelect.init(document.querySelectorAll('select'), {});
+                            M.Collapsible.init(document.querySelectorAll('.collapsible'), {});
+                            M.Modal.init(document.querySelectorAll('.modal'), {
+                                preventScrolling: true
+                            });
                         });
                     },
                     error: function (jqxhr, status, error) {
